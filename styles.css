@@ -278,7 +278,7 @@
     }
 
     .services h1 {
-        font-size: 2rem;
+        font-size: 0.5rem;
         margin-top: 12rem;
     }
 }
@@ -1288,6 +1288,7 @@
     display: block;
     /* 確保它們是顯示的 */
 }
+
 
 
 
