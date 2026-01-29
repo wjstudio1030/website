@@ -175,15 +175,6 @@
 /* --- 1. 平板與窄螢幕筆電 (960px) --- */
 @media screen and (max-width: 960px) {
 
-    /* 自定義指標隱藏：手機版不需要，避免擋住點擊 */
-    .cursor,
-    .cursor-follower {
-        display: none !important;
-    }
-
-    * {
-        cursor: auto !important;
-    }
 
     /* Navbar 導航欄邏輯 */
     .navbar__container {
