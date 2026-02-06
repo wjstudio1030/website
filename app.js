@@ -41,13 +41,28 @@ navLinks.forEach(n => n.addEventListener('click', () => {
 }));
 
 
-// --- 2. 滑鼠追蹤邏輯 (優化效能) ---
+// --- 2. 滑鼠追蹤邏輯 (深度修正版) ---
 let mouseX = 0, mouseY = 0;
 let cursorX = 0, cursorY = 0;
 
+// --- 2. 滑鼠追蹤邏輯 (自動隱藏版) ---
 document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    // 取得不含捲動條的可視寬度
+    const viewWidth = document.documentElement.clientWidth;
+    
+    // 判斷滑鼠是否在內容區內
+    // 如果 e.clientX 超過 viewWidth，代表滑鼠正在捲動條上方
+    if (e.clientX >= viewWidth - 5) { // 減 5 像素作為緩衝，讓消失更滑順
+        cursor.style.opacity = '0';
+        follower.style.opacity = '0';
+    } else {
+        cursor.style.opacity = '1';
+        follower.style.opacity = '1';
+        
+        // 原有的位置更新邏輯
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    }
 });
 
 // 使用動畫幀確保平滑度
@@ -67,33 +82,63 @@ const animateCursor = () => {
 animateCursor();
 
 
-// --- 3. 滑鼠互動效果 ---
-const interactives = document.querySelectorAll('a, button, .services__card, .navbar__toggle, .main__content h1, .main__content h2');
+// --- 3. 滑鼠互動效果 (全局委派優化版 - 解決嵌套元件 Bug) ---
 
-interactives.forEach(el => {
-    el.addEventListener('mouseenter', () => {
+// 🚀 使用 window 監聽，確保滑鼠移動時即時校準顏色
+window.addEventListener('mouseover', (e) => {
+    const target = e.target;
+
+    // 1. 定義所有需要互動的元件清單
+    const interactiveSelector = 'a, button, .services__card, .navbar__toggle, .main__content h1, .main__content h2, #navbar__logo, .button, .close-book, .book-page, .book-page-img, #my-flipbook';
+    
+    // 偵測滑鼠是否處於互動元件內 (包含其子元件)
+    const activeEl = target.closest(interactiveSelector);
+
+    if (activeEl) {
+        // 放大效果：模擬系統聚焦感
         cursor.style.transform = 'translate(-50%, -50%) scale(1.3)';
         follower.style.transform = 'translate(-50%, -50%) scale(1.5)';
         follower.style.borderColor = 'transparent';
 
-        // --- 核心邏輯：區分顏色 ---
-        // 如果是 H2 (I'M JARVIS) 或者是按鈕 (main__btn)
-        if (el.tagName === 'H2' || el.classList.contains('main__btn')) {
-            follower.style.background = 'rgba(0, 242, 254, 0.4)'; // 淺藍色 (Jarvis Blue)
-        } else {
-            follower.style.background = 'rgba(247, 112, 98, 0.3)'; // 原本的紅粉色
-        }
-    });
+        // --- 核心顏色判定邏輯 ---
 
-    el.addEventListener('mouseleave', () => {
+        // 🚀 優先判定：白色範圍 (書本相關區塊)
+        // 只要滑鼠在這些元件內，follower 永遠保持白色
+        if (activeEl.closest('.book-page, .book-page-img, #my-flipbook')) {
+            follower.style.background = 'rgba(255, 255, 255, 0.4)'; 
+            // 💡 加分題：讓中間紅點也變科技藍，更有層次感
+            cursor.style.background = '#000000'; 
+        } 
+        
+        // 🚀 其次判定：科技藍範圍 (系統導航與操作元件)
+        else if (
+            activeEl.closest('h2, #navbar__logo, .button, .main__btn, .services__card, .navbar__toggle')
+        ) {
+            follower.style.background = 'rgba(0, 242, 254, 0.4)'; 
+            cursor.style.background = '#00f2fe'; 
+        } 
+
+        // 🚀 最後判定：預設粉色 (一般連結)
+        else {
+            follower.style.background = 'rgba(247, 112, 98, 0.3)';
+            cursor.style.background = '#ff8177';
+        }
+    }
+});
+
+// 🚀 重置邏輯：當滑鼠徹底離開互動區域時
+window.addEventListener('mouseout', (e) => {
+    const interactiveSelector = 'a, button, .services__card, .navbar__toggle, .main__content h1, .main__content h2, #navbar__logo, .button, .close-book, .book-page, .book-page-img, #my-flipbook';
+    
+    // 檢查下一個移入的目標 (relatedTarget) 是否還在互動區域內
+    if (!e.relatedTarget || !e.relatedTarget.closest(interactiveSelector)) {
         cursor.style.transform = 'translate(-50%, -50%) scale(1)';
         follower.style.transform = 'translate(-50%, -50%) scale(1)';
         follower.style.background = 'transparent';
-        follower.style.borderColor = '#ff8177'; // 平常狀態維持原色或你喜歡的顏色
-    });
+        follower.style.borderColor = '#ff8177'; // 恢復粉橘色邊框
+        cursor.style.background = '#ff8177';    // 恢復紅點
+    }
 });
-
-
 
 // --- 4. 捲動顯示動畫 (Intersection Observer) ---
 const revealObserver = new IntersectionObserver((entries) => {
@@ -252,3 +297,176 @@ document.addEventListener('touchstart', (e) => {
     mouseX = e.touches[0].clientX;
     mouseY = e.touches[0].clientY;
 }, { passive: true });
+
+
+// --- 7. 捲動條動態亮起邏輯 ---
+let isScrolling;
+
+window.addEventListener('scroll', () => {
+    // 捲動時，為 body 加上「正在捲動」的標籤
+    document.body.classList.add('is-scrolling');
+
+    // 清除定時器，確保只有停止滾動後才會移除標籤
+    window.clearTimeout(isScrolling);
+
+    // 0.5 秒沒滾動後，能量感消失
+    isScrolling = setTimeout(() => {
+        document.body.classList.remove('is-scrolling');
+    }, 500);
+});
+
+
+// --- 8. 數位記憶之書：3D 物理翻頁系統 (簡化路徑版) ---
+
+let currentGallery = [];  
+let currentPageIndex = 0; 
+let isPageAnimating = false; // 🚀 防止動畫中重複點擊
+
+const bookOverlay = document.getElementById('book-overlay');
+const bookContainer = document.getElementById('flipbook-container');
+const bookContent = document.getElementById('my-flipbook');
+
+/**
+ * 🚀 升級版：開啟書本並初始化頁面
+ * @param {string|Array} input - 檔案前綴 (如 'topics') 或 完整路徑陣列
+ * @param {number} totalPages - (選填) 總頁數，若傳入則自動生成路徑
+ */
+function openBook(input, totalPages = null) {
+    // 1. 自動生成路徑邏輯：例如 input='topics', totalPages=4 => 生成 p1~p4
+    if (totalPages !== null && typeof input === 'string') {
+        currentGallery = [];
+        for (let i = 1; i <= totalPages; i++) {
+            currentGallery.push(`MyBooks/${input}_p${i}.png`);
+        }
+    } 
+    // 2. 保持相容性：原本的陣列傳入方式依然可用
+    else {
+        currentGallery = Array.isArray(input) ? input : [input];
+    }
+
+    currentPageIndex = 0;
+    bookOverlay.style.display = 'flex';
+    
+    // 清除舊有的動畫殘留類別
+    bookContent.classList.remove('flipping-next', 'flipping-prev');
+    renderBookPage();
+    
+    // 觸發書本飛入動畫
+    bookContainer.classList.remove('book-animate');
+    void bookContainer.offsetWidth; // 強制重繪
+    bookContainer.classList.add('book-animate');
+}
+
+/**
+ * 核心：執行 3D 翻頁動作 (0.6s 動畫)
+ */
+function performPageTurn(direction) {
+    if (isPageAnimating) return; 
+    isPageAnimating = true;
+
+    let targetIndex;
+    if (direction === 'next') {
+        if (currentPageIndex + 2 >= currentGallery.length) {
+            isPageAnimating = false; return;
+        }
+        targetIndex = currentPageIndex + 2;
+        bookContent.classList.add('flipping-next');
+    } else {
+        if (currentPageIndex <= 0) {
+            isPageAnimating = false; return;
+        }
+        targetIndex = currentPageIndex - 2;
+        bookContent.classList.add('flipping-prev');
+    }
+
+    // 在動畫中途 (300ms) 切換內容，達到流暢翻頁感
+    setTimeout(() => {
+        currentPageIndex = targetIndex;
+        renderBookPage();
+
+        bookContent.classList.remove('flipping-next', 'flipping-prev');
+        
+        setTimeout(() => {
+            isPageAnimating = false;
+        }, 350);
+    }, 300);
+}
+
+/**
+ * 渲染雙頁內容 (白底黑字風格)
+ */
+function renderBookPage() {
+    const leftIndex = currentPageIndex;
+    const rightIndex = currentPageIndex + 1;
+    
+    const leftPath = currentGallery[leftIndex];
+    const rightPath = currentGallery[rightIndex];
+    
+    let leftHTML = leftPath 
+        ? `<img src="${leftPath}" alt="Memory Left" class="book-page-img">` 
+        : `<div class="empty-page-placeholder">// END //</div>`;
+
+    let rightHTML = rightPath 
+        ? `<img src="${rightPath}" alt="Memory Right" class="book-page-img">` 
+        : `<div class="empty-page-placeholder"></div>`;
+
+    const maxPage = currentGallery.length;
+    // 頁碼顯示：例如 1-2 / 4
+    const counterText = `DATA SOURCE: ${leftIndex + 1}-${Math.min(rightIndex + 1, maxPage)} / ${maxPage}`;
+
+    bookContent.innerHTML = `
+        <div class="page-counter">${counterText}</div>
+        <div class="book-page page-left">${leftHTML}</div>
+        <div class="book-page page-right">${rightHTML}</div>
+        <div class="click-hint left-hint">PREV</div>
+        <div class="click-hint right-hint">NEXT</div>
+    `;
+}
+
+/**
+ * 點擊事件：判定左右半邊觸發翻頁
+ */
+bookContent.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const clickX = e.clientX - rect.left; 
+    const bookWidth = rect.width;
+
+    if (clickX < bookWidth / 2) {
+        performPageTurn('prev');
+    } else {
+        performPageTurn('next');
+    }
+});
+
+/**
+ * 關閉書本
+ */
+function closeBook() {
+    bookOverlay.style.display = 'none';
+}
+
+bookOverlay.addEventListener('click', (e) => {
+    if (e.target === bookOverlay) closeBook();
+});
+
+/**
+ * 🚀 鍵盤控制擴充：使用左右方向鍵翻頁
+ */
+window.addEventListener('keydown', (e) => {
+    // 只有在電子書視窗開啟時，按鍵才有效
+    if (bookOverlay.style.display === 'flex') {
+        
+        if (e.key === 'ArrowRight') {
+            // 按下 → 往後翻
+            performPageTurn('next');
+        } 
+        else if (e.key === 'ArrowLeft') {
+            // 按下 ← 往前翻
+            performPageTurn('prev');
+        } 
+        else if (e.key === 'Escape') {
+            // 按下 Esc 直接關閉書本，這也是很貼心的設計
+            closeBook();
+        }
+    }
+});
