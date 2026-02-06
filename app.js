@@ -331,29 +331,37 @@ const bookContent = document.getElementById('my-flipbook');
  * @param {string|Array} input - 檔案前綴 (如 'topics') 或 完整路徑陣列
  * @param {number} totalPages - (選填) 總頁數，若傳入則自動生成路徑
  */
+/**
+ * 🚀 升級版：開啟書本、生成路徑並預載入所有圖片
+ */
 function openBook(input, totalPages = null) {
-    // 1. 自動生成路徑邏輯：例如 input='topics', totalPages=4 => 生成 p1~p4
+    // 1. 自動生成路徑邏輯
     if (totalPages !== null && typeof input === 'string') {
         currentGallery = [];
         for (let i = 1; i <= totalPages; i++) {
             currentGallery.push(`MyBooks/${input}_p${i}.png`);
         }
     } 
-    // 2. 保持相容性：原本的陣列傳入方式依然可用
     else {
         currentGallery = Array.isArray(input) ? input : [input];
     }
 
+    // --- 🚀 新增：預載入邏輯 ---
+    console.log("開始預載入圖片...");
+    currentGallery.forEach((path) => {
+        const img = new Image();
+        img.src = path; // 這行會觸發瀏覽器下載圖片並快取
+    });
+    // -----------------------
+
     currentPageIndex = 0;
     bookOverlay.style.display = 'flex';
     
-    // 清除舊有的動畫殘留類別
     bookContent.classList.remove('flipping-next', 'flipping-prev');
     renderBookPage();
     
-    // 觸發書本飛入動畫
     bookContainer.classList.remove('book-animate');
-    void bookContainer.offsetWidth; // 強制重繪
+    void bookContainer.offsetWidth;
     bookContainer.classList.add('book-animate');
 }
 
@@ -470,3 +478,4 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
+
