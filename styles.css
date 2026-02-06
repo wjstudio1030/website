@@ -158,14 +158,15 @@
     color: #fff;
 }
 
+
 .button:hover {
     background: #4837ff;
-    transition: all 0.3s ease;
+    transition: all 1s ease;
 }
 
 .navbar__links:hover {
     color: #f77062;
-    transition: all 0.3 ease;
+    transition: all 1s ease;
 }
 /* --- 手機與平板響應式調整 --- */
 /* ============================================================
@@ -209,22 +210,22 @@
         /* --- WJ STUDIO Logo 文字與位置修改 --- */
     #navbar__logo {
         /* 1. 縮小字體：從 1.8rem 降到 1.6rem，確保在小手機也不斷行 */
-        font-size: 2rem;
-        
+        font-size: 1.9rem;
+    
         /* 2. 強制不換行 */
         white-space: nowrap;
+    
+        /* 3. 往左邊移一點：將左邊距從 20px 縮小到 10px */
+        padding-left: 5px;
     
         /* 確保垂直置中 */
         display: flex;
         align-items: center;
-
-        /* 3. 往左邊移一點：將左邊距從 20px 縮小到 10px */
-        padding-left: 10px;
     }
     
     #navbar__logo--img {
         height: 75px;
-        margin-right: 12px;
+        margin-right: 15px;
     }
 
     .navbar__toggle .bar {
@@ -265,6 +266,8 @@
     .navbar__btn {
         padding-bottom: 2rem;
     }
+
+    
 
     .button {
         width: 80%;
@@ -784,6 +787,7 @@
     /* 3. 進場動畫保留 */
     opacity: 0;
     animation: fadeInUpBtn 0.8s ease-out 1.2s forwards;
+    pointer-events: auto;
 }
 
 /* 確保按鈕內的連結文字填滿點擊區域 */
@@ -1283,18 +1287,534 @@
 /* 務必確保你的自定義指標本身不會被隱藏且不會干擾點擊 */
 .cursor,
 .cursor-follower {
+    /* 🚀 將層級提升到最高，確保大於 book-overlay 的 10000 */
+    z-index: 999999 !important;
     pointer-events: none;
     /* 這行你已經有了，很重要，避免自定義指標擋住點擊事件 */
     display: block;
     /* 確保它們是顯示的 */
 }
 
+/* ============================================================
+   SECTION 3: MEMORIES PAGE (僅在 body id="memories-page" 生效)
+   ============================================================ */
+
+/* --- 1. 頁面容器與標題位置優化 --- */
+#memories-page #story-chapters {
+    padding-top: 100px !important;
+    background: #141414;
+}
+
+#memories-page #story-chapters h1 {
+    margin-top: 0;
+    margin-bottom: 3rem;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+/* --- 2. 核心動畫定義 (Keyframes 是全域的，但由 scoped class 觸發) --- */
+
+/* A. 懷舊回憶動畫：模糊 -> 泛黃閃爍 -> 清晰 */
+@keyframes retroMemoryReveal {
+    0% {
+        opacity: 0;
+        filter: blur(12px) sepia(1) brightness(0.8) contrast(1.2);
+        transform: translateY(30px) scale(0.95);
+    }
+
+    30% {
+        opacity: 0.5;
+        filter: blur(6px) sepia(0.7) brightness(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0) sepia(0) brightness(1);
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* B. 數位閃爍動畫：模擬 JARVIS 系統的電子干擾感 */
+@keyframes tech-flicker {
+    0% {
+        text-shadow: 2px 0 0 rgba(255, 8, 68, 0.5), -2px 0 0 rgba(0, 242, 254, 0.5);
+    }
+
+    50% {
+        text-shadow: 1px 0 0 rgba(255, 8, 68, 0.3), -1px 0 0 rgba(0, 242, 254, 0.3);
+    }
+
+    100% {
+        text-shadow: 2px 0 0 rgba(255, 8, 68, 0.5), -2px 0 0 rgba(0, 242, 254, 0.5);
+    }
+}
+
+/* --- 3. 應用動畫與標題特效 --- */
+
+/* 僅在 Memories 頁面觸發懷舊進場 */
+#memories-page .services h1.reveal.active {
+    animation: retroMemoryReveal 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+    text-shadow: 0 0 15px rgba(255, 134, 122, 0.4);
+}
+
+/* Memories 頁面專屬的數位閃爍效果 */
+#memories-page .reveal-text {
+    animation: digitalFocus 0.8s forwards, tech-flicker 3s infinite alternate;
+}
+
+/* --- 4. 章節卡片升級：玻璃擬態與 3D 互動 --- */
+#memories-page .services__card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+}
+
+/* 僅在 Memories 頁面啟用 3D 傾斜與藍光 */
+#memories-page .services__card:hover {
+    transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateY(-10px) scale(1.03);
+    box-shadow: 0 15px 40px rgba(0, 242, 254, 0.3);
+    border-color: rgba(0, 242, 254, 0.6);
+}
+
+/* --- 5. 最終修正：WJ STUDIO 專屬黑藍科技捲動條 --- */
+
+/* 1. 捲動條整體寬度 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* 2. 軌道 (Track) */
+::-webkit-scrollbar-track {
+    background: #020202;
+    /* 極致深黑，確保背景不會干擾顏色 */
+}
+
+/* 3. 滑塊 (Thumb)：平常狀態（白色玻璃感） */
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom,
+                rgb(0, 0, 0) 0%,
+                rgb(12, 8, 234) 100%) !important;
+}
+
+/* 🚀 關鍵修正：當滾動時，強制「洗掉」白色，換上純粹的黑藍漸層 */
+body.is-scrolling ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+    /* 使用 background 簡寫，強制覆蓋所有背景設定 */
+    background: linear-gradient(to bottom,
+            rgb(0, 0, 0) 0%,
+            rgb(12, 8, 234) 100%) !important;
+
+    /* 4. 強化科技發光感 */
+    /* 使用你的標誌藍色 (#00f2fe) 做外發光，讓深藍色跳出來 */
+    box-shadow: 0 0 15px rgb(255, 255, 255),
+        inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+
+  
+}
+
+/* --- 大標題設計：數位霓虹掃描線 --- */
+/* 針對 .services 區塊裡的 h1 進行設定 */
+.services h1.reveal {
+    font-family: 'Orbitron', sans-serif;
+    /* 使用更有科技感的字體 */
+    font-size: 3.5rem;
+    /*稍微加大字體以增強氣勢*/
+    text-transform: uppercase;
+    /*強制大寫，更有標題感*/
+    letter-spacing: 4px;
+    /*增加字距，營造空間感*/
+    font-weight: 800;
+    position: relative;
+    /*為偽元素定位做準備*/
+    margin-bottom: 4rem;
+    /*增加與下方卡片的距離*/
+
+    /* 核心特效：復古霓虹漸層文字 */
+    background: linear-gradient(to right,
+            #ff0844 0%,
+            /* 你的標誌紅 */
+            #bd34fe 50%,
+            /* 過渡紫 */
+            #00f2fe 100%
+            /* 你的標誌藍 */
+        );
+    -webkit-background-clip: text;
+    /* 將背景裁剪為文字形狀 */
+    -webkit-text-fill-color: transparent;
+    /* 讓文字本身透明，透出背景 */
+
+    /* 多層次發光，製造景深感 */
+    text-shadow:
+        0 0 20px rgba(255, 8, 68, 0.5),
+        0 0 40px rgba(189, 52, 254, 0.3),
+        0 0 80px rgba(0, 242, 254, 0.2);
+
+    /* 確保動畫流暢 */
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 添加「掃描線」紋理，模擬老舊螢幕質感 */
+.services h1.reveal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 創造極細的橫條紋 */
+    background: repeating-linear-gradient(to bottom,
+            transparent 0px,
+            transparent 2px,
+            rgba(0, 0, 0, 0.3) 3px,
+            rgba(0, 0, 0, 0.3) 4px);
+    pointer-events: none;
+    /* 確保不影響滑鼠互動 */
+    mix-blend-mode: overlay;
+    /* 讓紋理疊加在文字顏色上 */
+    opacity: 0.8;
+}
+
+/* 當 JS 觸發 active 類別時的進場狀態（配合你原有的 JS） */
+.services h1.reveal.active {
+    /* 這裡可以保留你原本的位移或透明度動畫設定，上面的樣式會自動套用 */
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* --- 章節標題設計：資料傳輸浮現 --- */
+/* 針對卡片裡的 h2 設定初始狀態 */
+.services__card h2 {
+    font-family: 'Orbitron', sans-serif;
+    /* 保持科技字體一致性 */
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #fff;
+    /* 初始顏色為白色 */
+
+    /* 🚀 關鍵動畫初始狀態：模糊、字距拉開、稍微往下 */
+    opacity: 0;
+    filter: blur(15px);
+    /* 強烈模糊 */
+    letter-spacing: 12px;
+    /* 字距拉得很開 */
+    transform: translateY(30px) scale(0.9);
+
+    /* 設定一個富有彈性的過渡效果 */
+    transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+}
+
+/* 當卡片被 JS 加上 .active 類別時的終點狀態 */
+.services__card.active h2 {
+    opacity: 1;
+    filter: blur(0);
+    /* 變清晰 */
+    letter-spacing: 2px;
+    /* 字距收縮歸位 */
+    transform: translateY(0) scale(1);
+
+    /* 變色：資料讀取完成，變成科技藍，並發光 */
+    color: #00f2fe;
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
+
+    /* 延遲執行：讓卡片先出來，標題再浮現，增加層次感 */
+    transition-delay: 0.3s;
+}
+
+/* ============================================================
+   SECTION 3: MEMORIES PAGE - 數位之書與互動卡片整合
+   ============================================================ */
+
+/* --- 1. 章節卡片互動升級 (取代原本的卡片設定) --- */
+#memories-page .services__card {
+    cursor: pointer;
+    /* 🚀 關鍵：讓整個框框看起來就是個大按鈕 */
+    position: relative;
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    /* 預設帶有淡淡的科技藍邊框 */
+    border-radius: 15px;
+    padding: 40px;
+    height: 500px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- 1. 卡片主體：設定為定位基準點 --- */
+.services__card {
+    position: relative;
+    /* 🚀 關鍵：讓內部的絕對定位圖片以卡片為準 */
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    overflow: hidden;
+    height: 450px;
+    /* 建議給定固定高度，視覺較整齊 */
+}
+
+.services h2 {
+    position: absolute;
+    top: 400px;
+    left: 30px;
+}
+
+.card__content p {
+    margin-bottom: 0;
+    top: 450px;
+    /* 確保最底下的白字沒有額外推力 */
+}
+
+/* --- 2. 封面圖片：強制占滿全屏並置於底層 --- */
+.card__cover-img {
+    position: absolute;
+    /* 🚀 脫離排版流，不再推擠文字 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 🚀 寬高 100% 占滿整個畫面 */
+    object-fit: cover;
+    /* 🚀 保持比例裁切，不變形 */
+    z-index: 0;
+    /* 🚀 放在最底層 */
+    filter: brightness(0.7);
+    /* 💡 小技巧：稍微調暗背景，字會更顯眼 */
+    transition: transform 0.5s ease;
+}
+
+/* --- 3. 文字內容：浮在圖片上方 --- */
+.card__content {
+    position: relative;
+    /* 🚀 確保層級高於圖片 */
+    z-index: 1;
+    /* 🚀 浮在圖片上方 */
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* 🚀 讓文字維持在卡片底部 */
+    padding: 300px;
+    /* 保持你想要的文字間距 */
+
+    /* 🚀 增加一個從下往上的黑色漸層，確保白字/藍字在亮色圖片上也能讀 */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+}
+
+/* 🚀 互動加強：滑鼠移上去時圖片微放大 */
+.services__card:hover .card__cover-img {
+    transform: scale(1.1);
+}
+
+
+
+/* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
+#memories-page .services__card:hover {
+    transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateY(-10px) scale(1.03);
+    box-shadow: 0 15px 45px rgba(0, 242, 254, 0.4);
+    border-color: rgba(0, 242, 254, 1);
+}
+
+/* 🚀 新增：卡片點擊下的沉感 (按下那一瞬間的效果) */
+#memories-page .services__card:active {
+    transform: perspective(1000px) scale(0.97) translateY(0);
+    box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2);
+    transition: all 0.1s ease;
+    /* 按下去要反應快一點 */
+}
+
+
+/* --- 2. 數位之書全螢幕遮罩 --- */
+#memories-page .book-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.94);
+    /* 超深色系 */
+    backdrop-filter: blur(20px);
+    /* 🚀 更強烈的玻璃擬態 */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+/* 關閉按鈕：對應 WJ STUDIO 科技字體 */
+.close-book {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    color: #fff;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: 0.3s;
+    border-bottom: 1px solid transparent;
+}
+
+.close-book:hover {
+    color: #ff0844;
+    /* 懸停變為標誌紅 */
+    border-color: #ff0844;
+}
+
+/* --- 3. 3D 飛出動畫邏輯 --- */
+.book-transform {
+    perspective: 2500px;
+    width: 75vw;
+    height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    will-change: transform, opacity;
+}
+
+@keyframes bookFlyOut {
+    0% {
+        transform: scale(0.1) rotateY(-110deg) rotateX(25deg) translateY(600px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) rotateY(0deg) rotateX(0deg) translateY(0);
+        opacity: 1;
+    }
+}
+
+.book-animate {
+    animation: bookFlyOut 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+}
 
 
 
 
+/* ============================================================
+   數位記憶之書：3D 物理翻頁 (UI 修正版)
+   ============================================================ */
 
+/* 1. 書本主容器：確保為絕對定位的基準點 */
+#my-flipbook {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: 0 0 60px rgba(0, 242, 254, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    position: relative;
+    /* 🚀 必須有這個，UI 才會乖乖對準角落 */
+    cursor: crosshair;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 2500px;
 
+    /* 移除任何可能擠壓空間的 padding */
+    padding: 0 !important;
+}
 
+/* 2. 左右頁面：強制平分 50% 空間 */
+.book-page {
+    flex: 1;
+    width: 50%;
+    /* 🚀 確保左右絕對對稱 */
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    position: relative;
+    background: #ffffff;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.6s ease;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
 
+/* 3. 書脊效果 */
+.page-left {
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: inset -10px 0 20px -10px rgba(0, 0, 0, 0.15);
+    transform-origin: right center;
+}
 
+.page-right {
+    box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 0.15);
+    transform-origin: left center;
+}
+
+/* --- 4. 關鍵修正：UI 元素強制抽離 Flex 排版 --- */
+
+.page-counter,
+.click-hint {
+    position: absolute !important;
+    /* 🚀 強制抽離，不佔用頁面寬度 */
+    z-index: 100;
+    pointer-events: none;
+    /* 讓點擊能穿透文字，點到下方的頁面 */
+}
+
+/* 頁碼：左上角 */
+.page-counter {
+    top: 10px;
+    left: 25px;
+    font-family: 'Orbitron', sans-serif;
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+}
+
+/* 🚀 點擊提示：左右分離，不再黏在一起 */
+.click-hint {
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+
+.left-hint {
+    left: 30px;
+    /* 🚀 鎖定在最左邊 */
+}
+
+.right-hint {
+    right: 30px;
+    /* 🚀 鎖定在最右邊 */
+}
+
+#my-flipbook:hover .click-hint {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* 圖片樣式 */
+.book-page-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 翻頁動畫狀態保持不變 */
+.flipping-next .page-right {
+    transform: rotateY(-90deg) scale(1.05);
+    opacity: 0;
+}
+
+.flipping-prev .page-left {
+    transform: rotateY(90deg) scale(1.05);
+    opacity: 0;
+}
