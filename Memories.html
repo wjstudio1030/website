@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/WJ_ICON.png" />
+    <title>Memories | WJ STUDIO</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=Orbitron:wght@400..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="memories-page">
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <nav class="navbar">
+        <div class="navbar__container">
+            <a href="/" id="navbar__logo">
+                <img src="images/WJSTUDIO_LOGO.png" alt="WJ STUDIO Logo" id="navbar__logo--img">
+                WJ STUDIO
+            </a>
+            <div class="navbar__toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="navbar__menu">
+                <li class="navbar__item"><a href="/" class="navbar__links">Home</a></li>
+                <li class="navbar__item"><a href="/Memories.html" class="navbar__links active-link">Memories</a></li>
+                <li class="navbar__item"><a href="/" class="navbar__links">Tech</a></li>
+                <li class="navbar__btn"><a href="/" class="button">GAME</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="services" id="story-chapters">
+        <h1 class="reveal">The Chapters of My Life</h1>
+        <div class="services__container">
+            <div class="services__card reveal" onclick="openBook('topics', 14)">
+                <img src="images/My_Topics.png" alt="Green Droid" class="card__cover-img">
+                <div class="card__content">
+                    <h2>My Topics</h2>
+                    <p>GreenDroid專題與實習之旅</p>
+                </div>
+            </div>
+            
+            <div class="services__card reveal" onclick="openBook('toydoctor', 15)">
+                <img src="images/ToyDoctor.png" alt="Nantou" class="card__cover-img">
+            
+                <div class="card__content">
+                    <h2>ToyDoctor</h2>
+                    <p>我們創立了玩具醫生南投站</p>
+                </div>
+            </div>
+
+            <div class="services__card reveal" onclick="openBook('selflearning', 12)">
+                <img src="images/SelfLearning.png" alt="Green Droid" class="card__cover-img">
+                <div class="card__content">
+                    <h2>Self - Learning</h2>
+                    <p>遊戲成果發表、企業合作、教育廣播電台</p>
+                </div>
+            </div>
+            <div class="services__card reveal" onclick="openBook('competition', 10)">
+                <img src="images/Competition.png" alt="Green Droid" class="card__cover-img">
+                <div class="card__content">
+                    <h2>Competition</h2>
+                    <p>刺激全國專題競賽、PVQC全國賽</p>
+                </div>
+            </div>
+            <div class="services__card reveal" onclick="openBook('experience', 25)">
+                <img src="images/Experience.png" alt="Green Droid" class="card__cover-img">
+                <div class="card__content">
+                    <h2>All Journeys</h2>
+                    <p>如夢境一般的高中精彩故事與經歷</p>
+                </div>
+            </div>
+            <div class="services__card reveal" onclick="openBook('special', 9)">
+                <img src="images/Tedx.png" alt="Green Droid" class="card__cover-img">
+                <div class="card__content">
+                    <h2>TEDx Talk</h2>
+                    <p>TEDx演講與中華民國物理教育獎</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="book-overlay" class="book-overlay">
+        <div class="close-book" onclick="closeBook()">✕ Close</div>
+        <div id="flipbook-container" class="book-transform">
+            <div id="my-flipbook">
+            </div>
+        </div>
+    </div>
+
+    <div class="footer__container">
+        <p class="website__rights">© WJ STUDIO 2026. All rights reserved。</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
