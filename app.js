@@ -337,7 +337,12 @@ const bookContent = document.getElementById('my-flipbook');
 /**
  * 🚀 專業級預載入版本：開啟書本
  */
+/**
+ * 🚀 WJ STUDIO 終極版：全量預載入 + Loading 狀態
+ */
 async function openBook(input, totalPages = null) {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
     // 1. 生成路徑邏輯
     if (totalPages !== null && typeof input === 'string') {
         currentGallery = [];
@@ -348,34 +353,34 @@ async function openBook(input, totalPages = null) {
         currentGallery = Array.isArray(input) ? input : [input];
     }
 
-    // --- 🚀 重點修正：真正的預載入機制 ---
-    // 我們建立一個 Promise 陣列，只等待前兩頁（或是你可以改為全部）
-    // 等待前兩頁是為了讓書本一打開就有畫面，不卡頓
-    const preloadTarget = currentGallery.slice(0, 4); // 預載前 4 頁比較保險
-    
-    console.log("WJ STUDIO: 啟動深度預載與解碼...");
+    // --- 🚀 啟動全量預載入 ---
+    // 顯示「加載中」
+    loadingOverlay.style.display = 'flex';
+    console.log(`WJ STUDIO: 開始預載全數 ${currentGallery.length} 張圖片...`);
 
     try {
-        await Promise.all(preloadTarget.map(path => {
-            return new Promise((resolve, reject) => {
+        // 使用 Promise.all 等待「所有」圖片載入完成
+        await Promise.all(currentGallery.map(path => {
+            return new Promise((resolve) => {
                 const img = new Image();
                 img.src = path;
                 img.onload = () => {
-                    // 🚀 關鍵：使用 decode() 確保瀏覽器已經把圖片轉成記憶體點陣圖
-                    // 這能消除 3D 動畫開始時的瞬間卡頓
+                    // 使用 decode() 確保圖片已經被瀏覽器解析到記憶體，翻頁才不卡
                     if (img.decode) {
                         img.decode().then(resolve).catch(resolve);
                     } else {
                         resolve();
                     }
                 };
-                img.onerror = resolve; // 失敗也繼續，避免卡死
+                img.onerror = resolve; // 即使某張圖掉圖也不要卡死程式
             });
         }));
     } catch (e) {
-        console.log("預載入部分失敗，但繼續執行");
+        console.error("預載入過程發生錯誤", e);
     }
 
+    // 載入完成，關閉 Loading 畫面
+    loadingOverlay.style.display = 'none';
     // -----------------------
 
     currentPageIndex = 0;
@@ -384,9 +389,9 @@ async function openBook(input, totalPages = null) {
     bookContent.classList.remove('flipping-next', 'flipping-prev');
     renderBookPage();
     
-    // 觸發 3D 動畫
+    // 執行 3D 出場動畫
     bookContainer.classList.remove('book-animate');
-    void bookContainer.offsetWidth; // 觸發重繪
+    void bookContainer.offsetWidth; 
     bookContainer.classList.add('book-animate');
 }
 /**
