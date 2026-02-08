@@ -1648,6 +1648,15 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     object-fit: cover;
 }
 
+/* 當螢幕寬度小於 960px 時 (例如平板或手機) */
+@media screen and (max-width: 960px) {
+    .services__container {
+        grid-template-columns: 1fr;
+        /* 改成一排一列 */
+        max-width: 400px;
+    }
+}
+
 
 
 /* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
