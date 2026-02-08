@@ -334,24 +334,48 @@ const bookContent = document.getElementById('my-flipbook');
 /**
  * 🚀 升級版：開啟書本、生成路徑並預載入所有圖片
  */
-function openBook(input, totalPages = null) {
-    // 1. 自動生成路徑邏輯
+/**
+ * 🚀 專業級預載入版本：開啟書本
+ */
+async function openBook(input, totalPages = null) {
+    // 1. 生成路徑邏輯
     if (totalPages !== null && typeof input === 'string') {
         currentGallery = [];
         for (let i = 1; i <= totalPages; i++) {
             currentGallery.push(`MyBooks/${input}_p${i}.png`);
         }
-    } 
-    else {
+    } else {
         currentGallery = Array.isArray(input) ? input : [input];
     }
 
-    // --- 🚀 新增：預載入邏輯 ---
-    console.log("開始預載入圖片...");
-    currentGallery.forEach((path) => {
-        const img = new Image();
-        img.src = path; // 這行會觸發瀏覽器下載圖片並快取
-    });
+    // --- 🚀 重點修正：真正的預載入機制 ---
+    // 我們建立一個 Promise 陣列，只等待前兩頁（或是你可以改為全部）
+    // 等待前兩頁是為了讓書本一打開就有畫面，不卡頓
+    const preloadTarget = currentGallery.slice(0, 4); // 預載前 4 頁比較保險
+    
+    console.log("WJ STUDIO: 啟動深度預載與解碼...");
+
+    try {
+        await Promise.all(preloadTarget.map(path => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = path;
+                img.onload = () => {
+                    // 🚀 關鍵：使用 decode() 確保瀏覽器已經把圖片轉成記憶體點陣圖
+                    // 這能消除 3D 動畫開始時的瞬間卡頓
+                    if (img.decode) {
+                        img.decode().then(resolve).catch(resolve);
+                    } else {
+                        resolve();
+                    }
+                };
+                img.onerror = resolve; // 失敗也繼續，避免卡死
+            });
+        }));
+    } catch (e) {
+        console.log("預載入部分失敗，但繼續執行");
+    }
+
     // -----------------------
 
     currentPageIndex = 0;
@@ -360,11 +384,11 @@ function openBook(input, totalPages = null) {
     bookContent.classList.remove('flipping-next', 'flipping-prev');
     renderBookPage();
     
+    // 觸發 3D 動畫
     bookContainer.classList.remove('book-animate');
-    void bookContainer.offsetWidth;
+    void bookContainer.offsetWidth; // 觸發重繪
     bookContainer.classList.add('book-animate');
 }
-
 /**
  * 核心：執行 3D 翻頁動作 (0.6s 動畫)
  */
@@ -478,4 +502,3 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
-
