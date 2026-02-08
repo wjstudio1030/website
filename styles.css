@@ -1612,6 +1612,42 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     transform: scale(1.1);
 }
 
+/* --- 1. 容器設定：強制三欄 --- */
+.services__container {
+    display: grid;
+    /* 🚀 關鍵：強制分成三等份，1fr 代表等寬 */
+    grid-template-columns: repeat(3, 1fr);
+
+    /* 🚀 縮小一點的關鍵：設定最大寬度並置中 */
+    max-width: 1300px;
+    /* 你可以根據喜好調成 900px 或 1100px */
+   
+    /* 卡片之間的間距 */
+    grid-gap: 20px;
+    padding: 20px;
+}
+
+/* --- 2. 卡片設定：配合縮小後的比例 --- */
+.services__card {
+    position: relative;
+    /* 🚀 移除原本可能寫死的 width，讓 Grid 自動分配 */
+    width: 100%;
+
+    /* 配合卡片縮小，高度也可以微調 (原本 450px) */
+    height: 380px;
+
+    overflow: hidden;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* 確保圖片依然占滿 */
+.card__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 
 
 /* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
