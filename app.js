@@ -338,12 +338,13 @@ const bookContent = document.getElementById('my-flipbook');
  * 🚀 專業級預載入版本：開啟書本
  */
 /**
- * 🚀 WJ STUDIO 終極版：全量預載入 + Loading 狀態
+/**
+ * 🚀 WJ STUDIO 黑科技版：優先載入前 10 頁，剩餘背景下載
  */
 async function openBook(input, totalPages = null) {
     const loadingOverlay = document.getElementById('loading-overlay');
     
-    // 1. 生成路徑邏輯
+    // 1. 生成所有路徑
     if (totalPages !== null && typeof input === 'string') {
         currentGallery = [];
         for (let i = 1; i <= totalPages; i++) {
@@ -353,46 +354,56 @@ async function openBook(input, totalPages = null) {
         currentGallery = Array.isArray(input) ? input : [input];
     }
 
-    // --- 🚀 啟動全量預載入 ---
-    // 顯示「加載中」
-    loadingOverlay.style.display = 'flex';
-    console.log(`WJ STUDIO: 開始預載全數 ${currentGallery.length} 張圖片...`);
-
-    try {
-        // 使用 Promise.all 等待「所有」圖片載入完成
-        await Promise.all(currentGallery.map(path => {
+    // 2. 定義預載入工具函式
+    const preloadBatch = async (paths) => {
+        return Promise.all(paths.map(path => {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.src = path;
                 img.onload = () => {
-                    // 使用 decode() 確保圖片已經被瀏覽器解析到記憶體，翻頁才不卡
                     if (img.decode) {
                         img.decode().then(resolve).catch(resolve);
                     } else {
                         resolve();
                     }
                 };
-                img.onerror = resolve; // 即使某張圖掉圖也不要卡死程式
+                img.onerror = resolve; // 失敗也繼續
             });
         }));
-    } catch (e) {
-        console.error("預載入過程發生錯誤", e);
-    }
+    };
 
-    // 載入完成，關閉 Loading 畫面
+    // --- 🚀 核心黑科技邏輯 ---
+    
+    // 步驟 A: 顯示 Loading 並只抓取「前 10 頁」
+    loadingOverlay.style.display = 'flex';
+    console.log("WJ STUDIO: 優先下載前 10 頁以利快速開書...");
+    
+    const initialPages = currentGallery.slice(0, 10);
+    const remainingPages = currentGallery.slice(10);
+
+    // 強制等待這 10 頁載入完成
+    await preloadBatch(initialPages);
+
+    // 步驟 B: 載入完成，立刻關閉 Loading 並開書
     loadingOverlay.style.display = 'none';
-    // -----------------------
-
+    
     currentPageIndex = 0;
     bookOverlay.style.display = 'flex';
-    
     bookContent.classList.remove('flipping-next', 'flipping-prev');
     renderBookPage();
     
-    // 執行 3D 出場動畫
+    // 執行 3D 開書動畫
     bookContainer.classList.remove('book-animate');
     void bookContainer.offsetWidth; 
     bookContainer.classList.add('book-animate');
+
+    // 步驟 C: 【黑科技關鍵】不加 await，在後台偷偷下載剩下的頁面
+    if (remainingPages.length > 0) {
+        console.log(`WJ STUDIO: 背景下載剩餘的 ${remainingPages.length} 頁資料...`);
+        preloadBatch(remainingPages).then(() => {
+            console.log("WJ STUDIO: 全案資料快取完成，後續翻頁將完全無延遲！");
+        });
+    }
 }
 /**
  * 核心：執行 3D 翻頁動作 (0.6s 動畫)
