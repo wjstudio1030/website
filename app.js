@@ -352,7 +352,7 @@ const bookContent = document.getElementById('my-flipbook');
 async function openBook(input, totalPages = null) {
     const loadingOverlay = document.getElementById('loading-overlay');
     
-    // 1. 生成所有路徑 (保留原本邏輯)
+    // 1. 生成所有路徑
     if (totalPages !== null && typeof input === 'string') {
         currentGallery = [];
         for (let i = 1; i <= totalPages; i++) {
@@ -362,38 +362,42 @@ async function openBook(input, totalPages = null) {
         currentGallery = Array.isArray(input) ? input : [input];
     }
 
-    // 2. 定義預載入工具函式 (保留原本邏輯)
+    // 2. 定義預載入工具函式
     const preloadBatch = async (paths) => {
         return Promise.all(paths.map(path => {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.src = path;
                 img.onload = () => {
-                    if (img.decode) { img.decode().then(resolve).catch(resolve); } 
-                    else { resolve(); }
+                    if (img.decode) {
+                        img.decode().then(resolve).catch(resolve);
+                    } else {
+                        resolve();
+                    }
                 };
-                img.onerror = resolve;
+                img.onerror = resolve; // 失敗也繼續
             });
         }));
     };
 
     // --- 🚀 核心黑科技邏輯 ---
     
+    // 步驟 A: 顯示 Loading 並只抓取「前 10 頁」
     loadingOverlay.style.display = 'flex';
     console.log("WJ STUDIO: 優先下載前 10 頁以利快速開書...");
     
     const initialPages = currentGallery.slice(0, 10);
     const remainingPages = currentGallery.slice(10);
 
+    // 強制等待這 10 頁載入完成
     await preloadBatch(initialPages);
 
+    // 步驟 B: 載入完成，立刻關閉 Loading 並開書
     loadingOverlay.style.display = 'none';
     
     currentPageIndex = 0;
     bookOverlay.style.display = 'flex';
     bookContent.classList.remove('flipping-next', 'flipping-prev');
-    
-    // 呼叫你的自定義渲染
     renderBookPage();
     
     // 執行 3D 開書動畫
@@ -401,58 +405,50 @@ async function openBook(input, totalPages = null) {
     void bookContainer.offsetWidth; 
     bookContainer.classList.add('book-animate');
 
+    // 步驟 C: 【黑科技關鍵】不加 await，在後台偷偷下載剩下的頁面
     if (remainingPages.length > 0) {
+        console.log(`WJ STUDIO: 背景下載剩餘的 ${remainingPages.length} 頁資料...`);
         preloadBatch(remainingPages).then(() => {
-            console.log("WJ STUDIO: 全案資料快取完成！");
+            console.log("WJ STUDIO: 全案資料快取完成，後續翻頁將完全無延遲！");
         });
     }
 
-    // 🚀 【關鍵修正 1】切換模式前，先銷毀舊的實體
-    const flipbook = $('#my-flipbook');
-    if (flipbook.turn('is')) {
-        flipbook.turn('destroy');
-    }
-
+    // 🚀 關鍵修改：判斷是否為手機版
     let isMobile = window.innerWidth <= 960;
 
-    // 🚀 【關鍵修正 2】根據裝置寬度初始化，解決兩頁顯示問題
-    flipbook.turn({
-        width: isMobile ? 340 : 800,   /* 手機版設定單頁寬度 */
-        height: isMobile ? 500 : 500,  /* 手機版設定長一點 */
+    $('#my-flipbook').turn({
+        width: isMobile ? 320 : 800,  /* 手機版設定窄一點 */
+        height: isMobile ? 480 : 500, /* 手機版設定長一點 */
         autoCenter: true,
-        display: isMobile ? 'single' : 'double', /* 🚀 強制單頁模式 */
+        display: isMobile ? 'single' : 'double', // 🚀 強制手機版顯示「單頁」
         acceleration: true,
         gradients: !$.isTouch,
         elevation: 50
     });
 }
-
 /**
- * 核心：修正後的 3D 翻頁動作
+ * 核心：執行 3D 翻頁動作 (0.6s 動畫)
  */
 function performPageTurn(direction) {
     if (isPageAnimating) return; 
     isPageAnimating = true;
 
-    // 🚀 【關鍵修正 3】判斷翻頁步數
-    let isMobile = window.innerWidth <= 960;
-    let step = isMobile ? 1 : 2; // 🚀 手機版模式只翻 1 頁，電腦版雙頁模式翻 2 頁
-
     let targetIndex;
     if (direction === 'next') {
-        if (currentPageIndex + step >= currentGallery.length) {
+        if (currentPageIndex + 2 >= currentGallery.length) {
             isPageAnimating = false; return;
         }
-        targetIndex = currentPageIndex + step;
+        targetIndex = currentPageIndex + 2;
         bookContent.classList.add('flipping-next');
     } else {
         if (currentPageIndex <= 0) {
             isPageAnimating = false; return;
         }
-        targetIndex = currentPageIndex - step;
+        targetIndex = currentPageIndex - 2;
         bookContent.classList.add('flipping-prev');
     }
 
+    // 在動畫中途 (300ms) 切換內容，達到流暢翻頁感
     setTimeout(() => {
         currentPageIndex = targetIndex;
         renderBookPage();
