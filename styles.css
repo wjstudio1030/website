@@ -1783,29 +1783,46 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 
 /* 當螢幕寬度小於 960px 時 (例如平板或手機) */
 @media screen and (max-width: 960px) {
-/* 🚀 專門修改 "The Chapters of My Life" 的標題大小 */
-    .services h1 {
-        font-size: 2rem !important;
-        /* 我建議設定在 1.8rem 到 2rem 之間 */
-        margin-bottom: 30px !important;
-        /* 調整標題與下方圖卡之間的距離 */
-        line-height: 1.2;
-        /* 讓標題行高緊湊一點 */
-        margin-top: -120px !important;
+
+    /* 🚀 專門修改 "The Chapters of My Life" 的標題大小 */
+    /* 1. 🚀 關鍵：解除父容器兩邊的黑框限制 */
+    .services {
+        padding: 0 !important;
+        /* 移除原本兩邊可能存在的 50px 或 100px padding */
+        width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
+
+    /* 2. 🚀 標題擴展：讓文字橫向佔據更多空間 */
+    .services h1 {
+        width: 100% !important;
+        /* 強制標題寬度為 100% */
+        max-width: 95% !important;
+        /* 留 5% 給文字邊緣呼吸，不至於完全貼死 */
+        text-align: center;
+
+        /* 調整文字大小 */
+        /* 如果希望文字「橫向變寬」，可以稍微縮小字體讓它在同一行顯示更多字 */
+        font-size: 2.2rem !important;
+
+        /* 🚀 增加字距，讓標題更有寬廣的科技感 */
+        letter-spacing: 2px;
+
+        line-height: 1.1;
+        margin-top: -120px !important;
+        /* 保持你原本的向上位移 */
+        margin-bottom: 30px !important;
+    }
+
+    /* 3. 確保容器也同步寬一點 */
     .services__container {
-        grid-template-columns: 1fr;
-        /* 保持一列排列 */
-
-        /* 🚀 修改 1：將 max-width 改為 100% 或更大數值 */
-        max-width: 100%;
-
-        /* 🚀 修改 2：增加左右內距 (Padding)，防止圖卡貼齊螢幕邊緣 */
-        padding: 0 0px;
-
-
-        /* 確保置中 */
-        margin: 0 auto;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 10px !important;
+        /* 給圖卡留極小的邊距就好 */
+        grid-template-columns: repeat(1, 1fr);
     }
 
     .services__card {
@@ -1817,12 +1834,46 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 
         /* 確保圖卡在容器內置中 */
         justify-self: center;
-        height: 400px !important;
+        height: 500px !important;
+        
     }
-   
-    
-}
 
+    /* 1. 🚀 覆蓋層調整：給予更多空間 */
+    .book-overlay {
+        padding: 20px 10px !important;
+    }
+
+    /* 2. 🚀 容器調整：改為符合單頁的比例 (寬度減少，高度增加) */
+    #flipbook-container {
+        width: 90% !important;
+        /* 佔螢幕寬度的 90% */
+        height: 75vh !important;
+        /* 佔高度的 75% */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 3. 🚀 書本本體：強制單頁寬度 */
+    #my-flipbook {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* 4. 🚀 導覽按鈕調整：不要擋在書中間 */
+    .close-book {
+        top: 20px !important;
+        right: 20px !important;
+        font-size: 1.2rem;
+    }
+
+    /* 如果有 PREV/NEXT 文字，移動到書本下方防止遮擋 */
+    .prev-btn,
+    .next-btn {
+        bottom: -40px !important;
+        top: auto !important;
+    }
+}
 
 /* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
 #memories-page .services__card:hover {
