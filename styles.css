@@ -1811,7 +1811,7 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
         letter-spacing: 2px;
 
         line-height: 1.1;
-        margin-top: -120px !important;
+        margin-top: -100px !important;
         /* 保持你原本的向上位移 */
         margin-bottom: 30px !important;
     }
@@ -1873,7 +1873,10 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
         bottom: -40px !important;
         top: auto !important;
     }
+    
 }
+
+
 
 /* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
 #memories-page .services__card:hover {
