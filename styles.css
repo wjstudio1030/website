@@ -290,7 +290,7 @@
         /* HELLO ! 下方的間距 */
         /* 🚀 關鍵修改：使用負數 margin 將位置往上提 */
         /* 數字越大（例如 -60px），位置就會越往上 */
-        margin-top: -50px !important;
+        margin-top: -100px !important;
     }
 
     .main__content h2 {
@@ -1783,13 +1783,45 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 
 /* 當螢幕寬度小於 960px 時 (例如平板或手機) */
 @media screen and (max-width: 960px) {
+/* 🚀 專門修改 "The Chapters of My Life" 的標題大小 */
+    .services h1 {
+        font-size: 2rem !important;
+        /* 我建議設定在 1.8rem 到 2rem 之間 */
+        margin-bottom: 30px !important;
+        /* 調整標題與下方圖卡之間的距離 */
+        line-height: 1.2;
+        /* 讓標題行高緊湊一點 */
+        margin-top: -120px !important;
+    }
     .services__container {
         grid-template-columns: 1fr;
-        /* 改成一排一列 */
-        max-width: 400px;
-    }
-}
+        /* 保持一列排列 */
 
+        /* 🚀 修改 1：將 max-width 改為 100% 或更大數值 */
+        max-width: 100%;
+
+        /* 🚀 修改 2：增加左右內距 (Padding)，防止圖卡貼齊螢幕邊緣 */
+        padding: 0 0px;
+
+
+        /* 確保置中 */
+        margin: 0 auto;
+    }
+
+    .services__card {
+        /* 🚀 修改 3：確保圖卡本身也是 100% 寬度 */
+        width: 100%;
+
+        /* 限制最大寬度 (選填)，防止在寬平板上圖卡變得太巨大 */
+        max-width: 600px;
+
+        /* 確保圖卡在容器內置中 */
+        justify-self: center;
+        height: 400px !important;
+    }
+   
+    
+}
 
 
 /* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
