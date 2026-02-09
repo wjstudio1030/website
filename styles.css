@@ -173,13 +173,14 @@
    RESPONSIVE LAYOUT SYSTEM (響應式系統整合)
    ============================================================ */
 
-/* --- 1. 平板與窄螢幕筆電 (960px) --- */
+/* --- 🚀 960px 以下：保留導航欄 + 下方分兩頁 --- */
 @media screen and (max-width: 960px) {
 
+    /* --- [保留] 你原本的導航欄設定，完全沒動 --- */
     .navbar__container {
         display: flex;
         justify-content: space-between;
-        height: 80px;
+        height: 60px;
         width: 100%;
         max-width: 1300px;
         padding: 0;
@@ -207,22 +208,14 @@
         font-size: 1.6rem;
     }
 
-        /* --- WJ STUDIO Logo 文字與位置修改 --- */
     #navbar__logo {
-        /* 1. 縮小字體：從 1.8rem 降到 1.6rem，確保在小手機也不斷行 */
         font-size: 1.9rem;
-    
-        /* 2. 強制不換行 */
         white-space: nowrap;
-    
-        /* 3. 往左邊移一點：將左邊距從 20px 縮小到 10px */
         padding-left: 5px;
-    
-        /* 確保垂直置中 */
         display: flex;
         align-items: center;
     }
-    
+
     #navbar__logo--img {
         height: 75px;
         margin-right: 15px;
@@ -237,52 +230,139 @@
         background: #fff;
     }
 
-    /* --- 手機版選單按鈕 (三條線) 位置修改 --- */
     #mobile-menu {
         position: absolute;
-    
-        /* 1. 往下面移一點：使用 50% 配合 translateY 達成完美垂直置中 */
-        /* 這會比你原本的 20% 位置還要低，對齊文字更美觀 */
         top: 50%;
         right: 5%;
-    
-        /* 2. 位移修正：確保按鈕中心點對準導航欄中心 */
         transform: translateY(-50%);
-    
         cursor: pointer;
     }
 
-    .navbar__item {
-        width: 100%;
+    /* --- [修改] 下方區塊：強制分兩頁 (文字一頁、圖片一頁) 🚀 --- */
+
+    .main {
+        background: #131313;
+        /* 確保背景乾淨 */
     }
 
-    .navbar__links {
-        text-align: center;
-        padding: 2rem;
-        width: 100%;
-        display: table;
+    .main__container {
+        display: flex !important;
+        /* 關閉電腦版 Grid */
+        flex-direction: column !important;
+        /* 🚀 關鍵：改為上下排列 */
+        height: auto !important;
+        /* 讓內容自動撐開，可以往下滑動 */
+        min-height: 100vh;
+        padding: 0 !important;
+        align-items: center;
+        justify-content: flex-start;
+        background-image: none !important;
+        /* 移除重疊的背景圖 */
     }
 
-    .navbar__btn {
-        padding-bottom: 2rem;
+   /* 頂部：文字「第一頁」 */
+   .main__content {
+       width: 100% !important;
+       height: 90vh;
+       display: flex;
+       flex-direction: column;
+       justify-content: center;
+       align-items: center;
+       text-align: center;
+       padding: 40px 20px !important;
+       flex: none !important;
+       margin: 0 !important;
+
+       
+   }
+
+    /* 🚀 關鍵修改：將 h1 與 h2 設為相同大小 */
+    .main__content h1,
+    .main__content h2 {
+        /* 統一設為 2.5rem，確保視覺平衡 */
+        font-size: 3rem !important;
+        line-height: 1.1;
+        /* 縮小行高，防止字距過開 */
     }
 
+    .main__content h1 {
+        margin-bottom: 10px;
+        /* HELLO ! 下方的間距 */
+        /* 🚀 關鍵修改：使用負數 margin 將位置往上提 */
+        /* 數字越大（例如 -60px），位置就會越往上 */
+        margin-top: -50px !important;
+    }
+
+    .main__content h2 {
+        /* I'M JARVIS 下方的間距，與下方內容保持距離 */
+        margin-bottom: 20px;
+    }
+
+    /* 🚀 縮小標語文字 (Paragraph) */
+    .main__content p {
+        font-size: 1.3rem !important;
+        /* 從原本可能較大的尺寸縮小 */
+        line-height: 1.5;
+        /* 增加行間距，提升閱讀舒適度 */
+        color: #fff;
+        opacity: 0.9;
+        /* 稍微降低透明度，讓視覺重心維持在標題上 */
     
-
-    .button {
-        width: 80%;
-        height: 40px;
-        margin: 0;
+        /* 🚀 限制寬度，防止文字貼到螢幕邊緣 */
+        max-width: 85%;
+        margin: 0 auto !important;
+    
+        /* 如果希望文字更有呼吸感，可以加一點上邊距 */
+        margin-top: 10px !important;
     }
 
+    .main__img--container {
+        /* 1. 增加總高度 🚀 */
+        /* 100vh 代表佔滿整個手機螢幕高度。如果覺得還太擠，可以設為 120vh 讓使用者滑更多 */
+        height: 100vh !important;
 
+        /* 2. 增加上下內距 (Padding) 🚀 */
+        /* 如果覺得圖片離邊邊太近，把 50px 調大（例如 100px），上下就會空出更多黑邊 */
+        padding: 80px 0 !important;
+
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        background: #131313;
+    }
+
+    #main__img {
+        /* 3. 調整圖片在容器內的佔比 🚀 */
+        /* 如果想讓「背景」看起來更多、版面更空，就把 max-height 調小（例如 50%） */
+        max-height: 70% !important;
+        width: auto !important;
+        object-fit: contain;
+    }
+    /* --- 其他修正 --- */
     .services {
-        height: 1600px;
+        height: auto !important;
+        /* 移除寫死的 1600px */
+        padding: 100px 0;
     }
 
-    .services h1 {
-        font-size: 0.5rem;
-        margin-top: 12rem;
+    .main__btn {
+        /* 1. 🚀 關鍵：取消原本可能存在的 100% 寬度 */
+        width: auto !important;
+
+        /* 2. 限制最大寬度，例如 250px 或螢幕的 70% */
+        max-width: 280px !important;
+
+        /* 3. 使用內距撐開按鈕，左右 padding 大一點會更有設計感 */
+        padding: 12px 48px !important;
+
+        /* 4. 🚀 關鍵：確保寬度減少後，按鈕依然水平置中 */
+        margin: 40px auto !important;
+        display: block !important;
+
+        /* 5. 字體微調，讓按鈕文字更清晰 */
+        font-size: 1rem !important;
+        white-space: nowrap;
+        /* 防止按鈕內的文字斷行 */
     }
 }
 
@@ -305,42 +385,77 @@
     }
 }
 
-/* --- 3. 標準手機斷點 (768px) --- */
+/* ==========================================
+   🚀 手機專用版面 (不影響電腦版)
+   ========================================== */
 @media screen and (max-width: 768px) {
 
-    /* Hero Section 排版切換 */
+    /* 1. 容器轉向：由左右併排改為上下垂直 */
     .main__container {
-        display: grid;
-        grid-template-columns: auto;
-        align-items: center;
-        width: 100%;
-        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        /* 佔滿整個手機螢幕高度 */
+        padding: 0;
+        /* 移除邊距，讓內容貼齊邊緣 */
+        justify-content: flex-start;
     }
 
+    /* 2. 上半部：文字區域 (佔 50%) */
     .main__content {
+        flex: 1;
+        /* 平分空間 */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* 文字垂直置中 */
+        align-items: center;
+        /* 文字水平置中 */
         text-align: center;
-        margin-bottom: 4rem;
+        padding: 20px;
+        background: #131313;
+        /* 純黑底色，確保文字清晰 */
         width: 100%;
-        flex: none;
-        padding-left: 0;
-        /* 移除電腦版的側邊距 */
     }
 
+    /* 調整手機標題大小，防止像 image_322f00 那樣斷行 */
     .main__content h1 {
-        font-size: 2.5rem;
-        margin-top: 2rem;
+        font-size: 2.2rem;
+        margin-bottom: 15px;
     }
 
     .main__content h2 {
-        font-size: 3rem;
-        word-spacing: 10px;
+        font-size: 1.8rem;
+        line-height: 1.2;
     }
 
-    .main__content p {
-        font-size: 1.5rem;
-        margin-top: 1rem;
+    /* 3. 下半部：圖片區域 (佔 50%) */
+    .main__img--container {
+        flex: 1;
+        /* 平分空間 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #131313;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* 讓卡通 JARVIS 乖乖待在下半部框格內 */
+    #main__img {
+        width: auto;
+        height: 80%;
+        /* 圖片佔下半部的 80%，留一點呼吸空間 */
+        object-fit: contain;
+        /* 確保不變形 */
+    }
+
+    /* 隱藏手機版可能不需要的裝飾元素 */
+    .main__btn {
+        margin-top: 2rem;
     }
 }
+
 
 /* --- 4. 小型手機斷點 (480px) --- */
 @media screen and (max-width: 480px) {
