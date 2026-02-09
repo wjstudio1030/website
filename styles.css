@@ -658,48 +658,66 @@
     }
 }
 
-/* --- 1. 基礎文字動畫設定 (所有標題與段落通用) --- */
+/* --- 1. 基礎文字動畫設定 (維持不變) --- */
 .reveal-text {
     opacity: 0;
     filter: blur(12px);
     transform: translateY(40px) scale(1.1);
-    /* 這裡定義整體的動畫速度與曲線 */
     animation: digitalFocus 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
+/* --- 2. 影片覆蓋層：去背景與穿透設定 --- */
 .gif-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.85);
-    /* 半透明黑背景 */
+
+    /* 🚀 關鍵：背景改為全透明，讓影片融入網站 */
+    background-color: transparent;
+
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
-    /* 確保在所有東西最上層 */
 
     /* 初始狀態：隱藏 */
     opacity: 0;
+
+    /* 🚀 關鍵：即使顯示時也維持穿透，這樣才不會點不到下面的按鈕 */
     pointer-events: none;
-    /* 穿透，不影響平常操作 */
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* 🚀 關鍵：垂直位移 */
+    /* 100px 代表向下移動 100 像素，你可以根據感覺調整這個數字 */
+    /* 正值（如 100px）是往下，負值（如 -50px）是往上 */
+    transform: translateY(75px);
+
+    /* 🚀 關鍵：將圖層設為最高 */
+    /* 999999 是極高數值，足以壓過大部分的導航列和彈窗 */
+     z-index: 999999 !important;
+    
+    /* 🚀 再次提醒：必須維持 none，否則這層「最高透明牆」會讓你點不到下面的卡片 */
+    pointer-events: none;
+
+    transition: opacity 0.8s ease;
+    /* 稍微拉長淡入時間，更有科技感 */
 }
 
 /* 當啟動時的狀態 */
 .gif-overlay.active {
     opacity: 1;
-    pointer-events: all;
-    /* 變回可點擊（用來關閉） */
+    /* 🚀 移除原本的 pointer-events: all; 保持 none 才能在影片播放時繼續操作網站 */
 }
 
-.gif-overlay img {
-    max-width: 90%;
-    max-height: 90%;
-    /* 加一點發光特效，呼應你的科技感配色 */
-    filter: drop-shadow(0 0 20px rgba(0, 195, 255, 0.8));
+/* --- 3. 影片本體特效 --- */
+.gif-overlay video {
+    max-width: 80%;
+    max-height: 80%;
+    /* 🚀 保留你的科技藍發光效果，呼應 WJ STUDIO 配色 */
+    filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.6));
+    outline: none;
+    border: none;
 }
 
 /* --- 2. H1 設定 (保留你原本的紅粉漸層) --- */
