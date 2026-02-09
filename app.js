@@ -241,25 +241,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const jarvisText = document.querySelectorAll('.main__content h1, .main__content h2');
     const overlay = document.getElementById('gif-overlay');
 
-    // 1. 點擊文字顯示 GIF
+        // 取得影片元素
+    const video = overlay.querySelector('video');
+
     jarvisText.forEach(text => {
         text.addEventListener('click', () => {
             overlay.classList.add('active');
             
-            // 可選：播放音效 (如果你有 jarvis_voice.mp3)
+            // 🚀 關鍵動作：確保影片從頭開始播放
+            video.currentTime = 0; 
+            video.play();
+
+            // 播放音效
             let audio = new Audio('audio/HI_WJ.mp3');
             audio.play();
-
-            // 3秒後自動關閉（或者是演完 GIF 的時間）
-            setTimeout(() => {
-                overlay.classList.remove('active');
-            }, 7500);
         });
     });
 
-    // 2. 點擊 GIF 任何地方也可以手動關閉
+    // 🚀 黑科技：偵測影片播完的瞬間
+    video.addEventListener('ended', () => {
+        console.log("JARVIS 動畫播放完畢，自動收合");
+        overlay.classList.remove('active');
+    });
+
+    // 手動關閉（保留原本的邏輯）
     overlay.addEventListener('click', () => {
         overlay.classList.remove('active');
+        video.pause(); // 手動關閉時順便暫停影片
     });
 });
 
