@@ -351,6 +351,8 @@ const bookContent = document.getElementById('my-flipbook');
  */
 async function openBook(input, totalPages = null) {
     const loadingOverlay = document.getElementById('loading-overlay');
+     // 🟢 新增：抓取轉圈圈的元素
+    const spinner = loadingOverlay.querySelector('.loader-spinner'); 
     
     // 1. 生成所有路徑
     if (totalPages !== null && typeof input === 'string') {
@@ -379,6 +381,13 @@ async function openBook(input, totalPages = null) {
             });
         }));
     };
+    
+     // 🟢 關鍵修復：每次顯示前，先強迫瀏覽器「重置」動畫
+    if (spinner) {
+        spinner.style.animation = 'none';         // 1. 先拔掉動畫
+        void spinner.offsetWidth;                 // 2. 觸發 Reflow (強迫瀏覽器重新計算畫面)
+        spinner.style.animation = 'spin 1s linear infinite'; // 3. 重新掛上動畫
+    }
 
     // --- 🚀 核心黑科技邏輯 ---
     
