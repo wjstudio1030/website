@@ -502,6 +502,74 @@
     }
 }
 
+/* =========================================
+   手機版翻書優化 (單頁模式)
+   ========================================= */
+@media screen and (max-width: 960px) {
+
+    /* 1. 調整書本容器：手機上不需要太強烈的 3D 透視，避免變形 */
+    #my-flipbook {
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        /* 減弱陰影 */
+        border: none;
+        /* 移除邊框 */
+    }
+
+    /* 2. 手機版單頁樣式 (由 JS 動態生成) */
+    .mobile-page {
+        width: 100% !important;
+        /* 強制佔滿寬度 */
+        flex: none !important;
+        /* 解除 flex 比例限制 */
+        border-right: none !important;
+        /* ❌ 移除中間的書脊分隔線 */
+        box-shadow: none !important;
+        /* ❌ 移除書脊陰影 */
+        padding: 10px !important;
+        /* 縮小內距，讓圖片大一點 */
+    }
+
+    /* 3. 確保圖片在手機上完整顯示 */
+    .book-page-img {
+        max-height: 90% !important;
+        width: auto !important;
+        max-width: 100% !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        /* 給圖片自己一點陰影即可 */
+    }
+
+    /* 1. 調整 "DATA SOURCE" 頁碼文字位置：靠右 */
+    .page-counter {
+        top: 15px;
+        /* 改為靠左對齊 */
+        text-align: left;
+
+        /* 確保文字容器佔滿寬度，這樣 text-align 才會生效 */
+        left: 0;
+        width: 100%;
+        transform: none;
+        /* 取消原本的置中位移 */
+
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.8);
+        padding-bottom: 5px;
+        border-radius: 4px;
+    }
+
+    /* 2. 調整 "PREV" 按鈕位置：更靠左一點 */
+    .click-hint.left-hint {
+        left: 10px !important;
+        /* 原本可能是 30px，改小讓它更靠左 */
+    }
+
+    /* 3. 調整 "NEXT" 按鈕位置：更靠右一點 */
+    .click-hint.right-hint {
+        right: 10px !important;
+        /* 原本可能是 30px，改小讓它更靠右 */
+    }
+    
+}
+
 /*@media screen and (max-width: 960px) {
     .navbar__container {
         display: flex;
@@ -921,16 +989,23 @@
     opacity: 0;
     animation: fadeInUpBtn 0.8s ease-out 1.2s forwards;
     pointer-events: auto;
+
+    /* 👇 新增這一行，確保連結沒有底線 */
+    text-decoration: none;
+
+    /* 建議加上這兩行，確保文字在按鈕正中間 */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* 確保按鈕內的連結文字填滿點擊區域 */
-.main__btn a {
+/* 改成 span 以對應新的 HTML 結構 */
+.main__btn span {
     position: relative;
     z-index: 2;
     color: #fff;
-    text-decoration: none;
-    display: block;
-    /* 讓 <a> 撐開到整個 padding 的範圍 */
+    /* text-decoration: none; <--- 這行可以刪掉，因為已經加在父層了 */
 }
 
 /* 記得也要有原本的 hover 特效喔！ */
