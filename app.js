@@ -427,31 +427,40 @@ async function openBook(input, totalPages = null) {
     });
 }
 /**
- * 核心：執行 3D 翻頁動作 (0.6s 動畫)
+ * 核心：執行 3D 翻頁動作
+ * 修正：手機版一次翻 1 頁，電腦版一次翻 2 頁
  */
 function performPageTurn(direction) {
     if (isPageAnimating) return; 
     isPageAnimating = true;
 
+    // 🚀 1. 判斷目前裝置
+    const isMobile = window.innerWidth <= 960;
+    // 🚀 2. 設定翻頁跨度 (手機 1 頁，電腦 2 頁)
+    const step = isMobile ? 1 : 2;
+
     let targetIndex;
+    
     if (direction === 'next') {
-        if (currentPageIndex + 2 >= currentGallery.length) {
+        // 檢查是否超過總頁數
+        if (currentPageIndex + step >= currentGallery.length) {
             isPageAnimating = false; return;
         }
-        targetIndex = currentPageIndex + 2;
+        targetIndex = currentPageIndex + step;
         bookContent.classList.add('flipping-next');
     } else {
+        // 檢查是否小於 0
         if (currentPageIndex <= 0) {
             isPageAnimating = false; return;
         }
-        targetIndex = currentPageIndex - 2;
+        targetIndex = currentPageIndex - step;
         bookContent.classList.add('flipping-prev');
     }
 
-    // 在動畫中途 (300ms) 切換內容，達到流暢翻頁感
+    // 動畫延遲與切換
     setTimeout(() => {
         currentPageIndex = targetIndex;
-        renderBookPage();
+        renderBookPage(); // 重新渲染頁面
 
         bookContent.classList.remove('flipping-next', 'flipping-prev');
         
@@ -462,36 +471,60 @@ function performPageTurn(direction) {
 }
 
 /**
- * 渲染雙頁內容 (白底黑字風格)
+ * 渲染頁面內容 (支援 手機單頁 / 電腦雙頁)
  */
 function renderBookPage() {
-    const leftIndex = currentPageIndex;
-    const rightIndex = currentPageIndex + 1;
-    
-    const leftPath = currentGallery[leftIndex];
-    const rightPath = currentGallery[rightIndex];
-    
-    let leftHTML = leftPath 
-        ? `<img src="${leftPath}" alt="Memory Left" class="book-page-img">` 
-        : `<div class="empty-page-placeholder">// END //</div>`;
-
-    let rightHTML = rightPath 
-        ? `<img src="${rightPath}" alt="Memory Right" class="book-page-img">` 
-        : `<div class="empty-page-placeholder"></div>`;
-
+    // 🚀 1. 判斷目前裝置
+    const isMobile = window.innerWidth <= 960;
     const maxPage = currentGallery.length;
-    // 頁碼顯示：例如 1-2 / 4
-    const counterText = `DATA SOURCE: ${leftIndex + 1}-${Math.min(rightIndex + 1, maxPage)} / ${maxPage}`;
 
-    bookContent.innerHTML = `
-        <div class="page-counter">${counterText}</div>
-        <div class="book-page page-left">${leftHTML}</div>
-        <div class="book-page page-right">${rightHTML}</div>
-        <div class="click-hint left-hint">PREV</div>
-        <div class="click-hint right-hint">NEXT</div>
-    `;
+    // --- A. 手機版渲染邏輯 (單頁) ---
+    if (isMobile) {
+        const pagePath = currentGallery[currentPageIndex];
+        
+        let pageHTML = pagePath 
+            ? `<img src="${pagePath}" alt="Memory Page" class="book-page-img">` 
+            : `<div class="empty-page-placeholder">// END //</div>`;
+
+        // 手機版頁碼顯示 (例如: 5 / 10)
+        const counterText = `DATA SOURCE: ${currentPageIndex + 1} / ${maxPage}`;
+
+        // 🚀 關鍵：只生成一個 .book-page div，並加上 mobile-page 類別
+        bookContent.innerHTML = `
+            <div class="page-counter">${counterText}</div>
+            <div class="book-page mobile-page">${pageHTML}</div>
+            <div class="click-hint left-hint">PREV</div>
+            <div class="click-hint right-hint">NEXT</div>
+        `;
+    } 
+    // --- B. 電腦版渲染邏輯 (維持原樣雙頁) ---
+    else {
+        const leftIndex = currentPageIndex;
+        const rightIndex = currentPageIndex + 1;
+        
+        const leftPath = currentGallery[leftIndex];
+        const rightPath = currentGallery[rightIndex];
+        
+        let leftHTML = leftPath 
+            ? `<img src="${leftPath}" alt="Memory Left" class="book-page-img">` 
+            : `<div class="empty-page-placeholder">// END //</div>`;
+
+        let rightHTML = rightPath 
+            ? `<img src="${rightPath}" alt="Memory Right" class="book-page-img">` 
+            : `<div class="empty-page-placeholder"></div>`;
+
+        // 電腦版頁碼顯示 (例如: 1-2 / 10)
+        const counterText = `DATA SOURCE: ${leftIndex + 1}-${Math.min(rightIndex + 1, maxPage)} / ${maxPage}`;
+
+        bookContent.innerHTML = `
+            <div class="page-counter">${counterText}</div>
+            <div class="book-page page-left">${leftHTML}</div>
+            <div class="book-page page-right">${rightHTML}</div>
+            <div class="click-hint left-hint">PREV</div>
+            <div class="click-hint right-hint">NEXT</div>
+        `;
+    }
 }
-
 /**
  * 點擊事件：判定左右半邊觸發翻頁
  */
