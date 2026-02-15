@@ -258,7 +258,7 @@
         justify-content: flex-start;
         background-image: none !important;
         /* 移除重疊的背景圖 */
-        margin-top: -120px;
+        margin-top: 0px;
     }
 
    /* 頂部：文字「第一頁」 */
@@ -372,6 +372,14 @@
         /* 防止按鈕內的文字斷行 */
         
     }
+    /* --- 在手機版設定 (max-width: 960px) 內 --- */
+
+    /* 🚀 關鍵修改：直接隱藏右邊那個圖片/影片連結區塊 */
+    /* 因為我們已經把照片設為全螢幕背景了，這個容器現在只是個擋住畫面的黑色盒子 */
+    .main__img--link,
+    .main__img--container {
+        display: none !important;
+    }
 
     /* =========================================
     手機版修復：讓圖片連結排在文字下方
@@ -400,20 +408,33 @@
     }
 
     /* 🚀 2. 修正文字區塊：用 padding 控制位置，確保按鈕完整顯示 */
+        /* --- 在手機版設定 (max-width: 960px) 內 --- */
+    
+        /* 請放在 @media screen and (max-width: 960px) 裡面 */
+    
     .main__content {
+        /* 強制寬度佔滿，讓文字可以置中 */
         width: 100% !important;
+        height: 100vh !important;
 
-        /* ⬇️ 這邊控制文字離頂部多遠 (避開 Navbar) */
-        padding-top: 0px !important;
+     
+        background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.6) 0%,
+                rgba(0, 0, 0, 0.6) 100%,
+                transparent 75%,
+                transparent 100%) !important;
 
-        /* ⬇️ 這邊控制按鈕下方要留多少黑色空間給圖片 */
-        padding-bottom: 0px !important;
+        /* 排版設定：讓文字垂直水平置中 */
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
 
-        background: #131313;
-        /* 確保文字區塊背景是黑的 */
         margin: 0 !important;
-        /* 清除所有外距 */
-        padding: 20px 20px 10px 20px !important;
+        padding: 20px !important;
+        position: relative;
+        z-index: 10;
+        /* 確保文字在照片上面 */
     }
 
     /* 🚀 3. 歸零 H1 的推擠，完全靠上面的 padding-top 控制 */
@@ -432,7 +453,7 @@
         width: 100% !important;
 
         /* 設定圖片區域的高度，您可以自由調整這個比例 */
-        height: 50vh !important;
+        height: 20vh !important;
 
         margin-top: 0 !important;
         right: auto !important;
@@ -441,35 +462,36 @@
     }
 
     /* 🚀 5. 背景圖修正：確保寬度佔滿、圖片置中且不被切裁 */
+    /* --- 在手機版設定 (max-width: 960px) 內 --- */
+
+    /* 請放在 @media screen and (max-width: 960px) 裡面 */
+
     .main::before {
         content: '' !important;
         position: absolute !important;
 
-        /* 📍 關鍵 1：強制寬度 100%，並靠左對齊，解決「左邊黑掉」的問題 */
+        /* 🚀 關鍵 1：寬高全滿，取消電腦版的限制 */
         width: 100% !important;
+        height: 100% !important;
+
+        /* 🚀 關鍵 2：定位歸零，從左上角開始 */
         left: 0 !important;
+        top: 0 !important;
+        bottom: auto !important;
 
-        /* 📍 關鍵 2：設定高度為 50%~60%，讓它只出現在下半部，才不會蓋到文字 */
-        height: 60vh !important;
+        /* 2. 🚀 關鍵修改：更換照片路徑 */
+        /* 請將 'images/Mobile_Pic.png' 改成您真正的手機版照片檔名 */
+        background-image: url('images/Tedx.png') !important;
 
-        /* 📍 關鍵 3：強制貼底 */
-        bottom: 0 !important;
-        top: auto !important;
-        /* 取消電腦版的 top 定位 */
+        /* 🚀 關鍵 3：使用 cover 模式，確保照片等比例放大填滿，不會變形 */
+        background-size: cover !important;
 
-        /* 📍 關鍵 4：圖片顯示設定 */
-        /* 如果在 styles.css 裡沒有預設圖片，請在這裡補上 background-image: url(...); */
+        /* 🚀 關鍵 4：設定圖片中心點 (可改成 center top 避免頭被卡掉) */
+        background-position: center center !important;
 
-        background-size: contain !important;
-        /* 保持原比例，確保整個人都看得到 */
-        background-position: center bottom !important;
-        /* 水平置中、垂直靠底 */
-        background-repeat: no-repeat !important;
-
+        /* 確保背景在最底層 */
         z-index: 0;
-        /* 確保在最底層 */
         opacity: 1 !important;
-        /* 確保不透明 */
     }
 }
 
