@@ -103,12 +103,6 @@
     /* 應用動畫：名稱 時間 緩動函數 延遲 僅執行一次並停在最後狀態 */
     animation: holoBuild 1.2s cubic-bezier(0.215, 0.610, 0.355, 1.000) 0.3s forwards;
 }
-/* 針對手機版做響應式調整 */
-/*@media screen and (max-width: 960px) {
-    #navbar__logo--img {
-        height: 35px;
-    }
-}*/
 
 .fa-gem {
     margin-right: 0.5rem;
@@ -382,9 +376,6 @@
     }
 
     /* =========================================
-    手機版修復：讓圖片連結排在文字下方
-    ========================================= */
-    /* =========================================
     手機版面調整：修正標題被遮擋 & 圖片位置
     ========================================= */
    
@@ -408,9 +399,6 @@
     }
 
     /* 🚀 2. 修正文字區塊：用 padding 控制位置，確保按鈕完整顯示 */
-        /* --- 在手機版設定 (max-width: 960px) 內 --- */
-    
-        /* 請放在 @media screen and (max-width: 960px) 裡面 */
     
     .main__content {
         /* 強制寬度佔滿，讓文字可以置中 */
@@ -462,9 +450,6 @@
     }
 
     /* 🚀 5. 背景圖修正：確保寬度佔滿、圖片置中且不被切裁 */
-    /* --- 在手機版設定 (max-width: 960px) 內 --- */
-
-    /* 請放在 @media screen and (max-width: 960px) 裡面 */
 
     .main::before {
         content: '' !important;
@@ -480,7 +465,6 @@
         bottom: auto !important;
 
         /* 2. 🚀 關鍵修改：更換照片路徑 */
-        /* 請將 'images/Mobile_Pic.png' 改成您真正的手機版照片檔名 */
         background-image: url('images/Tedx.png') !important;
 
         /* 🚀 關鍵 3：使用 cover 模式，確保照片等比例放大填滿，不會變形 */
@@ -705,111 +689,6 @@
     
 }
 
-/*@media screen and (max-width: 960px) {
-    .navbar__container {
-        display: flex;
-        justify-content: space-between;
-        height: 80px;
-        z-index: 1;
-        width: 100%;
-        max-width: 1300px;
-        padding: 0;
-    }
-
-    .navbar__menu {
-        display: grid;
-        grid-template-columns: auto;
-        margin: 0;
-        width: 100%;
-        position: absolute;
-        top: -1000px;
-        opacity: 0;
-        transition: all 0.5s ease;
-        height: 50vh;
-        z-index: -1;
-        background: #131313;
-    }
-
-    
-    .navbar__menu.active {
-        background: #131313;
-        top: 100%;
-        opacity: 1;
-        transition: all 0.5s ease;
-        z-index: 99;
-        height: 50vh;
-        font-size: 1.6rem;
-    }
-    
-    #navbar__logo {
-        padding-left: 25px;
-    }
-    
-    .navbar__toggle .bar {
-        width: 25px;
-        height: 3px;
-        margin: 5px auto;
-        transition: all 0.3s ease-in-out;
-        background: #fff;
-    }
-
-    .navbar__item {
-        width: 100%;
-    }
-    
-    
-    
-    .navbar__links {
-        text-align: center;
-        padding: 2rem;
-        width: 100%;
-        display: table;
-    }
-    
-    
-    
-    #mobile-menu {
-        position: absolute;
-        top: 20%;
-        right: 5%;
-        transform: translate(5%, 20%);
-    }
-    
-    
-    
-    .navbar__btn {
-        padding-bottom: 2rem;
-    }
-
-    .button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 80%;
-        height: 40px;
-        margin: 0;
-    }
-
-    .navbar__toggle .bar {
-        display: block;
-        cursor: pointer;
-    }
-    
-    #mobile-menu.is-active .bar:nth-child(2) {
-        opacity: 0;
-    }
-    
-    #mobile-menu.is-active .bar:nth-child(1) {
-        transform: translateY(8px) rotate(45deg);
-    }
-    
-    #mobile-menu.is-active .bar:nth-child(3) {
-        transform: translateY(-8px) rotate(-45deg);
-    }
-}*/
-
-
-
 /* --- 修改後的 Hero Section (含進場動畫) --- */
 .main {
     background-color: #141414;
@@ -902,9 +781,6 @@
     z-index: 1;
     /* 確保它在最上層 */
     cursor: pointer;
-
-    /* 🌈 實驗模式：取消下一行的註解，如果你看到右邊有淡淡的綠色，就代表成功了！ */
-    /* background: rgba(0, 255, 0, 0.2); */
 }
 
 
@@ -1195,61 +1071,6 @@
     }
 }
 
-
-/*Mobile Responsive*/
-
-/*@media screen and (max-width: 768px) {
-    .main__container {
-        display: grid;
-        grid-template-columns: auto;
-        align-items: center;
-        justify-self: center;
-        width: 100%;
-        margin: 0 auto;
-        height: 90vh;
-    }
-
-    .main__content {
-        text-align: center;
-        margin-bottom: 4rem;
-    }
-
-    .main__content h1 {
-        font-size: 2.5rem;
-        margin-top: 2rem;
-    }
-
-    .main__content h2 {
-        font-size: 3rem;
-    }
-
-    .main__content p {
-        margin-top: 1rem;
-        font-size: 1.5rem;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .main__content h1 {
-        font-size: 2rem;
-        margin-top: 3rem;
-    }
-
-    .main__content h2 {
-        font-size: 2rem;
-    }
-
-    .main__content p {
-        margin-top: 2rem;
-        font-size: 1.5rem;
-    }
-
-    .main__btn {
-        padding: 12px 36px;
-        margin: 2.5rem 0;
-    }
-}*/
-
 /* Services Section CSS */
 .services {
     background: #141414;
@@ -1337,30 +1158,6 @@
     cursor: pointer;
 }
 
-/*@media screen and (max-width: 960px) {
-    .services {
-        height: 1600px;
-    }
-
-    .services h1 {
-        font-size: 2rem;
-        margin-top: 12rem;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .services {
-        height: 1400px;
-    }
-    
-    .services h1 {
-        font-size: 2rem;
-    }
-
-    .services__card {
-        width: 300px;
-    }
-}*/
 
 /*Footer CSS*/
 .footer__container {
@@ -1463,37 +1260,6 @@
 .website__rights {
     color: #ffffff;
 }
-
-/*@media screen and (max-width: 820px) {
-    .footer__links {
-        padding-top: 2rem;
-    }
-
-    #footer__logo {
-        margin-bottom: 2rem;
-    }
-
-    .website__rights {
-        margin-bottom: 2rem;
-    }
-
-    .footer__link--wrapper {
-        flex-direction: column;
-    }
-
-    .social__media--wrap {
-        flex-direction: column;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .footer__link--items {
-        margin: 0;
-        padding: 10px;
-        width: 100%;
-    }
-}
-*/
 
 /* --- 科技感升級樣式 --- */
 
@@ -2168,9 +1934,6 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 .book-animate {
     animation: bookFlyOut 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
 }
-
-
-
 
 /* ============================================================
    數位記憶之書：3D 物理翻頁 (UI 修正版)
