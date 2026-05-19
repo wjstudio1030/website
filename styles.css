@@ -1,14 +1,76 @@
+/* =========================================
+   1. 系統變數與重置 (Variables & Reset)
+   ========================================= */
+:root {
+    --bg-dark: #141414;
+    --bg-nav: #131313;
+    --brand-red: #ff0844;
+    --brand-blue: #00f2fe;
+    --brand-peach: #ff8177;
+    --font-main: 'Kumbh Sans', sans-serif;
+    --font-tech: 'Orbitron', sans-serif;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Kumbh Sans', sans-serif;
+    font-family: var(--font-main);
+    cursor: none !important;
+    /* 隱藏原生指標 */
 }
 
+/* =========================================
+   2. 游標與滾動條 (Cursor & Scrollbar)
+   ========================================= */
+.cursor,
+.cursor-follower {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 999999 !important;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, background 0.3s ease, border 0.3s ease;
+    display: block;
+}
+
+.cursor {
+    width: 8px;
+    height: 8px;
+    background: var(--brand-peach);
+}
+
+.cursor-follower {
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--brand-peach);
+    transition: 0.15s ease-out;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #020202;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgb(0, 0, 0) 0%, rgb(12, 8, 234) 100%) !important;
+}
+
+body.is-scrolling ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgb(0, 0, 0) 0%, rgb(12, 8, 234) 100%) !important;
+    box-shadow: 0 0 15px rgb(255, 255, 255), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* =========================================
+   3. 導航列 (Navbar)
+   ========================================= */
 .navbar {
-    background: #131313;
-    height: 150px;
-    /* 從 80px 改成 100px，你可以根據感覺調成 120px */
+    background: rgba(20, 20, 20, 0.95);
+    height: 130px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -16,38 +78,22 @@
     position: sticky;
     top: 0;
     z-index: 999;
-    /* 2. 為了增加科技感，建議加入一點透明度與模糊，這樣它滑下來時會有透視感 */
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    background: rgba(20, 20, 20, 0.95);
-    /* 95% 不透明的深色 */
-    
-    /* 3. 確保有一條極細的邊框，區隔導航欄與內容，避免看起來像「一坨黑」 */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.01);
-    
-    /* 4. 原有的 transition 保持不變 */
-     transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    height: 130px;
-    /* 依照你之前調大的高度 */
-    position: sticky;
-    top: 0;
-    z-index: 999;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* 當導航欄被隱藏時，向上推移 100% 的高度 */
 .navbar.nav-hidden {
     transform: translateY(-100%);
     box-shadow: none;
-    background: #141414;
-        /* 強制保持背景色 */
-    /* 隱藏時關閉陰影，避免露餡 */
+    background: var(--bg-dark);
 }
 
 .navbar__container {
     display: flex;
     justify-content: space-between;
-    height: 150px;
-    /* 這裡也要跟著改成 100px，確保內容垂直置中 */
+    height: 100px;
     z-index: 1;
     width: 100%;
     max-width: 1300px;
@@ -55,57 +101,28 @@
     padding: 0 50px;
 }
 
-/* #navbar__logo 是父容器，它同時包住了圖片和文字 */
 #navbar__logo {
-    /* --- 關鍵修改：新增這兩行 --- */
     display: flex;
-    /* 1. 啟用彈性排版 */
     align-items: center;
-    /* 2. 讓容器內的圖片和文字垂直置中對齊 */
-    /* -------------------------- */
-
     text-decoration: none;
-    /* 建議加入：移除連結預設的底線 */
-
-    /* --- 原本的文字特效設定保持不變 --- */
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-tech);
     font-size: 3.5rem;
     font-weight: 900;
-
-    /* 漸層色彩設定 */
-    background: linear-gradient(to right, #ff0844 0%, #ffb199 25%, #4837ff 50%, #ffb199 75%, #ff0844 100%);
+    background: linear-gradient(to right, var(--brand-red) 0%, #ffb199 25%, #4837ff 50%, #ffb199 75%, var(--brand-red) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-
-    /* 動態動畫 */
     animation: shine 3s linear infinite;
 }
 
-@keyframes shine {
-    to {
-        background-position: 200% center;
-    }
-}
-
-/* 設定 Logo 圖片的尺寸與間距 */
 #navbar__logo--img {
-    /* --- 原本的設定保持不變 --- */
     height: 100px;
     width: auto;
     margin-right: 45px;
     object-fit: contain;
-
-    /* --- 新增：科技感登場動畫設定 (方案 A) --- */
-    /* 一開始先隱藏並縮小 */
     opacity: 0;
     transform: scale(0.8);
-    /* 應用動畫：名稱 時間 緩動函數 延遲 僅執行一次並停在最後狀態 */
     animation: holoBuild 1.2s cubic-bezier(0.215, 0.610, 0.355, 1.000) 0.3s forwards;
-}
-
-.fa-gem {
-    margin-right: 0.5rem;
 }
 
 .navbar__menu {
@@ -127,6 +144,11 @@
     text-decoration: none;
     padding: 0 1rem;
     height: 100%;
+    transition: all 1s ease;
+}
+
+.navbar__links:hover {
+    color: var(--brand-peach);
 }
 
 .navbar__btn {
@@ -137,565 +159,42 @@
     width: 100%;
 }
 
-.button {
-    display: flex;
+/* 按鈕共用樣式 */
+.button,
+.main__btn {
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     text-decoration: none;
-    padding: 10px 20px;
-    height: 100%;
-    width: 100%;
     border: none;
     outline: none;
     border-radius: 4px;
-    background: #f77062;
     color: #fff;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
+.button {
+    background: #f77062;
+    padding: 10px 20px;
+    height: 100%;
+    width: 100%;
+    transition: all 1s ease;
+}
 
 .button:hover {
     background: #4837ff;
-    transition: all 1s ease;
-}
-
-.navbar__links:hover {
-    color: #f77062;
-    transition: all 1s ease;
-}
-/* --- 手機與平板響應式調整 --- */
-/* ============================================================
-   RESPONSIVE LAYOUT SYSTEM (響應式系統整合)
-   ============================================================ */
-
-/* --- 🚀 960px 以下：保留導航欄 + 下方分兩頁 --- */
-@media screen and (max-width: 960px) {
-
-    /* --- [保留] 你原本的導航欄設定，完全沒動 --- */
-    .navbar__container {
-        display: flex;
-        justify-content: space-between;
-        height: 60px;
-        width: 100%;
-        max-width: 1300px;
-        padding: 0;
-    }
-
-    .navbar__menu {
-        display: grid;
-        grid-template-columns: auto;
-        margin: 0;
-        width: 100%;
-        position: absolute;
-        top: -1000px;
-        opacity: 0;
-        transition: all 0.5s ease;
-        height: 50vh;
-        z-index: -1;
-        background: #131313;
-    }
-
-    .navbar__menu.active {
-        background: #131313;
-        top: 100%;
-        opacity: 1;
-        z-index: 99;
-        font-size: 1.6rem;
-    }
-
-    #navbar__logo {
-        font-size: 1.9rem;
-        white-space: nowrap;
-        padding-left: 5px;
-        display: flex;
-        align-items: center;
-    }
-
-    #navbar__logo--img {
-        height: 75px;
-        margin-right: 15px;
-    }
-
-    .navbar__toggle .bar {
-        width: 25px;
-        height: 3px;
-        margin: 5px auto;
-        display: block;
-        cursor: pointer;
-        background: #fff;
-    }
-
-    #mobile-menu {
-        position: absolute;
-        top: 50%;
-        right: 5%;
-        transform: translateY(-50%);
-        cursor: pointer;
-    }
-
-    /* --- [修改] 下方區塊：強制分兩頁 (文字一頁、圖片一頁) 🚀 --- */
-
-    .main {
-        background: #131313;
-        /* 確保背景乾淨 */
-    }
-
-    .main__container {
-        display: flex !important;
-        /* 關閉電腦版 Grid */
-        flex-direction: column !important;
-        /* 🚀 關鍵：改為上下排列 */
-        height: auto !important;
-        /* 讓內容自動撐開，可以往下滑動 */
-        min-height: 100vh;
-        padding: 0 !important;
-        align-items: center;
-        justify-content: flex-start;
-        background-image: none !important;
-        /* 移除重疊的背景圖 */
-        margin-top: 0px;
-    }
-
-   /* 頂部：文字「第一頁」 */
-   .main__content {
-       width: 100% !important;
-       height: 90vh;
-       display: flex;
-       flex-direction: column;
-       justify-content: center;
-       align-items: center;
-       text-align: center;
-       padding: 40px 20px !important;
-       flex: none !important;
-       margin: 0 !important;
-
-       
-   }
-
-    /* 🚀 關鍵修改：將 h1 與 h2 設為相同大小 */
-    .main__content h1,
-    .main__content h2 {
-        /* 統一設為 2.5rem，確保視覺平衡 */
-        font-size: 3rem !important;
-        line-height: 1.1;
-        /* 縮小行高，防止字距過開 */
-    }
-
-    .main__content h1 {
-        margin-bottom: 10px;
-        /* HELLO ! 下方的間距 */
-        /* 🚀 關鍵修改：使用負數 margin 將位置往上提 */
-        /* 數字越大（例如 -60px），位置就會越往上 */
-        margin-top: -100px !important;
-    }
-
-    .main__content h2 {
-        /* I'M JARVIS 下方的間距，與下方內容保持距離 */
-        margin-bottom: 20px;
-    }
-
-    /* 🚀 縮小標語文字 (Paragraph) */
-    .main__content p {
-        font-size: 1.3rem !important;
-        /* 從原本可能較大的尺寸縮小 */
-        line-height: 1.5;
-        /* 增加行間距，提升閱讀舒適度 */
-        color: #fff;
-        opacity: 0.9;
-        /* 稍微降低透明度，讓視覺重心維持在標題上 */
-    
-        /* 🚀 限制寬度，防止文字貼到螢幕邊緣 */
-        max-width: 85%;
-        margin: 0 auto !important;
-    
-        /* 如果希望文字更有呼吸感，可以加一點上邊距 */
-        margin-top: 10px !important;
-    }
-
-    .main__img--container {
-        /* 1. 增加總高度 🚀 */
-        /* 100vh 代表佔滿整個手機螢幕高度。如果覺得還太擠，可以設為 120vh 讓使用者滑更多 */
-        height: 100vh !important;
-
-        /* 2. 增加上下內距 (Padding) 🚀 */
-        /* 如果覺得圖片離邊邊太近，把 50px 調大（例如 100px），上下就會空出更多黑邊 */
-        padding: 80px 0 !important;
-
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        background: #131313;
-    }
-
-    #main__img {
-        /* 3. 調整圖片在容器內的佔比 🚀 */
-        /* 如果想讓「背景」看起來更多、版面更空，就把 max-height 調小（例如 50%） */
-        max-height: 50% !important;
-        width: auto !important;
-        object-fit: contain;
-    }
-    /* --- 其他修正 --- */
-    .services {
-        height: auto !important;
-        /* 移除寫死的 1600px */
-        padding: 100px 0;
-    }
-
-    .main__btn {
-        /* 1. 🚀 關鍵：取消原本可能存在的 100% 寬度 */
-        width: auto !important;
-
-        /* 2. 限制最大寬度，例如 250px 或螢幕的 70% */
-        max-width: 280px !important;
-
-        /* 3. 使用內距撐開按鈕，左右 padding 大一點會更有設計感 */
-        padding: 12px 48px !important;
-
-        width: auto !important;
-        /* 🟢 修改後的設定：上留 30px，下縮短為 10px */
-        /* 順序為：上(30px) 右(auto) 下(10px) 左(auto) */
-        margin: 40px auto -60px auto !important;
-        
-        display: block !important;
-        font-size: 1rem !important;
-        white-space: nowrap;
-        display: block !important;
-
-        /* 5. 字體微調，讓按鈕文字更清晰 */
-        font-size: 1rem !important;
-        white-space: nowrap;
-        /* 防止按鈕內的文字斷行 */
-        
-    }
-    /* --- 在手機版設定 (max-width: 960px) 內 --- */
-
-    /* 🚀 關鍵修改：直接隱藏右邊那個圖片/影片連結區塊 */
-    /* 因為我們已經把照片設為全螢幕背景了，這個容器現在只是個擋住畫面的黑色盒子 */
-    .main__img--link,
-    .main__img--container {
-        display: none !important;
-    }
-
-    /* =========================================
-    手機版面調整：修正標題被遮擋 & 圖片位置
-    ========================================= */
-   
-}
-
-@media screen and (max-width: 960px) {
-
-    /* 🚀 1. 關鍵修正：讓主容器高度自動延伸，不要鎖死 */
-    .main {
-        height: auto !important;
-        /* 讓高度隨內容變長 */
-        min-height: 100vh;
-        /* 至少要有螢幕這麼高 */
-        display: flex;
-        flex-direction: column;
-        /* 上下排列 */
-        justify-content: flex-start;
-        /* 內容從上面開始排 */
-        padding-bottom: 0;
-        /* 底部不留白，給圖片用 */
-    }
-
-    /* 🚀 2. 修正文字區塊：用 padding 控制位置，確保按鈕完整顯示 */
-    
-    .main__content {
-        /* 強制寬度佔滿，讓文字可以置中 */
-        width: 100% !important;
-        height: 100vh !important;
-
-     
-        background: linear-gradient(to bottom,
-                rgba(0, 0, 0, 0.6) 0%,
-                rgba(0, 0, 0, 0.6) 100%,
-                transparent 75%,
-                transparent 100%) !important;
-
-        /* 排版設定：讓文字垂直水平置中 */
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-
-        margin: 0 !important;
-        padding: 20px !important;
-        position: relative;
-        z-index: 10;
-        /* 確保文字在照片上面 */
-    }
-
-    /* 🚀 3. 歸零 H1 的推擠，完全靠上面的 padding-top 控制 */
-    .main__content h1 {
-        margin-top: 0 !important;
-        /* ❌ 不要再用 200px 推了 */
-        margin-bottom: 50px;
-        /* 保持與副標題的距離 */
-        line-height: 1.2;
-    }
-
-    /* 🚀 4. 圖片連結區域設定 */
-    .main__img--link {
-        position: relative !important;
-        display: block !important;
-        width: 100% !important;
-
-        /* 設定圖片區域的高度，您可以自由調整這個比例 */
-        height: 20vh !important;
-
-        margin-top: 0 !important;
-        right: auto !important;
-        top: auto !important;
-        margin: -50px auto -100px auto !important;
-    }
-
-    /* 🚀 5. 背景圖修正：確保寬度佔滿、圖片置中且不被切裁 */
-
-    .main::before {
-        content: '' !important;
-        position: absolute !important;
-
-        /* 🚀 關鍵 1：寬高全滿，取消電腦版的限制 */
-        width: 100% !important;
-        height: 100% !important;
-
-        /* 🚀 關鍵 2：定位歸零，從左上角開始 */
-        left: 0 !important;
-        top: 0 !important;
-        bottom: auto !important;
-
-        /* 2. 🚀 關鍵修改：更換照片路徑 */
-        background-image: url('images/Tedx.png') !important;
-
-        /* 🚀 關鍵 3：使用 cover 模式，確保照片等比例放大填滿，不會變形 */
-        background-size: cover !important;
-
-        /* 🚀 關鍵 4：設定圖片中心點 (可改成 center top 避免頭被卡掉) */
-        background-position: center center !important;
-
-        /* 確保背景在最底層 */
-        z-index: 0;
-        opacity: 1 !important;
-    }
-}
-
-/* --- 2. 大型手機與部分平板 (820px) --- */
-@media screen and (max-width: 820px) {
-
-    /* Footer 頁尾調整 */
-    .footer__links {
-        padding-top: 2rem;
-    }
-
-    #footer__logo,
-    .website__rights {
-        margin-bottom: 2rem;
-    }
-
-    .footer__link--wrapper,
-    .social__media--wrap {
-        flex-direction: column;
-    }
-}
-
-/* ==========================================
-   🚀 手機專用版面 (不影響電腦版)
-   ========================================== */
-@media screen and (max-width: 768px) {
-
-    /* 1. 容器轉向：由左右併排改為上下垂直 */
-    .main__container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        /* 佔滿整個手機螢幕高度 */
-        padding: 0;
-        /* 移除邊距，讓內容貼齊邊緣 */
-        justify-content: flex-start;
-    }
-
-    /* 2. 上半部：文字區域 (佔 50%) */
-    .main__content {
-        flex: 1;
-        /* 平分空間 */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        /* 文字垂直置中 */
-        align-items: center;
-        /* 文字水平置中 */
-        text-align: center;
-        padding: 20px;
-        background: #131313;
-        /* 純黑底色，確保文字清晰 */
-        width: 100%;
-    }
-
-    /* 調整手機標題大小，防止像 image_322f00 那樣斷行 */
-    .main__content h1 {
-        font-size: 2.2rem;
-        margin-bottom: 15px;
-    }
-
-    .main__content h2 {
-        font-size: 1.8rem;
-        line-height: 1.2;
-    }
-
-    /* 3. 下半部：圖片區域 (佔 50%) */
-    .main__img--container {
-        flex: 1;
-        /* 平分空間 */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #131313;
-        width: 100%;
-        overflow: hidden;
-    }
-
-    /* 讓卡通 JARVIS 乖乖待在下半部框格內 */
-    #main__img {
-        width: auto;
-        height: 80%;
-        /* 圖片佔下半部的 80%，留一點呼吸空間 */
-        object-fit: contain;
-        /* 確保不變形 */
-    }
-
-    /* 隱藏手機版可能不需要的裝飾元素 */
-    .main__btn {
-        margin-top: 2rem;
-    }
-}
-
-
-/* --- 4. 小型手機斷點 (480px) --- */
-@media screen and (max-width: 480px) {
-
-    /* Hero Section 深度縮小 */
-    .main__content h1 {
-        font-size: 2rem;
-        margin-top: 3rem;
-    }
-
-    .main__content h2 {
-        font-size: 2rem;
-    }
-
-    .main__content p {
-        font-size: 1.5rem;
-        margin-top: 2rem;
-    }
-
-    .main__btn {
-        padding: 12px 36px;
-        margin: 2.5rem 0;
-        width: auto;
-    }
-
-    /* Services 卡片縮小 */
-    .services {
-        height: 1400px;
-    }
-
-    .services h1 {
-        font-size: 2rem;
-    }
-
-    .services__card {
-        width: 300px;
-    }
-
-    /* Footer 內容微調 */
-    .footer__link--items {
-        margin: 0;
-        padding: 10px;
-        width: 100%;
-    }
 }
 
 /* =========================================
-   手機版翻書優化 (單頁模式)
+   4. Hero Section (首頁主視覺)
    ========================================= */
-@media screen and (max-width: 960px) {
-
-    /* 1. 調整書本容器：手機上不需要太強烈的 3D 透視，避免變形 */
-    #my-flipbook {
-        box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
-        /* 減弱陰影 */
-        border: none;
-        /* 移除邊框 */
-    }
-
-    /* 2. 手機版單頁樣式 (由 JS 動態生成) */
-    .mobile-page {
-        width: 100% !important;
-        /* 強制佔滿寬度 */
-        flex: none !important;
-        /* 解除 flex 比例限制 */
-        border-right: none !important;
-        /* ❌ 移除中間的書脊分隔線 */
-        box-shadow: none !important;
-        /* ❌ 移除書脊陰影 */
-        padding: 10px !important;
-        /* 縮小內距，讓圖片大一點 */
-    }
-
-    /* 3. 確保圖片在手機上完整顯示 */
-    .book-page-img {
-        max-height: 90% !important;
-        width: auto !important;
-        max-width: 100% !important;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        /* 給圖片自己一點陰影即可 */
-    }
-
-    /* 1. 調整 "DATA SOURCE" 頁碼文字位置：靠右 */
-    .page-counter {
-        top: 15px;
-        /* 改為靠左對齊 */
-        text-align: left;
-
-        /* 確保文字容器佔滿寬度，這樣 text-align 才會生效 */
-        left: 0;
-        width: 100%;
-        transform: none;
-        /* 取消原本的置中位移 */
-
-        font-size: 0.9rem;
-        background: rgba(255, 255, 255, 0.8);
-        padding-bottom: 5px;
-        border-radius: 4px;
-    }
-
-    /* 🚀 新增或修改這一段：控制按鈕高度 */
-    .click-hint {
-        /* 原本是 50% (中間)，數字越大越往下 */
-        top: 95% !important;
-
-        /* 建議取消原本的垂直置中位移，讓定位更單純 */
-        transform: none !important;
-    }
-
-    /* 左右距離保持您原本調好的設定 */
-    .click-hint.left-hint {
-        left: 21px !important;
-    }
-
-    .click-hint.right-hint {
-        right: 21px !important;
-    }
-    
-}
-
-/* --- 修改後的 Hero Section (含進場動畫) --- */
 .main {
-    background-color: #141414;
+    background-color: var(--bg-dark);
     position: relative;
     height: 90vh;
     width: 100%;
-    /* 1. 關鍵：防止背景放大時產生捲軸 */
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -709,322 +208,112 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-
-    /* 關鍵 1：改用 cover，確保任何比例下都填滿，不留白 */
     background-size: cover;
-
-    /* 關鍵 2：使用百分比精確定位。
-       第一個數值 (25%)：這會把照片稍微往右推，露出你和 TED 字樣，並把 X 擠出去。
-       第二個數值 (0%)：絕對鎖定頂部，確保頭部不見的問題不再發生。 */
     background-position: 25% 0%;
     background-repeat: no-repeat;
-
-    /* 漸層優化：使用 40% 比例，但在大螢幕上增加平滑感 */
-    background-image:
-        linear-gradient(to right,
-            #141414 0%,
-            #141414 40%,
-            rgba(20, 20, 20, 0.85) 60%,
-            rgba(20, 20, 20, 0.6) 100%),
-        url('images/TEST.png');
-
+    background-image: linear-gradient(to right, #141414 0%, #141414 40%, rgba(20, 20, 20, 0.85) 60%, rgba(20, 20, 20, 0.6) 100%), url('images/TEST.png');
     opacity: 0;
     transform: scale(1.05);
-    /* 稍微縮小初始比例，減少縮放負擔 */
     animation: bgReveal 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
-    
 }
-/* 1. 大容器：作為定位基準點 */
+
 .main__container {
     width: 100%;
-    max-width: none;
     display: flex;
     align-items: center;
     height: 90vh;
     position: relative;
-    /* ✨ 重要：讓連結可以對著它定位 */
     padding: 0;
     z-index: 1;
 }
 
-/* 2. 左側 40% 文字區 */
 .main__content {
     width: 40%;
     flex: 0 0 40%;
     z-index: 10;
-    /* 低於連結的 z-index 沒關係，因為連結被釘在右邊了 */
     position: relative;
     padding-left: 8vw;
-    /* 確保文字可以點選，不被任何東西擋住 */
     pointer-events: auto;
 }
 
-/* 3. 右側 60% 照片顯示區 */
 .main__img--container {
     width: 60%;
     flex: 0 0 60%;
     height: 100%;
-    /* 這裡只負責顯示照片，不放連結 */
 }
 
-/* 4. ✨ 終極方案：獨立出來的「右側 60% 傳送門」 */
 .main__img--link {
     position: absolute;
-    /* ✨ 關鍵：直接脫離排版限制 */
     top: 0;
     right: 0;
-    /* ✨ 關鍵：釘死在最右邊 */
     width: 60%;
-    /* ✨ 關鍵：寬度強行設定為右邊 60% */
     height: 100%;
     display: block;
     z-index: 1;
-    /* 確保它在最上層 */
     cursor: pointer;
 }
 
-
-
-/* 5. Hover 效果：當滑鼠移到「連結」上，讓「照片區」變亮 */
-/* 利用 CSS 的「相鄰兄弟選擇器」或「父層偵測」 */
 .main__container:has(.main__img--link:hover) .main__img--container {
     filter: brightness(1.15);
     transition: 0.3s;
 }
 
-/* 4. 為了防止單字真的太長，可以加上這個保險 */
 .main__content h1,
 .main__content h2 {
-    
     width: 100%;
-    overflow: visible;
-    /* 確保文字不會被隱藏 */
     white-space: nowrap;
-    /* 如果你希望單字不換行且完整顯示 */
-    word-spacing: 20px;
-    /* 拉開 I'M 和 JARVIS 的距離 */
-    letter-spacing: 3px;
-    /* 讓每個字母都有呼吸空間 */
     font-weight: bold;
     text-transform: uppercase;
     cursor: pointer;
-    z-index: 100;
     display: block;
+    transition: all 0.3s ease;
 }
 
-
-/* 文字進場動畫 */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* --- 6. 定義帥氣動畫的核心影格 --- */
-@keyframes bgReveal {
-    0% {
-        opacity: 0;
-        transform: scale(1.15);
-        filter: blur(5px);
-        /* 加入微微的模糊，更有科技感 */
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1);
-        filter: blur(0);
-    }
-}
-/* 4. 動畫定義 (建議放在檔案最下方或這裡) */
-@keyframes mesh-gradient {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-/* --- 1. 基礎文字動畫設定 (維持不變) --- */
-.reveal-text {
-    opacity: 0;
-    filter: blur(12px);
-    transform: translateY(40px) scale(1.1);
-    animation: digitalFocus 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-}
-
-/* --- 2. 影片覆蓋層：去背景與穿透設定 --- */
-.gif-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-
-    /* 🚀 關鍵：背景改為全透明，讓影片融入網站 */
-    background-color: transparent;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-
-    /* 初始狀態：隱藏 */
-    opacity: 0;
-
-    /* 🚀 關鍵：即使顯示時也維持穿透，這樣才不會點不到下面的按鈕 */
-    pointer-events: none;
-
-    /* 🚀 關鍵：垂直位移 */
-    /* 100px 代表向下移動 100 像素，你可以根據感覺調整這個數字 */
-    /* 正值（如 100px）是往下，負值（如 -50px）是往上 */
-    transform: translateY(75px);
-
-    /* 🚀 關鍵：將圖層設為最高 */
-    /* 999999 是極高數值，足以壓過大部分的導航列和彈窗 */
-     z-index: 999999 !important;
-    
-    /* 🚀 再次提醒：必須維持 none，否則這層「最高透明牆」會讓你點不到下面的卡片 */
-    pointer-events: none;
-
-    transition: opacity 0.8s ease;
-    /* 稍微拉長淡入時間，更有科技感 */
-}
-
-/* 當啟動時的狀態 */
-.gif-overlay.active {
-    opacity: 1;
-    /* 🚀 移除原本的 pointer-events: all; 保持 none 才能在影片播放時繼續操作網站 */
-}
-
-/* --- 3. 影片本體特效 --- */
-.gif-overlay video {
-    max-width: 80%;
-    max-height: 80%;
-    /* 🚀 保留你的科技藍發光效果，呼應 WJ STUDIO 配色 */
-    filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.6));
-    outline: none;
-    border: none;
-}
-
-/* --- 2. H1 設定 (保留你原本的紅粉漸層) --- */
 .main__content h1 {
     font-size: 4rem;
-    background-color: #ff8177;
-    background-image: linear-gradient(to top, #ff0844 0%, #ffb199 100%);
-    background-size: 100%;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
-
-    /* 加入動畫延遲：最先出現 */
     animation-delay: 0.2s;
-
-    cursor: pointer;
-        /* 保留這個，讓人知道可以點 */
-    /* 新增這行：讓變化平滑過渡 */
-    transition: all 0.3s ease;
-    
+    background-image: linear-gradient(to top, var(--brand-red) 0%, #ffb199 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* --- 3. H2 設定 (保留你原本的紫藍漸層 + 處理空格) --- */
 .main__content h2 {
     font-size: 4rem;
-    background-color: #ff8177;
-    background-image: linear-gradient(to top, #553fff 0%, #21d4fd 100%);
-    background-size: 100%;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
-
-    /* 你提到的空格處理：這裡加寬單字間距，讓 I'M JARVIS 更帥 */
     word-spacing: 25px;
     letter-spacing: 2px;
-
-    /* 加入動畫延遲：晚一點點出現 */
     animation-delay: 0.5s;
-
-    cursor: pointer;
-        /* 保留這個，讓人知道可以點 */
-    /* 新增這行：讓變化平滑過渡 */
-    transition: all 0.3s ease;
-    
+    background-image: linear-gradient(to top, #553fff 0%, #21d4fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* --- 4. P 設定 (保留白字加粗) --- */
 .main__content p {
     margin-top: 1rem;
     font-size: 2rem;
     font-weight: 700;
     color: #fff;
-
-    /* 加入動畫延遲：最後出現 */
     animation-delay: 0.8s;
     line-height: 1.5;
-
 }
 
-/* --- 5. 按鈕設定 (保留原本邏輯，解決縮小問題) --- */
 .main__btn {
-    /* 1. 基本樣式保持不變 */
     font-size: 1rem;
-    background-image: linear-gradient(to top, #f77062 0%, #fe5196 100%);
     padding: 14px 120px;
-    border: none;
-    border-radius: 4px;
-    color: #fff;
     margin-top: 2rem;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.35s;
-    outline: none;
-
-    /* 2. ✨ 解決縮小的關鍵：確保寬度跟著內容走，不被父層擠壓 */
     width: fit-content;
-    /* 讓按鈕寬度由 padding 和文字決定 */
-    display: inline-block;
-    /* 或是使用 flex/inline-block 保持形狀 */
     align-self: flex-start;
-    /* 確保它在左側 40% 區域中靠左對齊，不變形 */
-
-    /* 3. 進場動畫保留 */
+    transition: all 0.35s;
     opacity: 0;
-    animation: fadeInUpBtn 0.8s ease-out 1.2s forwards;
     pointer-events: auto;
-
-    /* 👇 新增這一行，確保連結沒有底線 */
-    text-decoration: none;
-
-    /* 建議加上這兩行，確保文字在按鈕正中間 */
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
+    background-image: linear-gradient(to top, #f77062 0%, #fe5196 100%);
+    animation: fadeInUpBtn 0.8s ease-out 1.2s forwards;
 }
 
-/* 確保按鈕內的連結文字填滿點擊區域 */
-/* 改成 span 以對應新的 HTML 結構 */
 .main__btn span {
     position: relative;
     z-index: 2;
     color: #fff;
-    /* text-decoration: none; <--- 這行可以刪掉，因為已經加在父層了 */
 }
-
-/* 記得也要有原本的 hover 特效喔！ */
-.main__btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-}
-
 
 .main__btn:after {
     position: absolute;
@@ -1036,44 +325,55 @@
     background: #4837ff;
     transition: all 0.35s;
     border-radius: 4px;
+    z-index: 1;
+}
+
+.main__btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
 }
 
 .main__btn:hover:after {
     width: 100%;
 }
 
-
-
-/* --- 6. 定義動畫關鍵影格 (放在 CSS 最下方) --- */
-@keyframes digitalFocus {
-    0% {
-        opacity: 0;
-        filter: blur(12px);
-        transform: translateY(40px) scale(1.1);
-    }
-
-    100% {
-        opacity: 1;
-        filter: blur(0);
-        transform: translateY(0) scale(1);
-    }
+/* =========================================
+   5. JARVIS 動畫覆蓋層 (GIF/Video Overlay)
+   ========================================= */
+.gif-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(75px);
+    z-index: 999999 !important;
+    transition: opacity 0.8s ease;
 }
 
-@keyframes fadeInUpBtn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.gif-overlay.active {
+    opacity: 1;
 }
 
-/* Services Section CSS */
+.gif-overlay video {
+    max-width: 80%;
+    max-height: 80%;
+    filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.6));
+    outline: none;
+    border: none;
+}
+
+/* =========================================
+   6. 服務/回憶卡片區塊 (Services)
+   ========================================= */
 .services {
-    background: #141414;
+    background: var(--bg-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1081,87 +381,306 @@
     padding: 5rem;
 }
 
-.services h1 {
-    background-color: #ff8177;
-    background-image: linear-gradient(to right,
-            #ff8177 0%,
-            #ff867a 0%,
-            #ff8c7f 21%,
-            #f99185 52%,
-            #cf556c 78%,
-            #b12a5b 100%);
-    background-size: 100%;
-    margin-bottom: 5rem;
-    font-size: 2.5rem;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
+.services__container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1300px;
+    grid-gap: 20px;
+    padding: 20px;
 }
 
-.services__container {
+/* 玻璃擬態與 3D 互動整合 */
+.services__card {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    padding: 0 !important;
+    overflow: hidden;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card__cover-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: brightness(0.7);
+    transition: transform 0.5s ease;
+}
+
+.card__content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 40px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+}
+
+.services__card:hover .card__cover-img {
+    transform: scale(1.1);
+}
+
+.services__card h2 {
+    font-family: var(--font-tech);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #fff;
+    opacity: 0;
+    filter: blur(15px);
+    letter-spacing: 12px;
+    transform: translateY(30px) scale(0.9);
+    transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.services__card.active h2 {
+    opacity: 1;
+    filter: blur(0);
+    letter-spacing: 2px;
+    transform: translateY(0) scale(1);
+    color: var(--brand-blue);
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
+    transition-delay: 0.3s;
+}
+
+.card__content p {
+    color: #fff;
+    margin-bottom: 0;
+}
+
+/* Memories 頁面專屬特效 */
+#memories-page #story-chapters {
+    padding-top: 100px !important;
+}
+
+#memories-page #story-chapters h1 {
+    margin-top: 0;
+    margin-bottom: 3rem;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+#memories-page .services h1.reveal.active {
+    animation: retroMemoryReveal 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+    text-shadow: 0 0 15px rgba(255, 134, 122, 0.4);
+}
+
+#memories-page .reveal-text {
+    animation: digitalFocus 0.8s forwards, tech-flicker 3s infinite alternate;
+}
+
+#memories-page .services__card:hover {
+    transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateY(-10px) scale(1.03);
+    box-shadow: 0 15px 45px rgba(0, 242, 254, 0.4);
+    border-color: rgba(0, 242, 254, 1);
+}
+
+#memories-page .services__card:active {
+    transform: perspective(1000px) scale(0.97) translateY(0);
+    box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2);
+    transition: all 0.1s ease;
+}
+
+/* 霓虹標題 */
+.services h1.reveal {
+    font-family: var(--font-tech);
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 800;
+    position: relative;
+    margin-bottom: 4rem;
+    background: linear-gradient(to right, var(--brand-red) 0%, #bd34fe 50%, var(--brand-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(255, 8, 68, 0.5), 0 0 40px rgba(189, 52, 254, 0.3), 0 0 80px rgba(0, 242, 254, 0.2);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.services h1.reveal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0, 0, 0, 0.3) 3px, rgba(0, 0, 0, 0.3) 4px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.8;
+}
+
+.services h1.reveal.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* =========================================
+   7. 數位之書 (Flipbook)
+   ========================================= */
+.book-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.94);
+    backdrop-filter: blur(20px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.close-book {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    color: #fff;
+    font-family: var(--font-tech);
+    cursor: pointer;
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: 0.3s;
+    border-bottom: 1px solid transparent;
+}
+
+.close-book:hover {
+    color: var(--brand-red);
+    border-color: var(--brand-red);
+}
+
+.book-transform {
+    perspective: 2500px;
+    width: 75vw;
+    height: 85vh;
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
+    align-items: center;
+    will-change: transform, opacity;
 }
 
-.services__card {
-    margin: 1rem;
-    height: 525px;
-    width: 400px;
-    border-radius: 4px;
-    background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(17, 17, 17, 0.6) 100%),
-        url('images/pic3.jpg');
-    background-size: cover;
+.book-animate {
+    animation: bookFlyOut 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+}
+
+#my-flipbook {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    padding: 0 !important;
+    cursor: crosshair;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 2500px;
+    border-radius: 8px;
+    box-shadow: 0 0 60px rgba(0, 242, 254, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.book-page {
+    flex: 1;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
     position: relative;
-    color: #fff;
+    background: #ffffff;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
 }
 
-.services__card:nth-child(2) {
-    background-image: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(17, 17, 17, 0.6) 100%),
-        url('images/pic4.jpg');
+.page-left {
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: inset -10px 0 20px -10px rgba(0, 0, 0, 0.15);
+    transform-origin: right center;
 }
 
-.services h2 {
-    position: absolute;
-    top: 350px;
+.page-right {
+    box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 0.15);
+    transform-origin: left center;
+}
+
+.page-counter,
+.click-hint {
+    position: absolute !important;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.page-counter {
+    top: 10px;
+    left: 25px;
+    font-family: var(--font-tech);
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+}
+
+.click-hint {
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-tech);
+    font-size: 0.7rem;
+    color: rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
+}
+
+.left-hint {
     left: 30px;
 }
 
-.services__card p {
-    position: absolute;
-    top: 400px;
-    left: 30px;
+.right-hint {
+    right: 30px;
 }
 
-.services__card button {
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    outline: none;
-    border-radius: 4px;
-    background: #f77062;
-    position: absolute;
-    top: 440px;
-    left: 30px;
-    font-size: 1rem;
-    cursor: pointer;
+#my-flipbook:hover .click-hint {
+    color: rgba(0, 0, 0, 0.5);
 }
 
-.services__card:hover {
-    transform: scale(1.075);
-    transition: 0.2s ease-in;
-    cursor: pointer;
+.book-page-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
+.flipping-next .page-right {
+    transform: rotateY(-90deg) scale(1.05);
+    opacity: 0;
+}
 
-/*Footer CSS*/
+.flipping-prev .page-left {
+    transform: rotateY(90deg) scale(1.05);
+    opacity: 0;
+}
+
+/* =========================================
+   8. 頁尾與全局動畫 (Footer & Keyframes)
+   ========================================= */
 .footer__container {
-    background-color: #141414;
+    background-color: var(--bg-dark);
     padding: 5rem 0;
     display: flex;
     flex-direction: column;
@@ -1176,52 +695,6 @@
     cursor: pointer;
     text-decoration: none;
     font-size: 2rem;
-}
-
-.footer__links {
-    width: 100%;
-    max-width: 1000px;
-    display: flex;
-    justify-content: center;
-}
-
-.footer__link--wrapper {
-    display: flex;
-}
-
-.footer__link--items {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin: 16px;
-    text-align: left;
-    width: 160px;
-    box-sizing: border-box;
-}
-
-.footer__link--items h2 {
-    margin-bottom: 16px;
-}
-
-.footer__link--items>h2 {
-    color: #fff;
-}
-
-.footer__link--items a {
-    color: #fff;
-    text-decoration: none;
-    margin-bottom: 0.5rem;
-}
-
-.footer__link--items a:hover {
-    color: #e9e9e9;
-    transition: 0.3s ease-out;
-}
-
-/* Social Icons */
-.social__icon--link {
-    color: #fff;
-    font-size: 24px;
 }
 
 .social__media {
@@ -1245,56 +718,16 @@
     width: 240px;
 }
 
-.social__logo {
+.social__icon--link,
+.website__rights {
     color: #fff;
-    justify-self: flex-start;
-    margin-left: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    margin-bottom: 16px;
+    font-size: 24px;
 }
 
 .website__rights {
-    color: #ffffff;
+    font-size: 1rem;
 }
 
-/* --- 科技感升級樣式 --- */
-
-/* 自定義滑鼠指標 */
-.cursor,
-.cursor-follower {
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10000;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s ease, background 0.3s ease, border 0.3s ease;
-}
-
-.cursor {
-    width: 8px;
-    height: 8px;
-    background: #ff8177;
-}
-
-.cursor-follower {
-    width: 30px;
-    height: 30px;
-    border: 2px solid #ff8177;
-    transition: 0.15s ease-out;
-}
-
-/* 玻璃擬態 Navbar 升級 */
-.navbar {
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* 滾動揭示基礎設定 */
 .reveal {
     opacity: 0;
     transform: translateY(50px);
@@ -1306,47 +739,37 @@
     transform: translateY(0);
 }
 
-/* 卡片特效強化 */
-.services__card {
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.reveal-text {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(40px) scale(1.1);
+    animation: digitalFocus 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
-.services__card:hover {
-    transform: scale(1.05) translateY(-10px);
-    box-shadow: 0 20px 40px rgba(247, 112, 98, 0.3);
-    border: 1px solid #f77062;
+.particle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 10001;
 }
 
-/* 讓圖片有呼吸感 */
-#main__img {
-    animation: floating 3s ease-in-out infinite;
-}
-
-@keyframes floating {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-20px);
+@keyframes shine {
+    to {
+        background-position: 200% center;
     }
 }
 
-/* --- 方案 A 的動畫關鍵影格 --- */
 @keyframes holoBuild {
     0% {
         opacity: 0;
         transform: scale(0.8);
-        /* 一開始模糊且暗 */
         filter: blur(10px) brightness(0);
     }
 
     40% {
-        /* 中途突然變亮，模擬能量衝擊 */
         opacity: 0.6;
         filter: blur(2px) brightness(3) drop-shadow(0 0 20px rgba(72, 55, 255, 0.8));
     }
@@ -1354,76 +777,56 @@
     70% {
         opacity: 0.9;
         transform: scale(1.05);
-        /* 稍微放大一點產生彈性 */
         filter: blur(1px) brightness(1.2);
     }
 
     100% {
         opacity: 1;
         transform: scale(1);
-        /* 最後回到正常清晰狀態 */
         filter: blur(0) brightness(1) drop-shadow(0 0 0 transparent);
     }
 }
 
-/* 煙火粒子基礎樣式 */
-.particle {
-    position: fixed;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    pointer-events: none;
-    /* 確保粒子不會擋住點擊 */
-    border-radius: 50%;
-    /* 圓形粒子 */
-    z-index: 10001;
-    /* 確保在自定義游標之上 */
+@keyframes bgReveal {
+    0% {
+        opacity: 0;
+        transform: scale(1.15);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
 }
 
-/* 針對按鈕的 Hover 動畫 */
-.main__btn,
-.button,
-.services__card button {
-    position: relative;
-    overflow: hidden;
+@keyframes fadeInUpBtn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* 隱藏原生指標 */
-* {
-    cursor: none !important;
+@keyframes digitalFocus {
+    0% {
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateY(40px) scale(1.1);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0) scale(1);
+    }
 }
 
-/* 務必確保你的自定義指標本身不會被隱藏且不會干擾點擊 */
-.cursor,
-.cursor-follower {
-    /* 🚀 將層級提升到最高，確保大於 book-overlay 的 10000 */
-    z-index: 999999 !important;
-    pointer-events: none;
-    /* 這行你已經有了，很重要，避免自定義指標擋住點擊事件 */
-    display: block;
-    /* 確保它們是顯示的 */
-}
-
-/* ============================================================
-   SECTION 3: MEMORIES PAGE (僅在 body id="memories-page" 生效)
-   ============================================================ */
-
-/* --- 1. 頁面容器與標題位置優化 --- */
-#memories-page #story-chapters {
-    padding-top: 100px !important;
-    background: #141414;
-}
-
-#memories-page #story-chapters h1 {
-    margin-top: 0;
-    margin-bottom: 3rem;
-    opacity: 0;
-    transition: all 0.5s ease;
-}
-
-/* --- 2. 核心動畫定義 (Keyframes 是全域的，但由 scoped class 觸發) --- */
-
-/* A. 懷舊回憶動畫：模糊 -> 泛黃閃爍 -> 清晰 */
 @keyframes retroMemoryReveal {
     0% {
         opacity: 0;
@@ -1443,480 +846,16 @@
     }
 }
 
-/* B. 數位閃爍動畫：模擬 JARVIS 系統的電子干擾感 */
 @keyframes tech-flicker {
-    0% {
+
+    0%,
+    100% {
         text-shadow: 2px 0 0 rgba(255, 8, 68, 0.5), -2px 0 0 rgba(0, 242, 254, 0.5);
     }
 
     50% {
         text-shadow: 1px 0 0 rgba(255, 8, 68, 0.3), -1px 0 0 rgba(0, 242, 254, 0.3);
     }
-
-    100% {
-        text-shadow: 2px 0 0 rgba(255, 8, 68, 0.5), -2px 0 0 rgba(0, 242, 254, 0.5);
-    }
-}
-
-/* --- 3. 應用動畫與標題特效 --- */
-
-/* 僅在 Memories 頁面觸發懷舊進場 */
-#memories-page .services h1.reveal.active {
-    animation: retroMemoryReveal 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
-    text-shadow: 0 0 15px rgba(255, 134, 122, 0.4);
-}
-
-/* Memories 頁面專屬的數位閃爍效果 */
-#memories-page .reveal-text {
-    animation: digitalFocus 0.8s forwards, tech-flicker 3s infinite alternate;
-}
-
-/* --- 4. 章節卡片升級：玻璃擬態與 3D 互動 --- */
-#memories-page .services__card {
-    background: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    overflow: hidden;
-    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-        box-shadow 0.4s ease,
-        border-color 0.4s ease;
-}
-
-/* 僅在 Memories 頁面啟用 3D 傾斜與藍光 */
-#memories-page .services__card:hover {
-    transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateY(-10px) scale(1.03);
-    box-shadow: 0 15px 40px rgba(0, 242, 254, 0.3);
-    border-color: rgba(0, 242, 254, 0.6);
-}
-
-/* --- 5. 最終修正：WJ STUDIO 專屬黑藍科技捲動條 --- */
-
-/* 1. 捲動條整體寬度 */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-/* 2. 軌道 (Track) */
-::-webkit-scrollbar-track {
-    background: #020202;
-    /* 極致深黑，確保背景不會干擾顏色 */
-}
-
-/* 3. 滑塊 (Thumb)：平常狀態（白色玻璃感） */
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom,
-                rgb(0, 0, 0) 0%,
-                rgb(12, 8, 234) 100%) !important;
-}
-
-/* 🚀 關鍵修正：當滾動時，強制「洗掉」白色，換上純粹的黑藍漸層 */
-body.is-scrolling ::-webkit-scrollbar-thumb,
-::-webkit-scrollbar-thumb:hover {
-    /* 使用 background 簡寫，強制覆蓋所有背景設定 */
-    background: linear-gradient(to bottom,
-            rgb(0, 0, 0) 0%,
-            rgb(12, 8, 234) 100%) !important;
-
-    /* 4. 強化科技發光感 */
-    /* 使用你的標誌藍色 (#00f2fe) 做外發光，讓深藍色跳出來 */
-    box-shadow: 0 0 15px rgb(255, 255, 255),
-        inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
-
-  
-}
-
-/* --- 大標題設計：數位霓虹掃描線 --- */
-/* 針對 .services 區塊裡的 h1 進行設定 */
-.services h1.reveal {
-    font-family: 'Orbitron', sans-serif;
-    /* 使用更有科技感的字體 */
-    font-size: 3.5rem;
-    /*稍微加大字體以增強氣勢*/
-    text-transform: uppercase;
-    /*強制大寫，更有標題感*/
-    letter-spacing: 4px;
-    /*增加字距，營造空間感*/
-    font-weight: 800;
-    position: relative;
-    /*為偽元素定位做準備*/
-    margin-bottom: 4rem;
-    /*增加與下方卡片的距離*/
-
-    /* 核心特效：復古霓虹漸層文字 */
-    background: linear-gradient(to right,
-            #ff0844 0%,
-            /* 你的標誌紅 */
-            #bd34fe 50%,
-            /* 過渡紫 */
-            #00f2fe 100%
-            /* 你的標誌藍 */
-        );
-    -webkit-background-clip: text;
-    /* 將背景裁剪為文字形狀 */
-    -webkit-text-fill-color: transparent;
-    /* 讓文字本身透明，透出背景 */
-
-    /* 多層次發光，製造景深感 */
-    text-shadow:
-        0 0 20px rgba(255, 8, 68, 0.5),
-        0 0 40px rgba(189, 52, 254, 0.3),
-        0 0 80px rgba(0, 242, 254, 0.2);
-
-    /* 確保動畫流暢 */
-    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* 添加「掃描線」紋理，模擬老舊螢幕質感 */
-.services h1.reveal::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* 創造極細的橫條紋 */
-    background: repeating-linear-gradient(to bottom,
-            transparent 0px,
-            transparent 2px,
-            rgba(0, 0, 0, 0.3) 3px,
-            rgba(0, 0, 0, 0.3) 4px);
-    pointer-events: none;
-    /* 確保不影響滑鼠互動 */
-    mix-blend-mode: overlay;
-    /* 讓紋理疊加在文字顏色上 */
-    opacity: 0.8;
-}
-
-/* 當 JS 觸發 active 類別時的進場狀態（配合你原有的 JS） */
-.services h1.reveal.active {
-    /* 這裡可以保留你原本的位移或透明度動畫設定，上面的樣式會自動套用 */
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* --- 章節標題設計：資料傳輸浮現 --- */
-/* 針對卡片裡的 h2 設定初始狀態 */
-.services__card h2 {
-    font-family: 'Orbitron', sans-serif;
-    /* 保持科技字體一致性 */
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #fff;
-    /* 初始顏色為白色 */
-
-    /* 🚀 關鍵動畫初始狀態：模糊、字距拉開、稍微往下 */
-    opacity: 0;
-    filter: blur(15px);
-    /* 強烈模糊 */
-    letter-spacing: 12px;
-    /* 字距拉得很開 */
-    transform: translateY(30px) scale(0.9);
-
-    /* 設定一個富有彈性的過渡效果 */
-    transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-    
-}
-
-/* 當卡片被 JS 加上 .active 類別時的終點狀態 */
-.services__card.active h2 {
-    opacity: 1;
-    filter: blur(0);
-    /* 變清晰 */
-    letter-spacing: 2px;
-    /* 字距收縮歸位 */
-    transform: translateY(0) scale(1);
-
-    /* 變色：資料讀取完成，變成科技藍，並發光 */
-    color: #00f2fe;
-    text-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
-
-    /* 延遲執行：讓卡片先出來，標題再浮現，增加層次感 */
-    transition-delay: 0.3s;
-}
-
-/* ============================================================
-   SECTION 3: MEMORIES PAGE - 數位之書與互動卡片整合
-   ============================================================ */
-
-/* --- 1. 章節卡片互動升級 (取代原本的卡片設定) --- */
-#memories-page .services__card {
-    cursor: pointer;
-    /* 🚀 關鍵：讓整個框框看起來就是個大按鈕 */
-    position: relative;
-    background: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    /* 預設帶有淡淡的科技藍邊框 */
-    border-radius: 15px;
-    padding: 40px;
-    height: 500px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* --- 1. 卡片主體：設定為定位基準點 --- */
-.services__card {
-    position: relative;
-    /* 🚀 關鍵：讓內部的絕對定位圖片以卡片為準 */
-    display: flex;
-    flex-direction: column;
-    padding: 0 !important;
-    overflow: hidden;
-    height: 450px;
-    /* 建議給定固定高度，視覺較整齊 */
-}
-
-.services h2 {
-    position: absolute;
-    top: 400px;
-    left: 30px;
-}
-
-.card__content p {
-    margin-bottom: 0;
-    top: 450px;
-    /* 確保最底下的白字沒有額外推力 */
-}
-
-/* --- 2. 封面圖片：強制占滿全屏並置於底層 --- */
-.card__cover-img {
-    position: absolute;
-    /* 🚀 脫離排版流，不再推擠文字 */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* 🚀 寬高 100% 占滿整個畫面 */
-    object-fit: cover;
-    /* 🚀 保持比例裁切，不變形 */
-    z-index: 0;
-    /* 🚀 放在最底層 */
-    filter: brightness(0.7);
-    /* 💡 小技巧：稍微調暗背景，字會更顯眼 */
-    transition: transform 0.5s ease;
-}
-
-/* --- 3. 文字內容：浮在圖片上方 --- */
-.card__content {
-    position: relative;
-    /* 🚀 確保層級高於圖片 */
-    z-index: 1;
-    /* 🚀 浮在圖片上方 */
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    /* 🚀 讓文字維持在卡片底部 */
-    padding: 300px;
-    /* 保持你想要的文字間距 */
-
-    /* 🚀 增加一個從下往上的黑色漸層，確保白字/藍字在亮色圖片上也能讀 */
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
-}
-
-/* 🚀 互動加強：滑鼠移上去時圖片微放大 */
-.services__card:hover .card__cover-img {
-    transform: scale(1.1);
-}
-
-/* --- 1. 容器設定：強制三欄 --- */
-.services__container {
-    display: grid;
-    /* 🚀 關鍵：強制分成三等份，1fr 代表等寬 */
-    grid-template-columns: repeat(3, 1fr);
-
-    /* 🚀 縮小一點的關鍵：設定最大寬度並置中 */
-    max-width: 1300px;
-    /* 你可以根據喜好調成 900px 或 1100px */
-   
-    /* 卡片之間的間距 */
-    grid-gap: 20px;
-    padding: 20px;
-}
-
-/* --- 2. 卡片設定：配合縮小後的比例 --- */
-.services__card {
-    position: relative;
-    /* 🚀 移除原本可能寫死的 width，讓 Grid 自動分配 */
-    width: 100%;
-
-    /* 配合卡片縮小，高度也可以微調 (原本 450px) */
-    height: 380px;
-
-    overflow: hidden;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-/* 確保圖片依然占滿 */
-.card__cover-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* 當螢幕寬度小於 960px 時 (例如平板或手機) */
-@media screen and (max-width: 960px) {
-
-    /* 🚀 專門修改 "The Chapters of My Life" 的標題大小 */
-    /* 1. 🚀 關鍵：解除父容器兩邊的黑框限制 */
-    .services {
-        padding: 0 !important;
-        /* 移除原本兩邊可能存在的 50px 或 100px padding */
-        width: 100% !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    /* 2. 🚀 標題擴展：讓文字橫向佔據更多空間 */
-    .services h1 {
-        width: 100% !important;
-        /* 強制標題寬度為 100% */
-        max-width: 95% !important;
-        /* 留 5% 給文字邊緣呼吸，不至於完全貼死 */
-        text-align: center;
-
-        /* 調整文字大小 */
-        /* 如果希望文字「橫向變寬」，可以稍微縮小字體讓它在同一行顯示更多字 */
-        font-size: 2.2rem !important;
-
-        /* 🚀 增加字距，讓標題更有寬廣的科技感 */
-        letter-spacing: 2px;
-
-        line-height: 1.1;
-        margin-top: -80px !important;
-        /* 保持你原本的向上位移 */
-        margin-bottom: 30px !important;
-    }
-
-    /* 3. 確保容器也同步寬一點 */
-    .services__container {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 10px !important;
-        /* 給圖卡留極小的邊距就好 */
-        grid-template-columns: repeat(1, 1fr);
-    }
-
-    .services__card {
-        /* 🚀 修改 3：確保圖卡本身也是 100% 寬度 */
-        width: 100%;
-
-        /* 限制最大寬度 (選填)，防止在寬平板上圖卡變得太巨大 */
-        max-width: 600px;
-
-        /* 確保圖卡在容器內置中 */
-        justify-self: center;
-        height: 500px !important;
-        
-    }
-
-    /* 1. 🚀 覆蓋層調整：給予更多空間 */
-    .book-overlay {
-        padding: 20px 10px !important;
-    }
-
-    /* 2. 🚀 容器調整：改為符合單頁的比例 (寬度減少，高度增加) */
-    #flipbook-container {
-        width: 90% !important;
-        /* 佔螢幕寬度的 90% */
-        height: 75vh !important;
-        /* 佔高度的 75% */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* 3. 🚀 書本本體：強制單頁寬度 */
-    #my-flipbook {
-        width: 100% !important;
-        height: 100% !important;
-    }
-
-    /* 4. 🚀 導覽按鈕調整：不要擋在書中間 */
-    .close-book {
-        top: 20px !important;
-        right: 20px !important;
-        font-size: 1.2rem;
-    }
-
-    /* 如果有 PREV/NEXT 文字，移動到書本下方防止遮擋 */
-    .prev-btn,
-    .next-btn {
-        bottom: -40px !important;
-        top: auto !important;
-    }
-    
-}
-
-
-
-/* 卡片懸停：強化 3D 傾斜與霓虹藍光 */
-#memories-page .services__card:hover {
-    transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateY(-10px) scale(1.03);
-    box-shadow: 0 15px 45px rgba(0, 242, 254, 0.4);
-    border-color: rgba(0, 242, 254, 1);
-}
-
-/* 🚀 新增：卡片點擊下的沉感 (按下那一瞬間的效果) */
-#memories-page .services__card:active {
-    transform: perspective(1000px) scale(0.97) translateY(0);
-    box-shadow: 0 5px 15px rgba(0, 242, 254, 0.2);
-    transition: all 0.1s ease;
-    /* 按下去要反應快一點 */
-}
-
-
-/* --- 2. 數位之書全螢幕遮罩 --- */
-#memories-page .book-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.94);
-    /* 超深色系 */
-    backdrop-filter: blur(20px);
-    /* 🚀 更強烈的玻璃擬態 */
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-}
-
-/* 關閉按鈕：對應 WJ STUDIO 科技字體 */
-.close-book {
-    position: absolute;
-    top: 40px;
-    right: 40px;
-    color: #fff;
-    font-family: 'Orbitron', sans-serif;
-    cursor: pointer;
-    font-size: 1.1rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    transition: 0.3s;
-    border-bottom: 1px solid transparent;
-}
-
-.close-book:hover {
-    color: #ff0844;
-    /* 懸停變為標誌紅 */
-    border-color: #ff0844;
-}
-
-/* --- 3. 3D 飛出動畫邏輯 --- */
-.book-transform {
-    perspective: 2500px;
-    width: 75vw;
-    height: 85vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    will-change: transform, opacity;
 }
 
 @keyframes bookFlyOut {
@@ -1931,127 +870,266 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     }
 }
 
-.book-animate {
-    animation: bookFlyOut 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+/* =========================================
+   9. 響應式排版整合 (RWD - Media Queries)
+   ========================================= */
+
+/* --- 960px 綜合平板與手機版 --- */
+@media screen and (max-width: 960px) {
+    .navbar__container {
+        height: 60px;
+        padding: 0;
+    }
+
+    .navbar__menu {
+        grid-template-columns: auto;
+        position: absolute;
+        top: -1000px;
+        opacity: 0;
+        height: 50vh;
+        z-index: -1;
+        transition: all 0.5s ease;
+        background: var(--bg-nav);
+    }
+
+    .navbar__menu.active {
+        top: 100%;
+        opacity: 1;
+        z-index: 99;
+        font-size: 1.6rem;
+    }
+
+    #navbar__logo {
+        font-size: 1.9rem;
+        padding-left: 5px;
+    }
+
+    #navbar__logo--img {
+        height: 75px;
+        margin-right: 15px;
+    }
+
+    .navbar__toggle .bar {
+        width: 25px;
+        height: 3px;
+        margin: 5px auto;
+        display: block;
+        background: #fff;
+    }
+
+    #mobile-menu {
+        position: absolute;
+        top: 50%;
+        right: 5%;
+        transform: translateY(-50%);
+    }
+
+    /* Hero Section 手機版獨立覆蓋 */
+    .main {
+        height: auto !important;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-bottom: 0;
+        background: var(--bg-nav);
+    }
+
+    .main::before {
+        width: 100% !important;
+        height: 100% !important;
+        left: 0 !important;
+        top: 0 !important;
+        background-image: url('images/Tedx.png') !important;
+        background-size: cover !important;
+        background-position: center center !important;
+    }
+
+    .main__container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 100vh;
+        padding: 0 !important;
+        align-items: center;
+        justify-content: flex-start;
+        background-image: none !important;
+        margin-top: 0px;
+    }
+
+    .main__content {
+        width: 100% !important;
+        height: 100vh !important;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.6) 100%, transparent 75%, transparent 100%) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 20px !important;
+        margin: 0 !important;
+        flex: none !important;
+    }
+
+    .main__content h1,
+    .main__content h2 {
+        font-size: 3rem !important;
+        line-height: 1.1;
+    }
+
+    .main__content h1 {
+        margin-top: 0 !important;
+        margin-bottom: 50px;
+    }
+
+    .main__content h2 {
+        margin-bottom: 20px;
+    }
+
+    .main__content p {
+        font-size: 1.3rem !important;
+        max-width: 85%;
+        margin: 10px auto 0 auto !important;
+    }
+
+    .main__btn {
+        width: auto !important;
+        max-width: 280px !important;
+        padding: 12px 48px !important;
+        margin: 40px auto -60px auto !important;
+        display: block !important;
+    }
+
+    .main__img--link,
+    .main__img--container {
+        display: none !important;
+    }
+
+    /* Services & Flipbook 手機版優化 */
+    .services {
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .services h1 {
+        width: 100% !important;
+        max-width: 95% !important;
+        text-align: center;
+        font-size: 2.2rem !important;
+        letter-spacing: 2px;
+        line-height: 1.1;
+        margin-top: -80px !important;
+        margin-bottom: 30px !important;
+    }
+
+    .services__container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 10px !important;
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .services__card {
+        width: 100%;
+        max-width: 600px;
+        justify-self: center;
+        height: 500px !important;
+    }
+
+    .book-overlay {
+        padding: 20px 10px !important;
+    }
+
+    #flipbook-container {
+        width: 90% !important;
+        height: 75vh !important;
+    }
+
+    #my-flipbook {
+        width: 100% !important;
+        height: 100% !important;
+        box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        border: none;
+    }
+
+    .mobile-page {
+        width: 100% !important;
+        flex: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+        padding: 10px !important;
+    }
+
+    .book-page-img {
+        max-height: 90% !important;
+        width: auto !important;
+        max-width: 100% !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .page-counter {
+        top: 15px;
+        text-align: left;
+        left: 0;
+        width: 100%;
+        transform: none;
+        background: rgba(255, 255, 255, 0.8);
+        padding-bottom: 5px;
+    }
+
+    .click-hint {
+        top: 95% !important;
+        transform: none !important;
+    }
+
+    .click-hint.left-hint {
+        left: 21px !important;
+    }
+
+    .click-hint.right-hint {
+        right: 21px !important;
+    }
+
+    .close-book {
+        top: 20px !important;
+        right: 20px !important;
+    }
 }
 
-/* ============================================================
-   數位記憶之書：3D 物理翻頁 (UI 修正版)
-   ============================================================ */
+/* --- 820px 平板過渡 --- */
+@media screen and (max-width: 820px) {
+    .footer__links {
+        padding-top: 2rem;
+    }
 
-/* 1. 書本主容器：確保為絕對定位的基準點 */
-#my-flipbook {
-    width: 100%;
-    height: 100%;
-    background: #ffffff;
-    box-shadow: 0 0 60px rgba(0, 242, 254, 0.3),
-        inset 0 0 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    position: relative;
-    /* 🚀 必須有這個，UI 才會乖乖對準角落 */
-    cursor: crosshair;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    perspective: 2500px;
+    #footer__logo,
+    .website__rights {
+        margin-bottom: 2rem;
+    }
 
-    /* 移除任何可能擠壓空間的 padding */
-    padding: 0 !important;
+    .footer__link--wrapper,
+    .social__media--wrap {
+        flex-direction: column;
+    }
 }
 
-/* 2. 左右頁面：強制平分 50% 空間 */
-.book-page {
-    flex: 1;
-    width: 50%;
-    /* 🚀 確保左右絕對對稱 */
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 30px;
-    position: relative;
-    background: #ffffff;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.6s ease;
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
-}
+/* --- 480px 極小螢幕 --- */
+@media screen and (max-width: 480px) {
+    .main__content h1 {
+        font-size: 2rem;
+        margin-top: 3rem;
+    }
 
-/* 3. 書脊效果 */
-.page-left {
-    border-right: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: inset -10px 0 20px -10px rgba(0, 0, 0, 0.15);
-    transform-origin: right center;
-}
+    .main__content h2 {
+        font-size: 2rem;
+    }
 
-.page-right {
-    box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 0.15);
-    transform-origin: left center;
-}
+    .main__content p {
+        font-size: 1.5rem;
+        margin-top: 2rem;
+    }
 
-/* --- 4. 關鍵修正：UI 元素強制抽離 Flex 排版 --- */
-
-.page-counter,
-.click-hint {
-    position: absolute !important;
-    /* 🚀 強制抽離，不佔用頁面寬度 */
-    z-index: 100;
-    pointer-events: none;
-    /* 讓點擊能穿透文字，點到下方的頁面 */
-}
-
-/* 頁碼：左上角 */
-.page-counter {
-    top: 10px;
-    left: 25px;
-    font-family: 'Orbitron', sans-serif;
-    color: rgba(0, 0, 0, 0.8);
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-}
-
-/* 🚀 點擊提示：左右分離，不再黏在一起 */
-.click-hint {
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.7rem;
-    color: rgba(0, 0, 0, 0.1);
-    transition: 0.3s;
-}
-
-.left-hint {
-    left: 30px;
-    /* 🚀 鎖定在最左邊 */
-}
-
-.right-hint {
-    right: 30px;
-    /* 🚀 鎖定在最右邊 */
-}
-
-#my-flipbook:hover .click-hint {
-    color: rgba(0, 0, 0, 0.5);
-}
-
-/* 圖片樣式 */
-.book-page-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: 5px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-/* 翻頁動畫狀態保持不變 */
-.flipping-next .page-right {
-    transform: rotateY(-90deg) scale(1.05);
-    opacity: 0;
-}
-
-.flipping-prev .page-left {
-    transform: rotateY(90deg) scale(1.05);
-    opacity: 0;
+    .main__btn {
+        margin: 2.5rem 0;
+    }
 }
