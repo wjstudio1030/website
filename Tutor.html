@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/WJ_ICON.png" />
+    <title>Tutor | WJ STUDIO</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=Orbitron:wght@400..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="tutor-page">
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <nav class="navbar">
+        <div class="navbar__container">
+            <a href="index.html" id="navbar__logo">
+                <img src="images/WJSTUDIO_LOGO.png" alt="WJ STUDIO Logo" id="navbar__logo--img">
+                WJ STUDIO
+            </a>
+            <div class="navbar__toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="navbar__menu">
+                <li class="navbar__item"><a href="index.html" class="navbar__links">Home</a></li>
+                <li class="navbar__item"><a href="Memories.html" class="navbar__links">Memories</a></li>
+                <li class="navbar__item"><a href="index.html" class="navbar__links">Game</a></li>
+                <li class="navbar__btn"><a href="Tutor.html" class="button">Tutor</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="tutor-hero">
+        <h1 class="reveal">RECODE YOUR FUTURE</h1>
+        <div class="promo-img__container reveal">
+            <img src="images/Tutor_Course.png" alt="WJ STUDIO Tutoring Campaign" class="promo-img">
+        </div>
+    </div>
+
+    <div class="services" id="tutor-courses">
+        <h1 class="reveal">Expertise & Courses</h1>
+        <div class="services__container tutor-grid">
+
+            <div class="services__card reveal" data-course-type="ece">
+                <div class="cyber-tag">ECE SYSTEM</div>
+                <img src="images/ECE_course.png" alt="ECE Course" class="card__cover-img">
+                <div class="card__content">
+                    <h2>資電類專業與共同科</h2>
+                    <p>基電、電子學、微處、數邏、程設／英數共同科目</p>
+                </div>
+            </div>
+
+            <div class="services__card reveal" data-course-type="unity">
+                <div class="cyber-tag">UNITY AI</div>
+                <img src="images/Game_Course.png" alt="Unity Engine" class="card__cover-img">
+                <div class="card__content">
+                    <h2>Unity 遊戲設計開發</h2>
+                    <p>互動感測器硬體結合與先進 AI 功能整合實戰課程</p>
+                </div>
+            </div>
+
+            <div class="services__card reveal" data-course-type="web-app">
+                <div class="cyber-tag">FULL STACK</div>
+                <img src="images/Web_Course.png" alt="Web Dev" class="card__cover-img">
+                <div class="card__content">
+                    <h2>網頁設計 & APP 開發</h2>
+                    <p>從前端美學佈局到核心邏輯系統的跨平台開發全攻略</p>
+                </div>
+            </div>
+
+            <div class="services__card reveal" data-course-type="custom">
+                <div class="cyber-tag">DEV PROJECT</div>
+                <img src="images/Project_Course.png" alt="Custom Course" class="card__cover-img">
+                <div class="card__content">
+                    <h2>專題開發與客製化課程</h2>
+                    <p>專屬進度規劃、核心技術指導與客製化教學</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h1 class="reveal">Start Your Journey</h1>
+        <div class="form-container reveal">
+            <form id="tutorForm" action="https://formspree.io/f/mzdwezdd" method="POST">
+
+                <div class="form-group">
+                    <label for="userName">USER NAME / 姓名</label>
+                    <input type="text" id="userName" name="name" class="form-control" placeholder=" " required>
+                    <span class="input-placeholder-text">請輸入您的姓名或暱稱</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="userEmail">EMAIL ADDRESS / 電子信箱</label>
+                    <input type="email" id="userEmail" name="email" class="form-control" placeholder=" " required>
+                    <span class="input-placeholder-text">example@email.com</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="courseSelect">SELECT SERVICE / 選擇家教服務</label>
+                    <select id="courseSelect" name="course" class="form-control" required>
+                        <option value="" disabled selected hidden></option>
+                        <option value="ece">統測資電類（專業科目／共同科）</option>
+                        <option value="unity">Unity 遊戲設計（互動感測與 AI 整合）</option>
+                        <option value="web-app">網頁設計與 APP 開發</option>
+                        <option value="custom">專題開發與客製化課程</option>
+                    </select>
+                    <span class="input-placeholder-text">請選擇您想諮詢的課程領域</span>
+                </div>
+
+                <div id="jarvisTerminal" class="jarvis-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">WJ STUDIO_ANALYZER.exe</span>
+                    </div>
+                    <div id="terminalBody" class="terminal-body">
+                        [SYSTEM]: Awaiting course selection to load syllabus diagnostics...
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="userMessage">ADDITIONAL INFO / 其他聯絡資訊或需求描述</label>
+                    <textarea id="userMessage" name="message" class="form-control" rows="4" placeholder=" "></textarea>
+                    <span class="input-placeholder-text">例如：方便聯絡的手機、Line ID，或是目前遇到的學習瓶頸...</span>
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-btn">SUBMIT REQUEST / 送出申請</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer__container">
+        <p class="website__rights">© WJ STUDIO 2026. All rights reserved。</p>
+    </div>
+
+    <script src="app.js"></script>
+
+    <script>
+        // 1. JARVIS 終端機診斷報告文本資料 (修正 web-app 語法錯誤)
+        const diagnostics = {
+            ece: "> [LOADING ECE_CORE_SYS]...\n> 載入核心模組：基本電學、電子學。\n> 診斷分析：鎖定統測資電類命題核心，微處理機與數位邏輯波形深度拆解。系統已準備好為您重構邏輯脈絡...",
+            unity: "> [INITIALIZING UNITY_ENGINE_AI]...\n> 載入虛擬實境與互動感測器 API...\n> 偵測到 AI 整合模組。診斷分析：結合實體感測硬體與智慧模型，本課程將啟動高階遊戲專案建構製程...",
+            'web-app': "> [DEPLOYING FULL_STACK_DEV]...\n> 正在載入 DOM 渲染引擎與跨平台外掛...\n> 診斷分析：從靜態網頁美學重構（CSS Flexbox/Grid 深度優化）到跨平台 APP 封裝。系統架構已就緒...",
+            custom: "> [CONFIGURING CUSTOM_MODULE]...\n> 啟動 WJ STUDIO 客製化排程器...\n> 診斷分析：專屬學習進度雷達已開啟。涵蓋客製化宣傳圖製程指導與專題開發除錯。期待與您共同創造..."
+        };
+
+        const courseSelect = document.getElementById('courseSelect');
+        const terminalBody = document.getElementById('terminalBody');
+        let typingTimer;
+
+        // 打字機特效函數
+        function typeWriter(text, i, callback) {
+            if (i < text.length) {
+                // 處理換行符號
+                if (text.substring(i, i + 1) === "\n") {
+                    terminalBody.innerHTML += "<br>";
+                } else {
+                    terminalBody.innerHTML += text.charAt(i);
+                }
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+                typingTimer = setTimeout(function () {
+                    typeWriter(text, i + 1, callback);
+                }, 15); // 打字速度 (微秒)
+            }
+        }
+
+        // 監聽下拉選單切換
+        courseSelect.addEventListener('change', function () {
+            clearTimeout(typingTimer);
+            terminalBody.innerHTML = "";
+            const selected = this.value;
+            if (diagnostics[selected]) {
+                typeWriter(diagnostics[selected], 0, function () { });
+            }
+        });
+
+        // 2. 表單非同步安全傳輸拦截器
+        document.getElementById('tutorForm').addEventListener('submit', function (e) {
+            const btn = document.getElementById('submitBtn');
+
+            // 判斷是否已經配置真實的 Formspree ID
+            if (this.action.includes('your_id')) {
+                e.preventDefault(); // 阻止原生刷新以防報錯
+
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> TRANSMITTING DATA... / 核心資料傳輸中...`;
+                btn.style.opacity = '0.8';
+                btn.style.pointerEvents = 'none';
+
+                setTimeout(() => {
+                    alert('🚀 [SYSTEM NOTIFICATION]\n\nDATA TRANSMISSION SUCCESSFUL!\n資料已成功寫入虛擬主機！\n(提示：正式上線前，請記得將 HTML 中的 "your_id" 替換成您在 Formspree 申請的真正代碼，就能直接在電子信箱收信囉！)');
+                    btn.innerHTML = `SUBMIT REQUEST / 送出申請`;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                    document.getElementById('tutorForm').reset();
+                    terminalBody.innerHTML = "[SYSTEM]: Awaiting course selection to load syllabus diagnostics...";
+                }, 1200);
+            }
+            // 如果使用者已經填入真實 ID，則不執行 e.preventDefault()，讓表單正常 POST 到 Formspree 實現無缝收信！
+        });
+    </script>
+</body>
+
+</html>
