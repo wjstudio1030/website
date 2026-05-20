@@ -353,6 +353,13 @@ async function openBook(input, totalPages = null) {
     const loadingOverlay = document.getElementById('loading-overlay');
      // 🟢 新增：抓取轉圈圈的元素
     const spinner = loadingOverlay.querySelector('.loader-spinner'); 
+
+    if (spinner) {
+        // 複製一個全新的自己，並替換掉舊的！
+        // 這樣 Safari 就會以為這是一個剛誕生、全新的元素，百分之百會重新播放動畫
+        const newSpinner = spinner.cloneNode(true);
+        spinner.parentNode.replaceChild(newSpinner, spinner);
+    }
     
     // 1. 生成所有路徑
     if (totalPages !== null && typeof input === 'string') {
