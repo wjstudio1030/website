@@ -187,7 +187,7 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 .main__btn:hover:after { width: 100%; }
 
 /* =========================================
-   5. JARVIS 動畫覆蓋層 (GIF/Video Overlay)
+   5. JARVIS 動畫覆蓋層
    ========================================= */
 .gif-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -220,16 +220,22 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
 }
 .services__card:hover .card__cover-img { transform: scale(1.1); }
+
+/* 修正 2：確保卡片文字絕對不換行 */
 .services__card h2 {
     font-family: var(--font-tech); font-size: 2rem; margin-bottom: 1rem; color: #fff;
     opacity: 0; filter: blur(15px); letter-spacing: 12px; transform: translateY(30px) scale(0.9);
     transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap; /* 不換行 */
 }
 .services__card.active h2 {
     opacity: 1; filter: blur(0); letter-spacing: 2px; transform: translateY(0) scale(1);
     color: var(--brand-blue); text-shadow: 0 0 15px rgba(0, 242, 254, 0.8); transition-delay: 0.3s;
 }
-.card__content p { color: #fff; margin-bottom: 0; }
+.card__content p { 
+    color: #fff; margin-bottom: 0; 
+    white-space: nowrap; /* 不換行 */
+}
 
 /* Memories 頁面專屬特效 */
 #memories-page #story-chapters { padding-top: 100px !important; }
@@ -266,13 +272,21 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 /* =========================================
    7. 數位之書 (Flipbook)
    ========================================= */
+
+/* 修正 4：防止 Android 滾動遮擋，鎖定背景與按鈕 */
 .book-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; /* 使用四邊鎖定取代 width/height */
+    width: 100vw; height: 100vh; z-index: 10000;
     background: rgba(0, 0, 0, 0.94); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center;
+    overscroll-behavior: none; /* 防止連鎖滾動到 body */
+    touch-action: none; /* 禁用面板上的觸控滾動 */
 }
 .close-book {
-    position: absolute; top: 40px; right: 40px; color: #fff; font-family: var(--font-tech); cursor: pointer;
+    position: fixed !important; /* 強制相對於螢幕視窗定位，不管怎麼滑都在右上角 */
+    top: 25px !important; right: 25px !important;
+    color: #fff; font-family: var(--font-tech); cursor: pointer;
     font-size: 1.1rem; letter-spacing: 3px; text-transform: uppercase; transition: 0.3s; border-bottom: 1px solid transparent;
+    z-index: 10005 !important;
 }
 .close-book:hover { color: var(--brand-red); border-color: var(--brand-red); }
 
@@ -342,6 +356,20 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     100% { transform: scale(1) rotateY(0deg) rotateX(0deg) translateY(0); opacity: 1; }
 }
 
+/* 修正 3：加入 iOS 專屬 Webkit 動畫前綴，保證轉圈圈動畫硬體加速與正常執行 */
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.loader-spinner {
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
 /* =========================================
    9. 響應式排版整合 (RWD - Media Queries)
    ========================================= */
@@ -349,7 +377,22 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 /* --- 960px 綜合平板與手機版 --- */
 @media screen and (max-width: 960px) {
     .navbar__container { height: 60px; padding: 0; }
-    .navbar__menu { grid-template-columns: auto; position: absolute; top: -1000px; opacity: 0; height: 50vh; z-index: -1; transition: all 0.5s ease; background: var(--bg-nav); }
+    
+    /* 修正 1：強制使用 flex-direction: column 確保手機版選單絕對垂直對齊，不會被 IG 瀏覽器撐破 */
+    .navbar__menu { 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center;
+        align-items: center;
+        position: absolute; 
+        top: -100vh; 
+        opacity: 0; 
+        width: 100%;
+        height: 50vh; 
+        z-index: -1; 
+        transition: all 0.5s ease; 
+        background: var(--bg-nav); 
+    }
     .navbar__menu.active { top: 100%; opacity: 1; z-index: 99; font-size: 1.6rem; }
     #navbar__logo { font-size: 1.9rem; padding-left: 5px; } #navbar__logo--img { height: 75px; margin-right: 15px; }
     .navbar__toggle .bar { width: 25px; height: 3px; margin: 5px auto; display: block; background: #fff; }
@@ -380,7 +423,6 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     .page-counter { top: 15px; text-align: left; left: 0; width: 100%; transform: none; background: rgba(255, 255, 255, 0.8); padding-bottom: 5px; }
     .click-hint { top: 95% !important; transform: none !important; }
     .click-hint.left-hint { left: 21px !important; } .click-hint.right-hint { right: 21px !important; }
-    .close-book { top: 20px !important; right: 20px !important; }
 }
 
 /* --- 820px 平板過渡 --- */
