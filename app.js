@@ -384,9 +384,11 @@ async function openBook(input, totalPages = null) {
     
      // 🟢 關鍵修復：每次顯示前，先強迫瀏覽器「重置」動畫
     if (spinner) {
-        spinner.style.animation = 'none';         // 1. 先拔掉動畫
-        void spinner.offsetWidth;                 // 2. 觸發 Reflow (強迫瀏覽器重新計算畫面)
-        spinner.style.animation = 'spin 1s linear infinite'; // 3. 重新掛上動畫
+        spinner.style.webkitAnimation = 'none';
+        spinner.style.animation = 'none';
+        void spinner.offsetWidth; 
+        spinner.style.webkitAnimation = 'spin 1s linear infinite';
+        spinner.style.animation = 'spin 1s linear infinite';
     }
 
     // --- 🚀 核心黑科技邏輯 ---
