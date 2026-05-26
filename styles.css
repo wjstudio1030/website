@@ -1313,11 +1313,12 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 }
 
 /* =========================================
-   終極修正：表單黑白狀態與下拉箭頭控制
+   表單黑白智慧發光分流與自定義下拉選單 (全新升級版)
    ========================================= */
 
-/* 1. 所有表單元件的基礎「純黑」狀態 */
-.form-control {
+/* 所有傳統文字輸入框的基礎「純黑」狀態 (保留你原本要的質感) */
+input.form-control,
+textarea.form-control {
     width: 100%;
     padding: 14px 20px;
     background: rgba(20, 20, 20, 0.8) !important;
@@ -1329,18 +1330,59 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-/* 2. 針對 Select 標籤補回「客製化白色下拉箭頭 SVG」，解決原生圖示消失問題 */
-select.form-control {
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
-    background-size: 24px !important;
+/* 1. 科技感自定義選單容器 */
+.cyber-dropdown {
+    width: 100%;
+    position: relative;
+    cursor: none !important;
+}
+
+/* 2. 自定義選單的主外觀（初始黑底、帶灰色提示字） */
+.cyber-dropdown-selected {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1rem;
+    user-select: none;
+    transition: all 0.3s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 24px;
     padding-right: 45px;
 }
 
-/* 3. 動態提示文字初始設定 */
+/* 3. 當選單點擊打開時的發光邊框 */
+.cyber-dropdown.open .cyber-dropdown-selected {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+
+/* 4. 智慧控制：姓名/信箱打字時、以及自定義選單選中時，一起亮起極客白！(完美保留你原本的需求) */
+.form-control:focus,
+.form-control:-webkit-autofill,
+input.form-control:not(:placeholder-shown),
+textarea.form-control:not(:placeholder-shown),
+.cyber-dropdown-selected.has-value {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: #ffffff !important;
+    color: #131313 !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.25) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23131313'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+}
+
+/* 5. 確保空值狀態下絕對維持純黑，防止跑版 */
+.form-control:placeholder-shown:not(:focus) {
+    background: rgba(20, 20, 20, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+/* 6. 動態隱藏浮動提示文字 */
 .input-placeholder-text {
     position: absolute;
     left: 20px;
@@ -1351,41 +1393,49 @@ select.form-control {
     font-size: 0.95rem;
 }
 
-/* 4. 亮起「科技白」狀態的核心邏輯（精準分流，杜絕空表單亮白框） */
-/* A. 任何被點擊(Focus)的欄位 / 瀏覽器自動填入的欄位 */
-.form-control:focus,
-.form-control:-webkit-autofill,
-/* B. 文字框/文字區域：真的有打字時才觸發 */
-input.form-control:not(:placeholder-shown),
-textarea.form-control:not(:placeholder-shown),
-/* C. 下拉選單：因為不支援 placeholder，改用「是否通過 valid 驗證」來判定是否有選擇 */
-select.form-control:valid {
-    background-color: rgba(255, 255, 255, 0.96) !important;
-    border-color: #ffffff !important;
-    color: #131313 !important;
-    /* 文字反黑 */
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.25) !important;
-}
-
-/* 5. 當下拉選單亮起白框時，下拉箭頭自動變色為「黑色」 */
-select.form-control:focus,
-select.form-control:valid {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23131313'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") !important;
-}
-
-/* 6. 當滿足發光條件時，優雅隱藏原本的提示文字 */
 .form-control:focus~.input-placeholder-text,
 input.form-control:not(:placeholder-shown)~.input-placeholder-text,
-textarea.form-control:not(:placeholder-shown)~.input-placeholder-text,
-select.form-control:valid~.input-placeholder-text {
+textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
     opacity: 0;
     transform: translateX(15px);
 }
 
-/* 確保下拉清單展開時的選項依然是黑底白字 */
-select.form-control option {
+/* 7. 自定義選項清單浮動面板（這是讓你的滑鼠圈圈能完美進去的關鍵！） */
+.cyber-dropdown-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
     background: #141414;
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    border-radius: 6px;
+    list-style: none;
+    padding: 6px 0;
+    margin: 0;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 242, 254, 0.15);
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.cyber-dropdown.open .cyber-dropdown-list {
+    display: block;
+}
+
+.cyber-dropdown-list li {
+    padding: 14px 20px;
     color: #fff;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    text-align: left;
+    cursor: none !important;
+}
+
+.cyber-dropdown-list li:hover {
+    background: rgba(0, 242, 254, 0.15);
+    color: var(--brand-blue);
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
 }
 
 /* =========================================
@@ -1511,4 +1561,600 @@ select.form-control option {
     .input-placeholder-text {
         font-size: 0.8rem;
     }
+}
+
+
+/* =========================================
+   12. Game 頁面專屬設計 (Game Interface)
+   ========================================= */
+.game-section {
+    background: var(--bg-dark);
+    padding: 6rem 2rem 8rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 90vh;
+}
+
+/* 遊戲標題霓虹特效 */
+.game-title {
+    font-family: var(--font-tech);
+    font-size: 3rem;
+    letter-spacing: 5px;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+    background: linear-gradient(to right, var(--brand-blue) 0%, #bd34fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+}
+
+/* --- 遊戲 16:9 容器 --- */
+.game-wrapper {
+    width: 100%;
+    max-width: 1100px;
+    /* 電腦版最佳觀看寬度 */
+    aspect-ratio: 16 / 9;
+    /* 強制鎖定黃金遊戲比例 */
+    background: #030303;
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0, 242, 254, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 進入全螢幕時，移除圓角和邊框 */
+.game-wrapper:fullscreen {
+    border: none;
+    border-radius: 0;
+    max-width: none;
+}
+
+/* --- 模擬終端機螢幕底圖 --- */
+.game-screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #050505;
+    z-index: 1;
+}
+
+/* 復古 CRT 掃描線特效 */
+.scanlines {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.1),
+            rgba(0, 0, 0, 0.1) 2px,
+            transparent 2px,
+            transparent 4px);
+    pointer-events: none;
+}
+
+/* --- 中間：巨大的三角形播放鍵 --- */
+.play-btn-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.play-btn {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(0, 242, 254, 0.05);
+    border: 2px solid var(--brand-blue);
+    color: var(--brand-blue);
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 25px rgba(0, 242, 254, 0.3), inset 0 0 15px rgba(0, 242, 254, 0.2);
+    /* 讓箭頭微調置中 (FontAwesome play icon 視覺重心偏左) */
+    padding-left: 8px;
+}
+
+/* 播放鍵脈衝動畫 */
+.play-btn::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    border: 2px solid var(--brand-blue);
+    animation: pulseGlow 2s linear infinite;
+    pointer-events: none;
+}
+
+.play-btn:hover {
+    background: var(--brand-blue);
+    color: #030303;
+    transform: scale(1.1);
+    box-shadow: 0 0 50px rgba(0, 242, 254, 0.6);
+}
+
+/* --- 右下角：專業控制面板 --- */
+.game-controls {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+}
+
+.control-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    background: rgba(20, 20, 20, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+    background: rgba(0, 242, 254, 0.1);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    transform: translateY(-2px);
+}
+
+/* 脈衝特效 Keyframes */
+@keyframes pulseGlow {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   13. Game 頁面手機版響應式優化
+   ========================================= */
+@media screen and (max-width: 960px) {
+    .game-section {
+        padding-top: 100px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .game-title {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+
+    .game-wrapper {
+        border-radius: 8px;
+    }
+
+    .play-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+        padding-left: 6px;
+    }
+
+    .game-controls {
+        bottom: 15px;
+        right: 15px;
+        gap: 10px;
+    }
+
+    .control-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+}
+
+/* =========================================
+   14. Game 頁面 - 開場動畫專屬特效 (Intro Sequence)
+   ========================================= */
+
+/* --- 終端機文字樣式 (終極進化版) --- */
+.boot-terminal {
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    width: 90%;
+    color: #ffffff;
+    /* 經典矩陣駭客綠 */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+    z-index: 10;
+    text-align: left;
+}
+
+.boot-line {
+    display: block;
+    word-wrap: break-word;
+    margin-bottom: 2px;
+}
+
+/* 記憶體位址的暗灰色特效 */
+.sys-hex {
+    color: #555;
+    margin-right: 12px;
+    text-shadow: none;
+}
+
+/* 實體方塊閃爍游標 */
+.terminal-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.1rem;
+    background-color: #ffffff;
+    vertical-align: text-bottom;
+    animation: blinkCursor 0.8s step-end infinite;
+    margin-left: 4px;
+    box-shadow: 0 0 8px #ffffff;
+}
+
+@keyframes blinkCursor {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+/* 二進位資料流粒子 */
+.binary-particle {
+    position: absolute;
+    color: var(--brand-blue);
+    font-family: var(--font-tech);
+    font-size: 1.2rem;
+    font-weight: bold;
+    opacity: 0;
+    z-index: 5;
+    text-shadow: 0 0 10px var(--brand-blue);
+    animation: binaryRain 1s linear forwards;
+}
+
+/* 核心標題的 Glitch (故障) 震動特效 */
+.glitch-title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-tech);
+    font-size: 4rem;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow:
+        2px 0 var(--brand-red),
+        -2px 0 var(--brand-blue);
+    z-index: 20;
+    opacity: 0;
+}
+
+.glitch-active {
+    animation: glitchFlicker 0.2s cubic-bezier(.25, .46, .45, .94) both infinite,
+        glitchReveal 2s ease-out forwards;
+}
+
+/* 動畫 Keyframes */
+@keyframes binaryRain {
+    0% {
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+@keyframes glitchFlicker {
+    0% {
+        transform: translate(-50%, -50%) translate(2px, -2px);
+        text-shadow: 2px 0 var(--brand-red), -2px 0 var(--brand-blue);
+    }
+
+    25% {
+        transform: translate(-50%, -50%) translate(-2px, 2px);
+        text-shadow: -2px 0 var(--brand-red), 2px 0 var(--brand-blue);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) translate(2px, 2px);
+        text-shadow: 2px 0 var(--brand-red), -2px 0 var(--brand-blue);
+    }
+
+    75% {
+        transform: translate(-50%, -50%) translate(-2px, -2px);
+        text-shadow: -2px 0 var(--brand-red), 2px 0 var(--brand-blue);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) translate(0, 0);
+        text-shadow: 2px 0 var(--brand-red), -2px 0 var(--brand-blue);
+    }
+}
+
+@keyframes glitchReveal {
+    0% {
+        opacity: 0;
+        filter: contrast(5) brightness(2) blur(10px);
+    }
+
+    20% {
+        opacity: 1;
+        filter: contrast(1) brightness(1) blur(0);
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+        text-shadow: 0 0 20px var(--brand-blue);
+    }
+
+    /* 最終穩定發光 */
+}
+
+/* =========================================
+   15. Game 頁面 - 垂直音量拉桿與進度條 (無死角發光版)
+   ========================================= */
+
+/* 開場動畫專用：強制隱藏系統滑鼠 */
+body.hide-custom-cursor .cursor,
+body.hide-custom-cursor .cursor-follower {
+    opacity: 0 !important;
+    display: none !important;
+}
+
+/* 音量控制列群組 */
+.volume-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 隱藏式音量拉桿容器 (向上彈出) */
+.volume-slider-container {
+    position: absolute;
+    bottom: 100%;
+    /* 貼齊按鈕頂部 */
+    margin-bottom: -15px;
+    /* 🌟 往下推 15px 製造隱形重疊，徹底解決滑鼠斷層消失問題 */
+    padding-bottom: 15px;
+    /* 🌟 內部推回 15px，保持拉桿正常位置 */
+    left: 0;
+    width: 45px;
+    height: 140px;
+    background: rgba(20, 20, 20, 0.85);
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    border-radius: 8px;
+    /* 恢復完整圓角 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+/* 當滑鼠碰到整個 wrapper 時，顯示拉桿並「四邊完整發光」 */
+.volume-wrapper:hover .volume-slider-container {
+    opacity: 1;
+    pointer-events: auto;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    /* 🌟 恢復完整發光 */
+}
+
+/* 🌟 恢復按鈕完整的四邊發光與圓角，解決「上面沒有亮藍色」的問題 */
+.volume-wrapper:hover #volumeBtn {
+    border-color: var(--brand-blue);
+    background: rgba(0, 242, 254, 0.1);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    border-radius: 8px;
+    /* 確保四個角都是圓的 */
+}
+
+/* 自定義科技感拉桿外觀 (轉向垂直) */
+.cyber-slider {
+    -webkit-appearance: slider-vertical;
+    width: 8px;
+    height: 100px;
+    background: transparent;
+    outline: none;
+    cursor: none !important;
+}
+
+/* 拉桿軌道：顯示「白色進度條」的效果 */
+.cyber-slider::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* 拉桿滑塊：科技藍 */
+.cyber-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--brand-blue);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--brand-blue);
+    transition: 0.2s ease;
+    cursor: none !important;
+}
+
+.cyber-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    background: #fff;
+    box-shadow: 0 0 15px #fff;
+}
+
+/* =========================================
+   16. Game 頁面 - 場景管理器 (Scene Manager)
+   ========================================= */
+.scene {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+.scene.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* =========================================
+   17. Game 頁面 - Level 1 數位邏輯解碼專屬樣式
+   ========================================= */
+.logic-game-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.game-status-bar {
+    font-family: var(--font-tech);
+    color: var(--brand-red);
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px var(--brand-red);
+    margin-bottom: 30px;
+}
+
+.circuit-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+.cyber-switch {
+    width: 60px;
+    height: 60px;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 8px;
+    color: #555;
+    font-family: var(--font-tech);
+    font-size: 1.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 10px #000;
+}
+
+.cyber-switch.active {
+    background: rgba(0, 242, 254, 0.1);
+    border-color: var(--brand-blue);
+    color: #fff;
+    text-shadow: 0 0 10px var(--brand-blue);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+}
+
+.wire {
+    width: 100px;
+    height: 4px;
+    background: #333;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.wire.active {
+    background: var(--brand-blue);
+    box-shadow: 0 0 15px var(--brand-blue);
+}
+
+.logic-gate {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #553fff;
+    background: rgba(85, 63, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-family: var(--font-tech);
+    text-shadow: 0 0 10px #553fff;
+    box-shadow: 0 0 20px rgba(85, 63, 255, 0.2), inset 0 0 10px rgba(85, 63, 255, 0.2);
+}
+
+.core-output {
+    width: 140px;
+    height: 140px;
+    border: 2px solid var(--brand-red);
+    background: rgba(255, 8, 68, 0.1);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--brand-red);
+    font-family: var(--font-tech);
+    font-weight: bold;
+    text-shadow: 0 0 15px var(--brand-red);
+    box-shadow: 0 0 30px rgba(255, 8, 68, 0.3);
+    transition: all 0.5s ease;
+}
+
+.core-output.unlocked {
+    border-color: #0f0;
+    color: #0f0;
+    background: rgba(0, 255, 0, 0.1);
+    text-shadow: 0 0 20px #0f0;
+    box-shadow: 0 0 50px rgba(0, 255, 0, 0.5);
 }
