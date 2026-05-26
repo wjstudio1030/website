@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/WJ_ICON.png" />
+    <title>Game | WJ STUDIO</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=Orbitron:wght@400..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="game-page">
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <nav class="navbar">
+        <div class="navbar__container">
+            <a href="index.html" id="navbar__logo">
+                <img src="images/WJSTUDIO_LOGO.png" alt="WJ STUDIO Logo" id="navbar__logo--img">
+                WJ STUDIO
+            </a>
+            <div class="navbar__toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="navbar__menu">
+                <li class="navbar__item"><a href="index.html" class="navbar__links">Home</a></li>
+                <li class="navbar__item"><a href="Memories.html" class="navbar__links">Memories</a></li>
+                <li class="navbar__item"><a href="Game.html" class="navbar__links active-link">Game</a></li>
+                <li class="navbar__btn"><a href="Tutor.html" class="button">Tutor</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="game-section">
+        <h1 class="reveal game-title">ELECTRONIC_WORLD.exe</h1>
+
+        <div class="game-wrapper reveal" id="gameWrapper">
+            <div class="game-screen" id="gameScreen">
+                <div class="scanlines"></div>
+        
+                <div id="scene-manager" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 2;">
+        
+                    <div id="scene-0" class="scene active"></div>
+                    <div id="scene-1" class="scene"></div>
+                    <div id="scene-2" class="scene"></div>
+        
+                </div>
+            </div>
+        
+            <div class="play-btn-wrapper">
+                <button class="play-btn" id="startGameBtn" title="Initialize System"><i class="fas fa-play"></i></button>
+            </div>
+            <div class="game-controls">
+                <div class="volume-wrapper">
+                    <div class="volume-slider-container"><input type="range" id="volumeSlider" min="0" max="100" value="100"
+                            class="cyber-slider"></div>
+                    <button class="control-btn" id="volumeBtn" title="Audio Options"><i class="fas fa-volume-up"></i></button>
+                </div>
+                <button class="control-btn" id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+            </div>
+        </div>
+        </div>
+        
+        <div class="footer__container">
+            <p class="website__rights">© WJ STUDIO 2026. All rights reserved。</p>
+        </div>
+        
+        <script src="app.js"></script>
+        
+        <script type="module" src="game_core.js"></script>
+        </body>
+        
+        </html>
+    </div>
+
+    <div class="footer__container">
+        <p class="website__rights">© WJ STUDIO 2026. All rights reserved。</p>
+    </div>
+
+    <script src="app.js"></script>
+
+    </script>
+</body>
+</html>
