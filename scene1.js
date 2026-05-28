@@ -5,6 +5,20 @@
 export function initScene1(playerState, switchScene) {
     const scene1 = document.getElementById('scene-1');
     
+    // 移除舊的鍵盤事件監聽器 (如果有的話)
+    if (window._scene1KeyDown) {
+        window.removeEventListener('keydown', window._scene1KeyDown);
+        window.removeEventListener('keyup', window._scene1KeyUp);
+    }
+    if (window._scene2KeyDown) {
+        window.removeEventListener('keydown', window._scene2KeyDown);
+        window.removeEventListener('keyup', window._scene2KeyUp);
+    }
+    
+    // 重置 playerState 確保不會卡住
+    playerState.ammoOnes = 0;
+    playerState.ammoZeros = 0;
+    
     // 動態注入 CSS 
     scene1.innerHTML = `
         <style>
@@ -81,10 +95,10 @@ export function initScene1(playerState, switchScene) {
 
                 <div class="ammo-item" data-type="1" data-x="145" data-y="60" style="left: 145%; top: 60%;">1</div>
                 <div class="ammo-item" data-type="1" data-x="190" data-y="30" style="left: 190%; top: 30%;">1</div>
-                <div class="ammo-item" data-type="0" data-x="240" data-y="75" style="left: 240%; top: 75%;">0</div>
+                <div class="ammo-item" data-type="1" data-x="240" data-y="75" style="left: 240%; top: 75%;">1</div>
                 <div class="ammo-item" data-type="1" data-x="275" data-y="45" style="left: 275%; top: 45%;">1</div>
                 <div class="ammo-item" data-type="1" data-x="315" data-y="85" style="left: 315%; top: 85%;">1</div>
-                <div class="ammo-item" data-type="1" data-x="350" data-y="35" style="left: 350%; top: 35%;">1</div>
+                <div class="ammo-item" data-type="0" data-x="350" data-y="35" style="left: 350%; top: 35%;">0</div>
 
                 <div id="falling-book" style="position: absolute; top: -150px; left: calc(20% - 22px); width: 45px; height: 60px; background-color: #094b8e; border: 2px solid #fff; border-left: 8px solid #042a53; border-radius: 2px 6px 6px 2px; box-shadow: inset -4px 0 0 #ddd, 0 0 15px rgba(0, 242, 254, 0.5); display: flex; justify-content: center; align-items: center; opacity: 0; z-index: 4; pointer-events: auto;">
                     <span style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900; transform: rotate(-90deg); letter-spacing: 2px;">C++</span>
@@ -102,11 +116,11 @@ export function initScene1(playerState, switchScene) {
                     
                     <g id="armL">
                         <line x1="40" y1="56" x2="40" y2="85" />
-                        <text id="held-1" x="25" y="78" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" style="text-shadow: 0 0 0px rgba(255, 255, 255, 0.8);" opacity="0">1</text>
+                        <text id="held-1" x="10" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" style="text-shadow: 0 0 0px rgba(255, 255, 255, 0.8);" opacity="0">1</text>
                     </g>
                     <g id="armR">
                         <line x1="40" y1="56" x2="40" y2="85" />
-                        <text id="held-0" x="55" y="78" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" style="text-shadow: 0 0 0px rgba(255, 255, 255, 0.8);" opacity="0">0</text>
+                        <text id="held-0" x="70" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" style="text-shadow: 0 0 0px rgba(255, 255, 255, 0.8);" opacity="0">0</text>
                     </g>
 
                     <line x1="40" y1="75" x2="40" y2="105" id="legL" /> 
@@ -236,6 +250,9 @@ export function initScene1(playerState, switchScene) {
     let canPickUp = false; 
     let eventListenerAdded = false;
     
+    // 🌟 明確記錄彈藥數量
+    let ammoOnes = 0;
+    let ammoZeros = 0;
     let hasFirstOne = false;
     let hasFirstZero = false;
     let nearbyAmmo = null;
@@ -276,10 +293,18 @@ export function initScene1(playerState, switchScene) {
         ePrompt.style.opacity = '1';
         canPickUp = true;
 
-        if (!eventListenerAdded) {
-            window.addEventListener('keydown', handleKeyDown);
-            window.addEventListener('keyup', handleKeyUp);
-            eventListenerAdded = true;
+        // 儲存事件處理函數到 window 以便之後移除
+        window._scene1KeyDown = handleKeyDown;
+        window._scene1KeyUp = handleKeyUp;
+        
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        eventListenerAdded = true;
+        
+        // 立即啟用控制 (針對從 scene2 死後回來的情況)
+        if (!isPlayerControllable) {
+            isPlayerControllable = true;
+            requestAnimationFrame(gameLoop);
         }
     }, 4000);
 
@@ -330,30 +355,31 @@ export function initScene1(playerState, switchScene) {
                 
                 itemEPrompt.style.opacity = '0'; 
 
-                // 🌟 修正1: 修正手持文字位置，對齊手臂端點上方 (Y=78, X坐標與端點對齊)
+                // 🌟 更新彈藥數量
                 if (type === '1') {
+                    ammoOnes++;
                     const heldOne = document.getElementById('held-1');
                     heldOne.style.opacity = '1';
-                    heldOne.setAttribute("x", "10"); // 對齊左臂端點 (25, 80) 的 x
-                    heldOne.setAttribute("y", "50"); // 立於手心上方
-                } else if (type === '0') {
-                    const heldZero = document.getElementById('held-0');
-                    heldZero.style.opacity = '1';
-                    heldZero.setAttribute("x", "70"); // 對齊右臂端點 (55, 80) 的 x
-                    heldZero.setAttribute("y", "50"); // 立於手心上方
-                }
-
-                if (type === '1') {
+                    heldOne.setAttribute("x", "10");
+                    heldOne.setAttribute("y", "50");
+                    
                     if (!hasFirstOne) {
                         hasFirstOne = true;
                         showAmmoModal('1', '1', '實彈 ( LIVE AMMO )', '具備邏輯力量的實體訊號，可用於觸發機關', 'var(--brand-blue)');
                     }
                 } else if (type === '0') {
+                    ammoZeros++;
+                    const heldZero = document.getElementById('held-0');
+                    heldZero.style.opacity = '1';
+                    heldZero.setAttribute("x", "70");
+                    heldZero.setAttribute("y", "50");
+                    
                     if (!hasFirstZero) {
                         hasFirstZero = true;
                         showAmmoModal('0', '0', '空包彈 ( BLANK AMMO )', '無效的虛無訊號，可用於阻斷或佔位', 'var(--brand-blue)');
                     }
                 }
+                
                 nearbyAmmo = null; 
             }
         }
@@ -397,9 +423,9 @@ export function initScene1(playerState, switchScene) {
             isPlayerControllable = false; // 鎖定角色
             stickman.classList.add('stand-still');
             
-            // 將我們辛苦收集的狀態存入全域變數 playerState，讓下一關繼承！
-            playerState.hasOne = hasFirstOne;
-            playerState.hasZero = hasFirstZero;
+            // 🌟 將明確的彈藥數量存入 playerState
+            playerState.ammoOnes = ammoOnes;
+            playerState.ammoZeros = ammoZeros;
             
             // 直接呼叫 switchScene！它會自動產生非常平滑的 CSS 淡入淡出！
             switchScene(1, 2);
