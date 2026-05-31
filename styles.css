@@ -1550,15 +1550,28 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
         margin-top: 1rem !important;
     }
 
-    .services__card h2,
+    /* 這裡就是你說的藍光大標題！加入 font-size 把它縮小 */
+    .services__card h2 {
+        font-size: 1.4rem !important;
+        /* 將原本的 2rem 縮小到 1.4rem */
+        white-space: normal !important;
+        line-height: 1.5 !important;
+        /* 讓多行標題稍微緊湊一點 */
+        margin-bottom: 0.5rem !important;
+        /* 縮小標題跟下方文字的距離 */
+    }
+
+    /* 這是標題下方的白色小字說明，保持正常的換行跟行高即可 */
     .card__content p {
+        font-size: 0.95rem !important;
+        /* 也可以順便讓說明文字在手機上精緻一點 */
         white-space: normal !important;
         line-height: 1.5 !important;
     }
 
     /* 1. 縮小藍光標籤與調整位置 */
     .cyber-tag {
-        font-size: 0.6rem !important;
+        font-size: 1rem !important;
         padding: 3px 8px !important;
         top: 15px !important;
         left: 15px !important;
