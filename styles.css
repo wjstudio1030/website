@@ -1535,7 +1535,7 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
 @media screen and (max-width: 960px) {
     .tutor-hero {
         /* 將原本的 100px 改小，讓標題往上移 */
-        padding-top: 60px;
+        padding-top: 30px;
     }
 
     .tutor-hero h1,
@@ -1564,8 +1564,8 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
     /* 手機版防撞與圖片放大優化 */
     .promo-img__container {
         /* 從 90% 改為 100%，讓第一張宣傳圖在手機版更大 */
-        max-width: 100%;
-        width: 100%;
+        max-width: 120%;
+        width: 120%;
         margin-bottom: 4rem;
     }
 
