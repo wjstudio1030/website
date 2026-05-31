@@ -434,7 +434,7 @@ if (tutorForm && courseSelect && terminalBody) {
         ece: "> [LOADING ECE_CORE_SYS]...\n> 載入核心模組：基本電學、電子學。\n> 診斷分析：鎖定統測資電類命題核心，微處理機與數位邏輯波形深度拆解。系統已準備好為您重構邏輯脈絡...",
         unity: "> [INITIALIZING UNITY_ENGINE_AI]...\n> 載入虛擬實境與互動感測器 API...\n> 偵測到 AI 整合模組。診斷分析：結合實體感測硬體與智慧模型，本課程將啟動高階遊戲專案建構製程...",
         'web-app': "> [DEPLOYING FULL_STACK_DEV]...\n> 正在載入 DOM 渲染引擎與跨平台外掛...\n> 診斷分析：從靜態網頁美學重構（CSS Flexbox/Grid 深度優化）到跨平台 APP 封裝。系統架構已就緒...",
-        custom: "> [CONFIGURING CUSTOM_MODULE]...\n> 啟動 WJ STUDIO 客製化排程器...\n> 診斷分析：專屬學習進度雷達已開啟。涵蓋客製化宣傳圖製程指導與專題開發除錯。期待與您共同創造..."
+        custom: "> [Custom Module Setup]...\n> 啟動 WJ STUDIO 客製化排程器...\n> 診斷分析：專屬學習進度雷達已開啟。涵蓋客製化宣傳圖製程指導與專題開發除錯。期待與您共同創造..."
     };
 
     let typingTimer;
