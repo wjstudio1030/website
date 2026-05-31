@@ -1537,18 +1537,15 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
         padding-top: 60px;
     }
 
-    /* 將三個大標題都包進來，確保大家字體大小、行高都一致 */
     .tutor-hero h1,
     .form-section h1,
     #tutor-courses h1 {
         font-size: 2.2rem !important;
         letter-spacing: 2px;
         line-height: 1.4 !important;
-        /* 解決文字換行黏在一起 */
         margin-bottom: 2rem !important;
     }
 
-    /* 覆蓋掉原本公用設定的 margin-top: -80px，把標題推回正常位置 */
     #tutor-courses h1 {
         margin-top: 1rem !important;
     }
@@ -1557,6 +1554,14 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
     .card__content p {
         white-space: normal !important;
         line-height: 1.5 !important;
+    }
+
+    /* 1. 縮小藍光標籤與調整位置 */
+    .cyber-tag {
+        font-size: 0.6rem !important;
+        padding: 3px 8px !important;
+        top: 15px !important;
+        left: 15px !important;
     }
 
     .tutor-grid {
@@ -1568,7 +1573,6 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
         max-width: 100%;
         width: 100%;
         margin-bottom: 3rem;
-        /* 配合標題歸位，稍微縮小底下的推擠距離 */
     }
 
     #tutor-courses {
@@ -1579,8 +1583,23 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
         padding: 30px 20px;
     }
 
+    /* 2. 強制終端機文字靠左對齊 */
+    .terminal-body {
+        text-align: left !important;
+        width: 100%;
+        display: block;
+    }
+
+    /* 3. 修正提示文字位置 */
     .input-placeholder-text {
         font-size: 0.8rem;
+        left: 20px !important;
+        /* 這裡移除 top 的設定，讓一般的 input 提示字維持原本正確的 48px */
+    }
+
+    /* 只有 Textarea ("例如:方便聯絡手機...") 因為上方的標題折行變高，才需要獨立往下推深 */
+    textarea.form-control~.input-placeholder-text {
+        top: 76px !important;
     }
 }
 
