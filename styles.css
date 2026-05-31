@@ -372,6 +372,10 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
 /* =========================================
    6. 服務/回憶卡片區塊 (Services)
    ========================================= */
+.mobile-break {
+    display: none;
+}
+  
 .services {
     background: var(--bg-dark);
     display: flex;
@@ -969,6 +973,10 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
         top: 50%;
         right: 5%;
         transform: translateY(-50%);
+    }
+
+    .mobile-break {
+        display: block;
     }
 
     /* Hero Section 手機版獨立覆蓋 */
