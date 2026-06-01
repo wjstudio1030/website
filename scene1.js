@@ -57,7 +57,8 @@ export function initScene1(playerState, switchScene) {
             .action-block:last-child { border-bottom: none; margin-bottom: 0; }
             
             .svg-glow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); }
-            .env-prop { position: absolute; opacity: 0.8; z-index: 2; transform: translate(-50%, -50%); }
+            /* 🌟 在這裡加上 overflow: visible，解決動畫超出邊界被裁切的問題 */
+            .env-prop { position: absolute; opacity: 0.8; z-index: 2; transform: translate(-50%, -50%); overflow: visible; }
             .env-grass path { transition: transform 0.2s ease; }
             .env-grass path:nth-child(1) { transform-origin: 10px 30px; } 
             .env-grass path:nth-child(2) { transform-origin: 20px 30px; }
