@@ -1552,8 +1552,8 @@ textarea.form-control:not(:placeholder-shown)~.input-placeholder-text {
 
     /* 這裡就是你說的藍光大標題！加入 font-size 把它縮小 */
     .services__card h2 {
-        font-size: 1.8rem !important;
-        /* 將原本的 2rem 縮小到 1.8rem */
+        font-size: 1.6rem !important;
+        /* 將原本的 2rem 縮小到 1.6rem */
         white-space: normal !important;
         line-height: 1.5 !important;
         /* 讓多行標題稍微緊湊一點 */
