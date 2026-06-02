@@ -55,14 +55,9 @@ export function initScene2(playerState, switchScene) {
             .env-prop { position: absolute; opacity: 1; z-index: 2; transform: translate(-50%, -50%); }
             .svg-glow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); }
 
-            /* 倒地動畫 */
-            @keyframes playerDie {
-                0% { transform: translate(-50%, -50%) rotate(0deg); }
-                100% { transform: translate(-50%, -50%) rotate(-90deg) translate(-30px, -20px); filter: brightness(0.5); }
-            }
+            @keyframes playerDie { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(-90deg) translate(-30px, -20px); filter: brightness(0.5); } }
             .player-dead { animation: playerDie 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
 
-            /* 雷擊顫抖與焦黑死亡動畫 */
             @keyframes electrocuteAnim {
                 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); filter: invert(0) brightness(1); }
                 25% { transform: translate(-52%, -48%) rotate(5deg) scale(1.05); filter: invert(1) brightness(2) drop-shadow(0 0 15px #0ff); }
@@ -74,14 +69,9 @@ export function initScene2(playerState, switchScene) {
             .burnt-dead { animation: playerDie 0.4s forwards !important; filter: brightness(0.1) drop-shadow(0 0 5px #000) !important; }
 
             .monster-dead { animation: monsterDie 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-            @keyframes monsterDie {
-                0% { transform: translate(-50%, -50%) rotate(0deg); }
-                100% { transform: translate(-50%, -50%) rotate(90deg) translate(20px, 30px); opacity: 0.3; }
-            }
+            @keyframes monsterDie { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(90deg) translate(20px, 30px); opacity: 0.3; } }
 
-            #marquee-selector {
-                position: absolute; background: rgba(10, 10, 15, 0.9); border: 2px solid var(--brand-blue); border-radius: 12px; padding: 15px 20px; text-align: center; backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 10px;
-            }
+            #marquee-selector { position: absolute; background: rgba(10, 10, 15, 0.9); border: 2px solid var(--brand-blue); border-radius: 12px; padding: 15px 20px; text-align: center; backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 10px; }
             #marquee-selector.active { opacity: 1; pointer-events: auto; }
             .marquee-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); letter-spacing: 2px; margin-bottom: 5px; }
             .marquee-options { display: flex; gap: 15px; justify-content: center; }
@@ -98,30 +88,26 @@ export function initScene2(playerState, switchScene) {
             .anim-insert #armR-s2, .anim-insert #armL-s2 { animation: insertAction 0.5s ease-out !important; }
             .anim-insert #stickman-body-s2 { animation: bodyThrust 0.5s ease-out !important; }
 
-            /* 寶箱噴出掉落動畫 */
-            @keyframes chestDrop {
-                0% { transform: translate(-50%, -50%) scale(0.2) translateY(-40px); opacity: 0; }
-                60% { transform: translate(-50%, -50%) scale(1.2) translateY(10px); opacity: 1; }
-                80% { transform: translate(-50%, -50%) scale(0.9) translateY(-5px); opacity: 1; }
-                100% { transform: translate(-50%, -50%) scale(1) translateY(0); opacity: 1; }
-            }
+            @keyframes chestDrop { 0% { transform: translate(-50%, -50%) scale(0.2) translateY(-40px); opacity: 0; } 60% { transform: translate(-50%, -50%) scale(1.2) translateY(10px); opacity: 1; } 80% { transform: translate(-50%, -50%) scale(0.9) translateY(-5px); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) translateY(0); opacity: 1; } }
             .chest-dropped { animation: chestDrop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
-
-            /* 寶箱跳動與發光特效 */
-            @keyframes chestJump {
-                0%, 100% { transform: translate(-50%, -50%) scale(1); }
-                20% { transform: translate(-50%, -60%) scale(0.9, 1.1); }
-                40% { transform: translate(-50%, -50%) scale(1.1, 0.9); }
-                60% { transform: translate(-50%, -55%) scale(0.95, 1.05); }
-                80% { transform: translate(-50%, -50%) scale(1.05, 0.95); }
-            }
-            @keyframes chestGlowAnim {
-                0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)); stroke: #fff; }
-                50% { filter: drop-shadow(0 0 25px #0ff) drop-shadow(0 0 40px #0ff); stroke: #0ff; }
-            }
+            @keyframes chestJump { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 20% { transform: translate(-50%, -60%) scale(0.9, 1.1); } 40% { transform: translate(-50%, -50%) scale(1.1, 0.9); } 60% { transform: translate(-50%, -55%) scale(0.95, 1.05); } 80% { transform: translate(-50%, -50%) scale(1.05, 0.95); } }
+            @keyframes chestGlowAnim { 0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.4)); stroke: #fff; } 50% { filter: drop-shadow(0 0 25px #0ff) drop-shadow(0 0 40px #0ff); stroke: #0ff; } }
             .chest-opening { animation: chestJump 0.8s ease-in-out, chestGlowAnim 0.8s infinite alternate !important; }
-            
             @keyframes floatPrompt { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+            @keyframes megaExplosion {
+                0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; background: radial-gradient(circle, #fff 10%, #0ff 40%, transparent 70%); box-shadow: 0 0 0px #0ff; }
+                40% { transform: translate(-50%, -50%) scale(1); opacity: 1; background: radial-gradient(circle, #fff 20%, #0ff 50%, transparent 80%); box-shadow: 0 0 80px 40px #0ff; }
+                100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; background: radial-gradient(circle, #fff 0%, #0ff 30%, transparent 60%); box-shadow: 0 0 150px 80px transparent; }
+            }
+            .sci-fi-explosion { width: 400px; height: 400px; border-radius: 50%; animation: sciFiExplosion 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; z-index: 1000; pointer-events: none; }
+
+            @keyframes vaporize {
+                0% { filter: brightness(1) blur(0px); opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                40% { filter: brightness(3) drop-shadow(0 0 20px #0ff) blur(2px); opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+                100% { filter: brightness(5) drop-shadow(0 0 50px #0ff) blur(15px); opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+            }
+            .boss-vaporize { animation: vaporize 1.2s ease-out forwards !important; }
         </style>
 
         <div style="width: 100%; height: 100%; background-color: #000; position: relative; overflow: hidden;">
@@ -136,7 +122,7 @@ export function initScene2(playerState, switchScene) {
                 </svg>
                 <div id="input-a-display" style="position:absolute; left:calc(80% - 95px); top:calc(50% - 33px); color:#fff; font-family:'Orbitron', sans-serif; font-size:20px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
                 <div id="input-b-display" style="position:absolute; left:calc(80% - 95px); top:calc(50% + 7px); color:#fff; font-family:'Orbitron', sans-serif; font-size:20px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
-
+                
                 <svg id="or-monster" class="env-prop svg-glow" viewBox="0 0 300 300" stroke="#fff" stroke-width="4" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 250px; height: 250px; left: 130%; top: 50%; transition: transform 0.8s ease;">
                     <g transform="translate(150, 120) scale(1.2)">
                         <line x1="0" y1="-60" x2="0" y2="-90" stroke-width="6" />
@@ -168,12 +154,11 @@ export function initScene2(playerState, switchScene) {
                     <path d="M 20 110 L 50 110 A 40 40 0 0 1 50 190 L 20 190 Z" fill="#000" />
                     <path d="M 160 60 L 190 60 A 40 40 0 0 1 190 140 L 160 140 Z" fill="#000" />
                 </svg>
-
                 <div id="input-c1-display" style="position:absolute; left:calc(230% - 175px); top:calc(50% - 73px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
                 <div id="input-c2-display" style="position:absolute; left:calc(230% - 175px); top:calc(50% - 37px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
                 <div id="input-c3-display" style="position:absolute; left:calc(230% - 175px); top:calc(50% + 17px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
                 <div id="input-c4-display" style="position:absolute; left:calc(230% - 175px); top:calc(50% + 53px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
-
+                
                 <svg id="xor-monster" class="env-prop svg-glow" viewBox="-40 -20 340 320" stroke="#fff" stroke-width="4" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 270px; height: 260px; left: 280%; top: 50%; overflow: visible; transition: transform 0.8s ease;">
                     <g transform="translate(150, 120) scale(1.2)">
                         <line x1="0" y1="-60" x2="0" y2="-90" stroke-width="6" />
@@ -189,7 +174,6 @@ export function initScene2(playerState, switchScene) {
                         <path d="M 35 51 L 45 90 L 65 115" fill="none" stroke-width="4" />
                         <path d="M -45 57 Q 0 27 45 57" fill="none" stroke-width="5" />
                         <path d="M -45 45 Q 0 15 45 45 Q 60 -5 0 -60 Q -60 -5 -45 45 Z" fill="#000" stroke-width="4" />
-                        
                         <g id="xor-monster-eyes-alive">
                             <circle cx="-12" cy="-5" r="3" fill="#fff" stroke="none" />
                             <circle cx="12" cy="-5" r="3" fill="#fff" stroke="none" />
@@ -206,8 +190,99 @@ export function initScene2(playerState, switchScene) {
                     <line x1="15" y1="-70" x2="15" y2="-30" />
                     <path d="M -30 -30 L 30 -30 L 30 0 A 30 30 0 0 1 -30 0 Z" fill="#000" />
                 </svg>
-                
                 <div id="chest-e-prompt" style="position: absolute; left: calc(285% - 15px); top: calc(58% - 80px); width: 30px; height: 30px; background: rgba(0, 242, 254, 0.15); border: 2px solid var(--brand-blue); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; z-index: 20; box-shadow: 0 0 10px var(--brand-blue); animation: floatPrompt 1.5s infinite ease-in-out; pointer-events: none;">E</div>
+
+                <svg id="circuit-3" class="env-prop svg-glow" viewBox="0 0 400 300" stroke="#fff" stroke-width="5" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 320px; height: 240px; left: 380%; top: 50%;">
+                    <path d="M 0 50 L 30 50" fill="none" />
+                    <path d="M 30 30 L 70 50 L 30 70 Z" fill="#000" />
+                    <circle cx="75" cy="50" r="5" fill="#000" />
+                    <path d="M 80 50 L 200 50 L 200 100 L 250 100" fill="none" />
+                    <path d="M 0 130 L 30 130" fill="none" />
+                    <path d="M 0 170 L 30 170" fill="none" />
+                    <path d="M 20 110 Q 40 150 20 190" fill="none" />
+                    <path d="M 30 110 Q 50 150 30 190 Q 90 190 110 150 Q 90 110 30 110 Z" fill="#000" />
+                    <path d="M 110 150 L 250 150" fill="none" />
+                    <path d="M 0 230 L 30 230" fill="none" />
+                    <path d="M 0 270 L 30 270" fill="none" />
+                    <path d="M 20 210 Q 40 250 20 290" fill="none" />
+                    <path d="M 30 210 Q 50 250 30 290 Q 90 290 110 250 Q 90 210 30 210 Z" fill="#000" />
+                    <circle cx="115" cy="250" r="5" fill="#000" />
+                    <path d="M 120 250 L 200 250 L 200 200 L 250 200" fill="none" />
+                    <path d="M 250 70 L 250 230 Q 360 230 360 150 Q 360 70 250 70 Z" fill="#000" />
+                    <path d="M 360 150 L 400 150" fill="none" />
+                </svg>
+
+                <div id="input-d1-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% - 90px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
+                <div id="input-d2-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% - 26px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
+                <div id="input-d3-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% + 6px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
+                <div id="input-d4-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% + 54px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
+                <div id="input-d5-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% + 86px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
+
+                <svg id="final-boss" class="env-prop svg-glow" viewBox="-250 0 650 500" stroke="#fff" stroke-width="4" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 650px; height: 500px; left: 430%; top: 50%; overflow: visible;">
+                    
+                    <g transform="translate(-170, 150)">
+                        <g id="boss-weapon-and" style="transform-origin: 90px 100px; transition: transform 0.1s ease-out, filter 0.1s ease-out;">
+                            <path d="M 20 70 L 60 70" fill="none" />
+                            <path d="M 20 100 L 60 100" fill="none" />
+                            <path d="M 20 130 L 60 130" fill="none" />
+                            <g stroke="#0ff" stroke-width="3" filter="drop-shadow(0 0 5px #0ff)">
+                                <path d="M -20 70 L -10 65 L -15 60 L -5 55 L -10 50" fill="none" stroke-linejoin="miter" />
+                                <path d="M -20 100 L -10 95 L -15 90 L -5 85 L -10 80" fill="none" stroke-linejoin="miter" />
+                                <path d="M -20 130 L -10 125 L -15 120 L -5 115 L -10 110" fill="none" stroke-linejoin="miter" />
+                            </g>
+                            <path d="M 60 50 L 120 50 A 50 50 0 0 1 120 150 L 60 150 Z" fill="#000" stroke-width="5" />
+                        </g>
+                    </g>
+
+                    <path d="M 0 250 L 100 250" fill="none" stroke-width="5" />
+                    <path d="M 100 250 L 100 180 L 176 180 L 176 140.4" fill="none" stroke-width="5" /> 
+                    <path d="M 100 250 L 245 250" fill="none" stroke-width="5" /> 
+                    <path d="M 100 250 L 100 320 L 176 320 L 176 359.6" fill="none" stroke-width="5" /> 
+
+                    <g>
+                        <line x1="200" y1="40" x2="200" y2="10" stroke-width="6" /> 
+                        <path d="M 160 150 Q 200 120 240 150" fill="none" stroke-width="5" /> 
+                        <path d="M 160 140 Q 200 110 240 140 Q 250 70 200 40 Q 150 70 160 140 Z" fill="#000" stroke-width="4" />
+                        <path d="M 176 140.4 L 176 160" fill="none" stroke-width="4" />
+                        <path d="M 200 135 L 200 160 L 215 170" fill="none" stroke-width="4" />
+                        <path d="M 224 140.4 L 235 160 L 255 165" fill="none" stroke-width="4" />
+                        <circle cx="188" cy="90" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <circle cx="212" cy="90" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <g class="boss-eyes-dead" style="opacity: 0;">
+                            <path d="M 185 87 L 191 93 M 191 87 L 185 93" stroke="#fff" stroke-width="2" />
+                            <path d="M 209 87 L 215 93 M 215 87 L 209 93" stroke="#fff" stroke-width="2" />
+                        </g>
+                    </g>
+
+                    <g>
+                        <line x1="340" y1="250" x2="370" y2="250" stroke-width="6" /> 
+                        <path d="M 230 210 Q 260 250 230 290" fill="none" stroke-width="5" />
+                        <path d="M 240 210 Q 270 250 240 290 Q 310 300 340 250 Q 310 200 240 210 Z" fill="#000" stroke-width="4" />
+                        <path d="M 239.6 226 L 220 215 L 210 200" fill="none" stroke-width="4" />
+                        <path d="M 239.6 274 L 220 285 L 210 300" fill="none" stroke-width="4" />
+                        <circle cx="290" cy="238" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <circle cx="290" cy="262" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <g class="boss-eyes-dead" style="opacity: 0;">
+                            <path d="M 287 235 L 293 241 M 293 235 L 287 241" stroke="#fff" stroke-width="2" />
+                            <path d="M 287 259 L 293 265 M 293 259 L 287 265" stroke="#fff" stroke-width="2" />
+                        </g>
+                    </g>
+
+                    <g>
+                        <line x1="200" y1="460" x2="200" y2="490" stroke-width="6" /> 
+                        <path d="M 240 350 Q 200 380 160 350" fill="none" stroke-width="5" />
+                        <path d="M 240 360 Q 200 390 160 360 Q 150 430 200 460 Q 250 430 240 360 Z" fill="#000" stroke-width="4" />
+                        <path d="M 176 359.6 L 176 340" fill="none" stroke-width="5" />
+                        <path d="M 200 365 L 200 340 L 185 330" fill="none" stroke-width="4" />
+                        <path d="M 224 359.6 L 235 340 L 255 335" fill="none" stroke-width="4" />
+                        <circle cx="188" cy="410" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <circle cx="212" cy="410" r="3" fill="#fff" stroke="none" class="boss-eyes-alive" />
+                        <g class="boss-eyes-dead" style="opacity: 0;">
+                            <path d="M 185 407 L 191 413 M 191 407 L 185 413" stroke="#fff" stroke-width="2" />
+                            <path d="M 209 407 L 215 413 M 215 407 L 209 413" stroke="#fff" stroke-width="2" />
+                        </g>
+                    </g>
+                </svg>
 
             </div>
 
@@ -256,6 +331,79 @@ export function initScene2(playerState, switchScene) {
                     <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 3px;">CHARACTER_MANUAL.exe</div>
                     <button id="close-manual-s2" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0844'" onmouseout="this.style.color='#fff'">✖</button>
                 </div>
+                <div id="manual-content-s2" style="flex: 1; padding: 30px; overflow-y: auto; overscroll-behavior: contain;">
+                    <div class="manual-layout">
+                        <div class="manual-panel">
+                            <div class="panel-title">MOVEMENT</div>
+                            <div style="position: relative; width: 160px; height: 160px; margin: 20px 0;">
+                                <svg class="svg-glow" viewBox="0 0 160 160" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="80" cy="40" r="14" />
+                                    <line x1="80" y1="54" x2="80" y2="95" />
+                                    <line x1="80" y1="65" x2="55" y2="85" />
+                                    <line x1="80" y1="65" x2="105" y2="85" />
+                                    <line x1="80" y1="95" x2="60" y2="130" />
+                                    <line x1="80" y1="95" x2="100" y2="130" />
+                                    <line x1="80" y1="20" x2="80" y2="4" />
+                                    <polyline points="72,12 80,4 88,12" />
+                                    <line x1="80" y1="140" x2="80" y2="156" />
+                                    <polyline points="72,148 80,156 88,148" />
+                                    <line x1="25" y1="80" x2="5" y2="80" />
+                                    <polyline points="15,70 5,80 15,90" />
+                                    <line x1="135" y1="80" x2="155" y2="80" />
+                                    <polyline points="145,70 155,80 145,90" />
+                                </svg>
+                            </div>
+                            <div class="key-group-wasd">
+                                <div class="key-row"><div class="key-btn">W</div></div>
+                                <div class="key-row"><div class="key-btn">A</div><div class="key-btn">S</div><div class="key-btn">D</div></div>
+                            </div>
+                        </div>
+                        <div class="manual-panel" style="justify-content: flex-start;">
+                            <div class="action-block">
+                                <div class="action-header">
+                                    <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">E</div>
+                                    <div class="action-text">Pick up</div>
+                                </div>
+                                <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
+                                    <circle cx="50" cy="30" r="12" />
+                                    <line x1="50" y1="42" x2="50" y2="70" />
+                                    <line x1="50" y1="50" x2="35" y2="80" /> 
+                                    <line x1="50" y1="50" x2="80" y2="60" /> 
+                                    <line x1="50" y1="70" x2="35" y2="95" /> 
+                                    <line x1="50" y1="70" x2="65" y2="95" /> 
+                                    <circle cx="85" cy="55" r="8" stroke="var(--brand-blue)" />
+                                    <circle cx="130" cy="85" r="10" stroke="#666" stroke-dasharray="4 4" />
+                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" />
+                                    <polyline points="102,52 95,58 102,64" stroke="#888" stroke-width="2" fill="none" />
+                                </svg>
+                            </div>
+                            <div class="action-block" style="border-bottom: none;">
+                                <div class="action-header">
+                                    <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">Q</div>
+                                    <div class="action-text">USE</div>
+                                </div>
+                                <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
+                                    <circle cx="40" cy="40" r="10" />
+                                    <line x1="40" y1="50" x2="40" y2="75" />
+                                    <line x1="40" y1="55" x2="25" y2="80" />
+                                    <line x1="40" y1="55" x2="60" y2="60" /> 
+                                    <line x1="40" y1="75" x2="25" y2="95" />
+                                    <line x1="40" y1="75" x2="55" y2="95" />
+                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#ccc" /> 
+                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#ccc" /> 
+                                    <line x1="140" y1="35" x2="140" y2="75" />
+                                    <line x1="140" y1="35" x2="160" y2="35" />
+                                    <line x1="140" y1="75" x2="160" y2="75" />
+                                    <path d="M 160 35 A 20 20 0 0 1 160 75" />
+                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#ccc" />
+                                    <path d="M 65 60 Q 85 55 100 65" stroke="#888" stroke-width="2" stroke-dasharray="3 3" />
+                                    <polyline points="93,58 100,65 93,68" stroke="#888" stroke-width="2" />
+                                    <circle cx="110" cy="65" r="6" stroke="var(--brand-blue)" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -276,13 +424,16 @@ export function initScene2(playerState, switchScene) {
     const inC2 = document.getElementById('input-c2-display');
     const inC3 = document.getElementById('input-c3-display');
     const inC4 = document.getElementById('input-c4-display');
+    
+    const inD1 = document.getElementById('input-d1-display');
+    const inD2 = document.getElementById('input-d2-display');
+    const inD3 = document.getElementById('input-d3-display');
+    const inD4 = document.getElementById('input-d4-display');
+    const inD5 = document.getElementById('input-d5-display');
 
     const orMonster = document.getElementById('or-monster');
     const xorMonster = document.getElementById('xor-monster');
-    const eyesAlive = document.getElementById('monster-eyes-alive');
-    const eyesDead = document.getElementById('monster-eyes-dead');
-    const xorEyesAlive = document.getElementById('xor-monster-eyes-alive');
-    const xorEyesDead = document.getElementById('xor-monster-eyes-dead');
+    const finalBoss = document.getElementById('final-boss');
     
     const blueLaserPath = document.getElementById('blue-laser-path');
     const whiteLaserPath = document.getElementById('white-laser-path');
@@ -316,11 +467,12 @@ export function initScene2(playerState, switchScene) {
     let activePuzzle = 1;
     let inputValues1 = []; 
     let inputValues2 = []; 
+    let inputValues3 = []; 
     let gate1Triggered = false;
     let gate2Triggered = false;
+    let gate3Triggered = false; 
     let isNearGate = false;
     
-    // 寶箱相關狀態
     let isNearChest = false;
     let chestOpened = false;
     
@@ -334,7 +486,7 @@ export function initScene2(playerState, switchScene) {
         
         if (!hasOne && !hasZero) {
             if (activePuzzle === 1) triggerBlueLaserDeath(true);
-            else triggerLightningDeath(true);
+            else triggerLightningDeath(true, activePuzzle === 2 ? 280 : 430);
             return;
         }
         
@@ -388,67 +540,65 @@ export function initScene2(playerState, switchScene) {
         if (ammoOnes <= 0) document.getElementById('held-1-s2').style.opacity = '0';
         if (ammoZeros <= 0) document.getElementById('held-0-s2').style.opacity = '0';
         
-        // 第一關 (AND 閘)
         if (activePuzzle === 1) {
             inputValues1.push(selectedValue);
-            
             if (inputValues1.length === 1) {
                 inA.innerText = selectedValue; inA.style.opacity = '1';
                 inA.classList.remove('ammo-loaded'); void inA.offsetWidth; inA.classList.add('ammo-loaded');
                 marqueeTitle.innerText = 'INPUT B';
-                
-                if (ammoOnes <= 0 && ammoZeros <= 0) {
-                    stopMarquee(); marqueeSelector.classList.remove('active');
-                    setTimeout(() => triggerBlueLaserDeath(true), 500); return;
-                }
-                
+                if (ammoOnes <= 0 && ammoZeros <= 0) { stopMarquee(); marqueeSelector.classList.remove('active'); setTimeout(() => triggerBlueLaserDeath(true), 500); return; }
                 if (ammoOnes > 0 && ammoZeros <= 0) { option1.classList.remove('disabled'); option0.classList.add('disabled'); marqueeCurrent = 0; }
                 else if (ammoOnes <= 0 && ammoZeros > 0) { option1.classList.add('disabled'); option0.classList.remove('disabled'); marqueeCurrent = 1; }
                 updateMarqueeHighlight();
-                
             } else if (inputValues1.length === 2) {
                 inB.innerText = selectedValue; inB.style.opacity = '1';
                 inB.classList.remove('ammo-loaded'); void inB.offsetWidth; inB.classList.add('ammo-loaded');
-                
-                isPlayerControllable = false; stickman.classList.add('stand-still');
-                stopMarquee(); marqueeSelector.classList.remove('active');
+                isPlayerControllable = false; stickman.classList.add('stand-still'); stopMarquee(); marqueeSelector.classList.remove('active');
                 setTimeout(() => evaluatePuzzle1(), 500);
             }
         } 
-        // 第二關 (複合電路)
         else if (activePuzzle === 2) {
             inputValues2.push(selectedValue);
             const len = inputValues2.length;
-            
             const targetDisplays = [inC1, inC2, inC3, inC4];
             const nextTitles = ['OR INPUT 2', 'AND INPUT 1', 'AND INPUT 2', 'COMPUTING...'];
-            
             const display = targetDisplays[len - 1];
-            display.innerText = selectedValue;
-            display.style.opacity = '1';
+            display.innerText = selectedValue; display.style.opacity = '1';
             display.classList.remove('ammo-loaded'); void display.offsetWidth; display.classList.add('ammo-loaded');
             
             if (len < 4) {
                 marqueeTitle.innerText = nextTitles[len - 1];
-                if (ammoOnes <= 0 && ammoZeros <= 0) {
-                    stopMarquee(); marqueeSelector.classList.remove('active');
-                    setTimeout(() => triggerLightningDeath(true), 500); return;
-                }
+                if (ammoOnes <= 0 && ammoZeros <= 0) { stopMarquee(); marqueeSelector.classList.remove('active'); setTimeout(() => triggerLightningDeath(true, 280), 500); return; }
                 if (ammoOnes > 0 && ammoZeros <= 0) { option1.classList.remove('disabled'); option0.classList.add('disabled'); marqueeCurrent = 0; }
                 else if (ammoOnes <= 0 && ammoZeros > 0) { option1.classList.add('disabled'); option0.classList.remove('disabled'); marqueeCurrent = 1; }
                 updateMarqueeHighlight();
             } else {
-                isPlayerControllable = false; stickman.classList.add('stand-still');
-                stopMarquee(); marqueeSelector.classList.remove('active');
+                isPlayerControllable = false; stickman.classList.add('stand-still'); stopMarquee(); marqueeSelector.classList.remove('active');
                 setTimeout(() => evaluatePuzzle2(), 500);
+            }
+        }
+        else if (activePuzzle === 4) {
+            inputValues3.push(selectedValue);
+            const len = inputValues3.length;
+            const targetDisplays = [inD1, inD2, inD3, inD4, inD5];
+            const nextTitles = ['XOR INPUT 1', 'XOR INPUT 2', 'XNOR INPUT 1', 'XNOR INPUT 2', 'COMPUTING...'];
+            const display = targetDisplays[len - 1];
+            display.innerText = selectedValue; display.style.opacity = '1';
+            display.classList.remove('ammo-loaded'); void display.offsetWidth; display.classList.add('ammo-loaded');
+            
+            if (len < 5) {
+                marqueeTitle.innerText = nextTitles[len - 1];
+                if (ammoOnes <= 0 && ammoZeros <= 0) { stopMarquee(); marqueeSelector.classList.remove('active'); setTimeout(() => triggerLightningDeath(true, 430), 500); return; }
+                if (ammoOnes > 0 && ammoZeros <= 0) { option1.classList.remove('disabled'); option0.classList.add('disabled'); marqueeCurrent = 0; }
+                else if (ammoOnes <= 0 && ammoZeros > 0) { option1.classList.add('disabled'); option0.classList.remove('disabled'); marqueeCurrent = 1; }
+                updateMarqueeHighlight();
+            } else {
+                isPlayerControllable = false; stickman.classList.add('stand-still'); stopMarquee(); marqueeSelector.classList.remove('active');
+                setTimeout(() => evaluateFinalPuzzle(), 500);
             }
         }
     }
 
-    // =========================================
-    // 動畫與結局系統
-    // =========================================
-    
     function fireBlueLaser() {
         const cw = scene2.clientWidth; const ch = scene2.clientHeight;
         const sx = ((130 - cameraX) * cw) / 100; const sy = (50 * ch) / 100 - 115; 
@@ -467,10 +617,16 @@ export function initScene2(playerState, switchScene) {
         setTimeout(() => { blueLaserPath.style.transition = 'opacity 0.2s'; blueLaserPath.style.opacity = 0; }, 500);
     }
 
-    function fireLightningAttack() {
+    function fireLightningAttack(sourceWorldX) {
         const cw = scene2.clientWidth; const ch = scene2.clientHeight;
-        const sx = ((280 - cameraX) * cw) / 100 - 70; 
-        const sy = (50 * ch) / 100 + 10;
+        let sx = ((sourceWorldX - cameraX) * cw) / 100 - 70; 
+        let sy = (50 * ch) / 100 + 10;
+        
+        if (sourceWorldX === 430) {
+            sx = ((430 - cameraX) * cw) / 100 - 250; 
+            sy = (50 * ch) / 100;
+        }
+
         const ex = ((worldX - cameraX) * cw) / 100;
         const ey = (py * ch) / 100 - 15;
 
@@ -488,6 +644,72 @@ export function initScene2(playerState, switchScene) {
 
         lightningPath.style.opacity = 1;
         setTimeout(() => { clearInterval(lightningInterval); lightningPath.style.opacity = 0; lightningPath.setAttribute('d', ''); }, 600);
+    }
+
+    function fireEnergyBalls(sourceWorldX, targetWorldX, outputXOffset = 0) {
+        const cw = scene2.clientWidth; const ch = scene2.clientHeight;
+        const sx = ((sourceWorldX - cameraX) * cw) / 100 + outputXOffset; 
+        const sy = (50 * ch) / 100;
+        const ex = ((targetWorldX - cameraX) * cw) / 100 - 75; 
+        const ey = (50 * ch) / 100;
+
+        const canvas = document.getElementById('laser-canvas');
+        const bossWeaponAnd = document.getElementById('boss-weapon-and');
+        const finalBossSVG = document.getElementById('final-boss');
+
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                const ball = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                ball.setAttribute('cx', sx);
+                ball.setAttribute('cy', sy);
+                ball.setAttribute('r', '16'); 
+                ball.setAttribute('fill', 'none');
+                ball.setAttribute('stroke', '#fff');
+                ball.setAttribute('stroke-width', '5');
+                ball.style.filter = 'drop-shadow(0 0 10px #fff) drop-shadow(0 0 25px #0ff)';
+                ball.style.transition = 'transform 0.4s ease-in, opacity 0.1s ease-out';
+                
+                canvas.appendChild(ball);
+                void ball.getBoundingClientRect(); 
+
+                ball.style.transform = `translate(${ex - sx}px, ${ey - sy}px)`;
+
+                setTimeout(() => {
+                    ball.style.opacity = '0';
+                    setTimeout(() => ball.remove(), 200);
+
+                    if (i < 4) {
+                        bossWeaponAnd.style.transform = 'scale(1.5)';
+                        bossWeaponAnd.style.filter = 'brightness(3) drop-shadow(0 0 25px #0ff)';
+                        setTimeout(() => {
+                            bossWeaponAnd.style.transform = 'scale(1)';
+                            bossWeaponAnd.style.filter = 'none';
+                        }, 150);
+                    } else {
+                        // 第 5 顆：引發科幻大爆炸煙滅！
+                        const explosion = document.createElement('div');
+                        explosion.className = 'sci-fi-explosion';
+                        explosion.style.position = 'absolute';
+                        const bossCenter = ((targetWorldX - cameraX) * cw) / 100;
+                        explosion.style.left = `${bossCenter}px`; 
+                        explosion.style.top = `${ey}px`;
+                        document.getElementById('environment-layer-s2').appendChild(explosion);
+
+                        // 魔王模糊化為煙霧消失
+                        finalBossSVG.classList.add('boss-vaporize');
+                        setTimeout(() => finalBossSVG.remove(), 1000); 
+
+                        // 主角安全留在原地，並恢復控制！
+                        setTimeout(() => {
+                            explosion.remove();
+                            isPlayerControllable = true;
+                            activePuzzle = 5; // 切換至下個階段
+                        }, 1500);
+                    }
+                }, 400); 
+
+            }, i * 350); 
+        }
     }
 
     function fireWhiteLaser(sourceWorldX, targetWorldX, outputXOffset = 0) {
@@ -512,21 +734,16 @@ export function initScene2(playerState, switchScene) {
     function triggerBlueLaserDeath(returnToScene1 = false) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         fireBlueLaser();
-        setTimeout(() => {
-            stickman.classList.add('player-dead');
-            setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-        }, 350); 
+        setTimeout(() => { stickman.classList.add('player-dead'); setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500); }, 350); 
     }
 
-    function triggerLightningDeath(returnToScene1 = false) {
+    function triggerLightningDeath(returnToScene1 = false, sourceX = 280) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
-        fireLightningAttack();
-        
+        fireLightningAttack(sourceX);
         setTimeout(() => {
             stickman.classList.add('electrocuted'); 
             setTimeout(() => {
-                stickman.classList.remove('electrocuted');
-                stickman.classList.add('burnt-dead'); 
+                stickman.classList.remove('electrocuted'); stickman.classList.add('burnt-dead'); 
                 setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
             }, 600); 
         }, 100); 
@@ -538,18 +755,12 @@ export function initScene2(playerState, switchScene) {
             if (result === 1) {
                 fireWhiteLaser(80, 130, 70);
                 setTimeout(() => {
-                    eyesAlive.style.opacity = '0'; eyesDead.style.opacity = '1';
-                    orMonster.classList.add('monster-dead');
-                    setTimeout(() => { 
-                        isPlayerControllable = true; 
-                        activePuzzle = 2; 
-                        marqueeTitle.innerText = 'OR INPUT 1'; 
-                    }, 1000);
+                    document.getElementById('monster-eyes-alive').style.opacity = '0'; 
+                    document.getElementById('monster-eyes-dead').style.opacity = '1';
+                    document.getElementById('or-monster').classList.add('monster-dead');
+                    setTimeout(() => { isPlayerControllable = true; activePuzzle = 2; marqueeTitle.innerText = 'OR INPUT 1'; }, 1000);
                 }, 250); 
-            } else {
-                const totalInitialAmmo = (playerState.ammoOnes || 0) + (playerState.ammoZeros || 0);
-                triggerBlueLaserDeath(totalInitialAmmo < 6);
-            }
+            } else { triggerBlueLaserDeath((playerState.ammoOnes || 0) + (playerState.ammoZeros || 0) < 6); }
         }, 500);
     }
 
@@ -562,82 +773,67 @@ export function initScene2(playerState, switchScene) {
             if (finalResult === 1) {
                 fireWhiteLaser(230, 280, 122);
                 setTimeout(() => {
-                    xorMonster.style.opacity = '0.3';
-                    xorMonster.style.transform = 'translate(-50%, -50%) rotate(90deg) translate(20px, 30px)';
-                    
-                    // 🌟 怪物死亡後，眼睛變成 X
-                    xorEyesAlive.style.opacity = '0';
-                    xorEyesDead.style.opacity = '1';
-                    
-                    // 🌟 怪物死掉後，顯示寶箱掉落動畫
-                    setTimeout(() => { 
-                        const chest = document.getElementById('and-chest');
-                        chest.style.opacity = '1'; // 確保動畫前就不會透明
-                        chest.classList.add('chest-dropped');
-                    }, 400); 
-                    
-                    setTimeout(() => { 
-                        isPlayerControllable = true; 
-                        activePuzzle = 3; 
-                    }, 1000);
+                    const xorM = document.getElementById('xor-monster');
+                    xorM.style.opacity = '0.3'; xorM.style.transform = 'translate(-50%, -50%) rotate(90deg) translate(20px, 30px)';
+                    document.getElementById('xor-monster-eyes-alive').style.opacity = '0'; 
+                    document.getElementById('xor-monster-eyes-dead').style.opacity = '1';
+                    setTimeout(() => { document.getElementById('and-chest').style.opacity = '1'; document.getElementById('and-chest').classList.add('chest-dropped'); }, 400); 
+                    setTimeout(() => { isPlayerControllable = true; activePuzzle = 3; }, 1000);
                 }, 250); 
-            } else {
-                const totalInitialAmmo = (playerState.ammoOnes || 0) + (playerState.ammoZeros || 0);
-                triggerLightningDeath(totalInitialAmmo < 6);
-            }
+            } else { triggerLightningDeath((playerState.ammoOnes || 0) + (playerState.ammoZeros || 0) < 6, 280); }
         }, 500);
     }
 
-    // =========================================
-    // ⌨️ 按鍵與互動控制
-    // =========================================
+    function evaluateFinalPuzzle() {
+        const notResult = (inputValues3[0] === 0) ? 1 : 0;
+        const xorResult = (inputValues3[1] !== inputValues3[2]) ? 1 : 0;
+        const xnorResult = (inputValues3[3] === inputValues3[4]) ? 1 : 0;
+        const finalResult = (notResult === 1 && xorResult === 1 && xnorResult === 1) ? 1 : 0;
+
+        setTimeout(() => {
+            if (finalResult === 1) {
+                document.querySelectorAll('.boss-eyes-alive').forEach(el => el.style.opacity = '0');
+                document.querySelectorAll('.boss-eyes-dead').forEach(el => el.style.opacity = '1');
+                fireEnergyBalls(380, 430, 160);
+            } else { 
+                const totalAmmo = (playerState.ammoOnes || 0) + (playerState.ammoZeros || 0) + (ammoOnes + ammoZeros);
+                triggerLightningDeath(totalAmmo < 5, 430); 
+            } 
+        }, 500);
+    }
+
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();
         if (keys.hasOwnProperty(key)) keys[key] = true;
         
-        if (key === 'q' && marqueeActive) {
-            selectCurrentOption();
+        if (key === 'p') {
+            playerState.ammoOnes = 5; playerState.ammoZeros = 1;
+            isPlayerControllable = false; stickman.classList.add('stand-still');
+            switchScene(1, 2); return;
         }
 
-        // 🌟 寶箱開啟互動
+        if (key === 'q' && marqueeActive) selectCurrentOption();
+
         if (key === 'e') {
             if (activePuzzle === 3 && isNearChest && !chestOpened) {
-                chestOpened = true;
-                isPlayerControllable = false;
-                stickman.classList.add('stand-still');
+                chestOpened = true; isPlayerControllable = false; stickman.classList.add('stand-still');
                 document.getElementById('chest-e-prompt').style.opacity = '0';
-                
                 const chest = document.getElementById('and-chest');
-                // 移除掉落動畫，觸發寶箱跳動與發光動畫，這樣就不會閃爍了
-                chest.classList.remove('chest-dropped');
-                chest.classList.add('chest-opening');
+                chest.classList.remove('chest-dropped'); chest.classList.add('chest-opening');
                 
                 setTimeout(() => {
-                    // 動畫結束，保持發光狀態
-                    chest.classList.remove('chest-opening');
-                    chest.style.filter = 'drop-shadow(0 0 15px #0ff)';
-                    chest.style.stroke = '#0ff';
-                    
-                    // 顯示戰利品面板
+                    chest.classList.remove('chest-opening'); chest.style.filter = 'drop-shadow(0 0 15px #0ff)'; chest.style.stroke = '#0ff';
                     const lootPanel = document.getElementById('loot-panel');
-                    lootPanel.style.opacity = '1';
-                    lootPanel.style.transform = 'translate(-50%, -50%) scale(1)';
+                    lootPanel.style.opacity = '1'; lootPanel.style.transform = 'translate(-50%, -50%) scale(1)';
                     
-                    // 正式發放彈藥
-                    ammoOnes += 1;
-                    ammoZeros += 4;
-                    document.getElementById('held-1-s2').style.opacity = '1';
-                    document.getElementById('held-0-s2').style.opacity = '1';
+                    ammoOnes += 1; ammoZeros += 4;
+                    document.getElementById('held-1-s2').style.opacity = '1'; document.getElementById('held-0-s2').style.opacity = '1';
 
-                    // 🌟 3 秒後自動關閉面板並恢復控制
                     setTimeout(() => {
-                        lootPanel.style.opacity = '0';
-                        lootPanel.style.transform = 'translate(-50%, -50%) scale(0.8)';
-                        isPlayerControllable = true; // 恢復控制
-                        activePuzzle = 4; // 進入可以通往下個場景的狀態
+                        lootPanel.style.opacity = '0'; lootPanel.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        isPlayerControllable = true; activePuzzle = 4; marqueeTitle.innerText = 'NOT INPUT'; 
                     }, 3000);
-                    
-                }, 800); // 配合跳動動畫時間
+                }, 800); 
             } 
         }
     }
@@ -652,14 +848,8 @@ export function initScene2(playerState, switchScene) {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // =========================================
-    // 🚀 遊戲主迴圈
-    // =========================================
     function gameLoopS2() {
-        if (!isPlayerControllable) {
-            requestAnimationFrame(gameLoopS2);
-            return; 
-        }
+        if (!isPlayerControllable) { requestAnimationFrame(gameLoopS2); return; }
 
         let moved = false; let speedX = 0.4; let speedY = 0.3; 
         if (keys.w) { py -= speedY; moved = true; }
@@ -667,19 +857,13 @@ export function initScene2(playerState, switchScene) {
         if (keys.a) { worldX -= speedX; moved = true; facing = -1; }
         if (keys.d) { worldX += speedX; moved = true; facing = 1; }
 
-        py = Math.max(10, Math.min(90, py)); 
-        worldX = Math.max(5, worldX); 
+        py = Math.max(10, Math.min(90, py)); worldX = Math.max(5, worldX); 
 
-        if (moved) { stickman.classList.remove('stand-still'); } 
-        else { stickman.classList.add('stand-still'); }
+        if (moved) { stickman.classList.remove('stand-still'); } else { stickman.classList.add('stand-still'); }
 
-        cameraX = Math.max(0, worldX - 20);
-        let px = worldX - cameraX;
-
-        stickman.style.left = `${px}%`;
-        stickman.style.top = `${py}%`;
+        cameraX = Math.max(0, worldX - 20); let px = worldX - cameraX;
+        stickman.style.left = `${px}%`; stickman.style.top = `${py}%`;
         stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
-
         environmentLayer.style.transform = `translateX(-${cameraX}%)`;
 
         if (activePuzzle === 1) {
@@ -687,19 +871,14 @@ export function initScene2(playerState, switchScene) {
             const monster1InView = (130 - cameraX) <= 100; 
             
             if (distanceToGate1 < 25 && !gate1Triggered && monster1InView) {
-                isNearGate = true;
-                marqueeSelector.style.left = `calc(${80 - cameraX}% - 30px)`;
-                marqueeSelector.style.top = 'calc(50% + 80px)';
+                isNearGate = true; marqueeSelector.style.left = `calc(${80 - cameraX}% - 30px)`; marqueeSelector.style.top = 'calc(50% + 80px)';
                 if (!marqueeActive && inputValues1.length < 2) { marqueeSelector.classList.add('active'); startMarquee(); }
             } else if (distanceToGate1 >= 25 || !monster1InView) {
-                isNearGate = false;
-                if (marqueeActive && inputValues1.length < 2) { marqueeSelector.classList.remove('active'); stopMarquee(); }
+                isNearGate = false; if (marqueeActive && inputValues1.length < 2) { marqueeSelector.classList.remove('active'); stopMarquee(); }
             }
-            
             if (worldX > 100 && !gate1Triggered && inputValues1.length < 2) {
                 gate1Triggered = true; stopMarquee(); marqueeSelector.classList.remove('active');
-                const hasEnoughAmmo = (ammoOnes + ammoZeros) >= (2 - inputValues1.length);
-                triggerBlueLaserDeath(!hasEnoughAmmo); 
+                triggerBlueLaserDeath((ammoOnes + ammoZeros) < (2 - inputValues1.length)); 
             }
         } 
         else if (activePuzzle === 2) {
@@ -707,33 +886,36 @@ export function initScene2(playerState, switchScene) {
             const monster2InView = (280 - cameraX) <= 100; 
             
             if (distanceToGate2 < 30 && !gate2Triggered && monster2InView) {
-                isNearGate = true;
-                marqueeSelector.style.left = `calc(${230 - cameraX}% - 30px)`;
-                marqueeSelector.style.top = 'calc(50% + 100px)';
+                isNearGate = true; marqueeSelector.style.left = `calc(${230 - cameraX}% - 30px)`; marqueeSelector.style.top = 'calc(50% + 100px)';
                 if (!marqueeActive && inputValues2.length < 4) { marqueeSelector.classList.add('active'); startMarquee(); }
             } else if (distanceToGate2 >= 30 || !monster2InView) {
-                isNearGate = false;
-                if (marqueeActive && inputValues2.length < 4) { marqueeSelector.classList.remove('active'); stopMarquee(); }
+                isNearGate = false; if (marqueeActive && inputValues2.length < 4) { marqueeSelector.classList.remove('active'); stopMarquee(); }
             }
-            
             if (worldX > 250 && !gate2Triggered && inputValues2.length < 4) {
                 gate2Triggered = true; stopMarquee(); marqueeSelector.classList.remove('active');
-                const hasEnoughAmmo = (ammoOnes + ammoZeros) >= (4 - inputValues2.length);
-                triggerLightningDeath(!hasEnoughAmmo); 
+                triggerLightningDeath((ammoOnes + ammoZeros) < (4 - inputValues2.length), 280); 
             }
         }
-        // 🌟 第三階段：靠近並開啟寶箱
         else if (activePuzzle === 3) {
             const distanceToChest = Math.abs(worldX - 285);
             const ePrompt = document.getElementById('chest-e-prompt');
-            
-            // 🌟 直接透過世界座標判斷，確保 E 提示永遠準確浮現！
-            if (distanceToChest < 30 && !chestOpened) {
-                isNearChest = true;
-                ePrompt.style.opacity = '1';
-            } else {
-                isNearChest = false;
-                ePrompt.style.opacity = '0';
+            if (distanceToChest < 30 && !chestOpened) { isNearChest = true; ePrompt.style.opacity = '1'; } 
+            else { isNearChest = false; ePrompt.style.opacity = '0'; }
+        }
+        else if (activePuzzle === 4) {
+            const distanceToGate3 = Math.abs(worldX - 380);
+            if (distanceToGate3 < 35 && !gate3Triggered) {
+                isNearGate = true; 
+                marqueeSelector.style.left = `calc(${380 - cameraX}% - 30px)`; 
+                marqueeSelector.style.top = 'calc(50% + 130px)'; 
+                if (!marqueeActive && inputValues3.length < 5) { marqueeSelector.classList.add('active'); startMarquee(); }
+            } else if (distanceToGate3 >= 35) {
+                isNearGate = false; if (marqueeActive && inputValues3.length < 5) { marqueeSelector.classList.remove('active'); stopMarquee(); }
+            }
+            if (worldX > 400 && !gate3Triggered && inputValues3.length < 5) {
+                gate3Triggered = true; stopMarquee(); marqueeSelector.classList.remove('active');
+                const hasEnoughAmmo = (ammoOnes + ammoZeros) >= (5 - inputValues3.length);
+                triggerLightningDeath(!hasEnoughAmmo, 430); 
             }
         }
 
