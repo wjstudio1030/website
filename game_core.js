@@ -100,7 +100,7 @@ function updateVolumeIcon(val) {
     
     if (isCurrentlyMuted) {
         // 靜音時，強制使用紅色
-        volumeBtn.style.color = '#ff0844';
+        volumeBtn.style.color = '#fff';
         volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
     } else {
         // 🌟 關鍵修復：恢復聲音時，清除強制顏色，讓 CSS 的 Hover 科技藍重新生效！
