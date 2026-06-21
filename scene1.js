@@ -58,7 +58,7 @@ export function initScene1(playerState, switchScene) {
             
             .svg-glow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); }
             /* 🌟 在這裡加上 overflow: visible，解決動畫超出邊界被裁切的問題 */
-            .env-prop { position: absolute; opacity: 0.8; z-index: 2; transform: translate(-50%, -50%); overflow: visible; }
+            .env-prop { position: absolute; opacity: 1; z-index: 2; transform: translate(-50%, -50%); overflow: visible; }
             .env-grass path { transition: transform 0.2s ease; }
             .env-grass path:nth-child(1) { transform-origin: 10px 30px; } 
             .env-grass path:nth-child(2) { transform-origin: 20px 30px; }
@@ -132,7 +132,7 @@ export function initScene1(playerState, switchScene) {
             <div id="manual-modal" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 80vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 100; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 1px solid rgba(0, 242, 254, 0.2);">
                     <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 3px;">CHARACTER_MANUAL.exe</div>
-                    <button id="close-manual" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0844'" onmouseout="this.style.color='#fff'">✖</button>
+                    <button id="close-manual" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#fff'; this.style.textShadow='0 0 10px #fff'" onmouseout="this.style.color='#fff'; this.style.textShadow='none'">✖</button>
                 </div>
                 <div id="manual-content" style="flex: 1; padding: 30px; overflow-y: auto; overscroll-behavior: contain;">
                     <div class="manual-layout">
@@ -175,8 +175,8 @@ export function initScene1(playerState, switchScene) {
                                     <line x1="50" y1="70" x2="35" y2="95" /> 
                                     <line x1="50" y1="70" x2="65" y2="95" /> 
                                     <circle cx="85" cy="55" r="8" stroke="var(--brand-blue)" />
-                                    <circle cx="130" cy="85" r="10" stroke="#666" stroke-dasharray="4 4" />
-                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" />
+                                    <circle cx="130" cy="85" r="10" stroke="#888" stroke-dasharray="4 4" />
+                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="3 3" />
                                     <polyline points="102,52 95,58 102,64" stroke="#888" stroke-width="2" fill="none" />
                                 </svg>
                             </div>
@@ -192,13 +192,14 @@ export function initScene1(playerState, switchScene) {
                                     <line x1="40" y1="55" x2="60" y2="60" /> 
                                     <line x1="40" y1="75" x2="25" y2="95" />
                                     <line x1="40" y1="75" x2="55" y2="95" />
-                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#ccc" /> 
-                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#ccc" /> 
+                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#fff" /> 
+                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#fff" /> 
                                     <line x1="140" y1="35" x2="140" y2="75" />
                                     <line x1="140" y1="35" x2="160" y2="35" />
                                     <line x1="140" y1="75" x2="160" y2="75" />
                                     <path d="M 160 35 A 20 20 0 0 1 160 75" />
-                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#ccc" />
+                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#fff" />
+                                    
                                     <path d="M 65 60 Q 85 55 100 65" stroke="#888" stroke-width="2" stroke-dasharray="3 3" />
                                     <polyline points="93,58 100,65 93,68" stroke="#888" stroke-width="2" />
                                     <circle cx="110" cy="65" r="6" stroke="var(--brand-blue)" />
@@ -302,11 +303,9 @@ export function initScene1(playerState, switchScene) {
         window.addEventListener('keyup', handleKeyUp);
         eventListenerAdded = true;
         
-        // 立即啟用控制 (針對從 scene2 死後回來的情況)
-        if (!isPlayerControllable) {
-            isPlayerControllable = true;
-            requestAnimationFrame(gameLoop);
-        }
+        // 啟動遊戲迴圈，但不給予控制權 (isPlayerControllable 依然是 false)
+        // 這樣可以讓畫面保持更新，等待玩家按下 E
+        requestAnimationFrame(gameLoop);
     }, 4000);
 
     function showAmmoModal(type, title, subtitle, desc, color) {
@@ -316,10 +315,12 @@ export function initScene1(playerState, switchScene) {
         const descEl = document.getElementById('ammo-desc');
 
         titleEl.innerText = title;
-        titleEl.style.color = color;
-        titleEl.style.textShadow = `0 0 20px ${color}`;
+        titleEl.style.color = '#fff'; // 🚀 強制將大字 0 與 1 改為純白色
+        titleEl.style.textShadow = '0 0 20px rgba(255, 255, 255, 0.8)'; // 🚀 改為白色發光特效
         subtitleEl.innerText = subtitle;
         descEl.innerText = desc;
+        
+        // 外框與面板本體依然保留原本設定的科技藍線條與發光，維持整體 UI 層次感
         modal.style.borderColor = color;
         modal.style.boxShadow = `0 0 40px ${color}44, inset 0 0 20px ${color}88`;
 
@@ -399,13 +400,12 @@ export function initScene1(playerState, switchScene) {
                 manualBtn.style.display = 'flex';
                 manualBtn.style.animation = 'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
                 
-                if (!isPlayerControllable) {
-                    stickman.style.transition = 'none'; 
-                    isPlayerControllable = true;
-                    requestAnimationFrame(gameLoop); 
-                }
+                // 說明書關閉且按鈕彈出後，正式賦予玩家控制權
+                stickman.style.transition = 'none'; 
+                isPlayerControllable = true;
             }, 300);
         } else {
+            // 如果說明書按鈕已經存在 (例如玩家遊戲中途再次打開)，關閉後直接恢復控制
             isPlayerControllable = true;
         }
     });
