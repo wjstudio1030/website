@@ -108,6 +108,59 @@ export function initScene2(playerState, switchScene) {
                 100% { filter: brightness(5) drop-shadow(0 0 50px #0ff) blur(15px); opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
             }
             .boss-vaporize { animation: vaporize 1.2s ease-out forwards !important; }
+
+            @keyframes whiteBurst {
+                0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; background: radial-gradient(circle, #fff 40%, transparent 70%); box-shadow: 0 0 20px #fff; }
+                20% { transform: translate(-50%, -50%) scale(3); opacity: 1; background: radial-gradient(circle, #fff 50%, transparent 80%); box-shadow: 0 0 200px 100px #fff; filter: brightness(2); }
+                100% { transform: translate(-50%, -50%) scale(6); opacity: 0; background: radial-gradient(circle, #fff 0%, transparent 60%); box-shadow: 0 0 0px transparent; }
+            }
+            .white-burst-explosion { 
+                width: 400px; height: 400px; border-radius: 50%; 
+                animation: whiteBurst 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; 
+                z-index: 1000; pointer-events: none; 
+            }
+
+            @keyframes circuitBreak {
+                0% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); stroke: #fff; transform: translate(-50%, -50%) scale(1); }
+                20% { filter: drop-shadow(0 0 20px #f00); stroke: #f00; transform: translate(-52%, -48%) scale(1.05); }
+                40% { filter: brightness(2) drop-shadow(0 0 30px #f00); stroke: #fff; transform: translate(-48%, -52%) scale(1.05); }
+                100% { filter: brightness(0.2) drop-shadow(0 0 0 transparent); stroke: #444; transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            }
+            .circuit-broken { animation: circuitBreak 0.8s forwards !important; }
+
+            @keyframes textBreak {
+                0% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); color: #fff; transform: scale(1); opacity: 1; }
+                20% { filter: drop-shadow(0 0 20px #f00); color: #f00; transform: scale(1.3) translate(-2px, 2px); opacity: 1; }
+                40% { filter: brightness(2) drop-shadow(0 0 30px #f00); color: #fff; transform: scale(1.3) translate(2px, -2px); opacity: 1; }
+                100% { filter: brightness(0.2) drop-shadow(0 0 0 transparent); color: #444; transform: scale(1); opacity: 0; }
+            }
+            .text-broken { animation: textBreak 0.8s forwards !important; }
+
+            /* 🚀 寶箱開啟介面優化：複製實彈/空包彈模態視窗的 3D 質感 */
+            #loot-panel { 
+                position: absolute; 
+                top: 40%; 
+                left: 50%; 
+                filter: blur(15px) brightness(2); 
+                transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); 
+                opacity: 0; 
+                pointer-events: none; 
+                background: rgba(10, 10, 15, 0.85); 
+                border: 1px solid var(--brand-blue); 
+                border-radius: 8px; 
+                padding: 35px 60px; 
+                text-align: center; 
+                backdrop-filter: blur(10px); 
+                z-index: 300; 
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; 
+                box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 242, 254, 0.2);
+            }
+            #loot-panel.loot-show { 
+                filter: blur(0px) brightness(1); 
+                transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg); 
+                opacity: 1; 
+            }
+
         </style>
 
         <div style="width: 100%; height: 100%; background-color: #000; position: relative; overflow: hidden;">
@@ -167,8 +220,8 @@ export function initScene2(playerState, switchScene) {
                             <path d="M -25 0 L 25 0 A 25 25 0 0 1 -25 0 Z" fill="#000" stroke-width="4" />
                             <line x1="-12" y1="0" x2="-12" y2="-35" stroke-width="5" />
                             <line x1="12" y1="0" x2="12" y2="-35" stroke-width="5" />
-                            <path d="M -12 -35 L -4 -45 L -15 -55 L -5 -70" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="miter" />
-                            <path d="M 12 -35 L 20 -45 L 9 -55 L 19 -70" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="miter" />
+                            <path id="xor-tip-1" d="M -12 -35 L -4 -45 L -15 -55 L -5 -70" fill="none" stroke="var(--brand-blue)" stroke-width="3" stroke-linejoin="miter" style="filter: drop-shadow(0 0 6px var(--brand-blue));" />
+                            <path id="xor-tip-2" d="M 12 -35 L 20 -45 L 9 -55 L 19 -70" fill="none" stroke="var(--brand-blue)" stroke-width="3" stroke-linejoin="miter" style="filter: drop-shadow(0 0 6px var(--brand-blue));" />
                         </g>
                         <path d="M 15 44 L 15 80 L 30 110" fill="none" stroke-width="4" />
                         <path d="M 35 51 L 45 90 L 65 115" fill="none" stroke-width="4" />
@@ -225,12 +278,7 @@ export function initScene2(playerState, switchScene) {
                             <path d="M 20 70 L 60 70" fill="none" />
                             <path d="M 20 100 L 60 100" fill="none" />
                             <path d="M 20 130 L 60 130" fill="none" />
-                            <g stroke="#0ff" stroke-width="3" filter="drop-shadow(0 0 5px #0ff)">
-                                <path d="M -20 70 L -10 65 L -15 60 L -5 55 L -10 50" fill="none" stroke-linejoin="miter" />
-                                <path d="M -20 100 L -10 95 L -15 90 L -5 85 L -10 80" fill="none" stroke-linejoin="miter" />
-                                <path d="M -20 130 L -10 125 L -15 120 L -5 115 L -10 110" fill="none" stroke-linejoin="miter" />
-                            </g>
-                            <path d="M 60 50 L 120 50 A 50 50 0 0 1 120 150 L 60 150 Z" fill="#000" stroke-width="5" />
+                            <path id="boss-and-body" d="M 60 50 C 80 50, 100 50, 120 50 C 150 50, 170 75, 170 100 C 170 125, 150 150, 120 150 C 100 150, 80 150, 60 150 Z" fill="#000" stroke-width="5" style="transition: d 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);" />
                         </g>
                     </g>
 
@@ -290,6 +338,8 @@ export function initScene2(playerState, switchScene) {
                 <path id="blue-laser-path" fill="none" stroke="var(--brand-blue)" stroke-width="8" stroke-linecap="round" filter="drop-shadow(0 0 10px var(--brand-blue))" d="" style="opacity: 0;" />
                 <path id="white-laser-path" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" filter="drop-shadow(0 0 15px #fff)" d="" style="opacity: 0;" />
                 <path id="lightning-path" fill="none" stroke="#0ff" stroke-width="5" stroke-linejoin="miter" filter="drop-shadow(0 0 10px #0ff) drop-shadow(0 0 20px #fff)" d="" style="opacity: 0;" />
+                <path id="mega-blue-laser" fill="none" stroke="#0ff" stroke-width="160" stroke-linecap="round" filter="drop-shadow(0 0 80px #0ff) drop-shadow(0 0 40px #fff) brightness(1.5)" d="" style="opacity: 0;" />
+                <path id="mega-blue-laser-core" fill="none" stroke="#fff" stroke-width="60" stroke-linecap="round" filter="drop-shadow(0 0 20px #fff)" d="" style="opacity: 0;" />
             </svg>
 
             <div id="marquee-selector">
@@ -318,18 +368,27 @@ export function initScene2(playerState, switchScene) {
                 </svg>
             </div>
 
-            <div id="loot-panel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; pointer-events: none; background: rgba(10,10,15,0.95); border: 2px solid var(--brand-blue); border-radius: 12px; padding: 40px 60px; box-shadow: 0 0 40px rgba(0,242,254,0.4), inset 0 0 20px rgba(0,242,254,0.2); text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 300; backdrop-filter: blur(10px);">
-                <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.5rem; letter-spacing: 3px; margin-bottom: 30px; text-shadow: 0 0 10px rgba(0,242,254,0.5);">CHEST OPENED</div>
-                <div style="display: flex; justify-content: center; gap: 40px; font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 900; color: #fff;">
-                    <div style="text-shadow: 0 0 15px rgba(255,255,255,0.8);">0 : x4</div>
-                    <div style="text-shadow: 0 0 15px rgba(255,255,255,0.8);">1 : x1</div>
+            <div id="loot-panel">
+                <div style="font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);">CHEST OPENED</div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; justify-content: center;">
+                    <div style="display: flex; gap: 50px; font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900;">
+                        <div style="color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); display: flex; align-items: center; gap: 15px;">
+                            <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 10px rgba(255,255,255,0.4);">1</span>
+                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans'; font-weight: normal;">實彈</span> x1
+                        </div>
+                        <div style="color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); display: flex; align-items: center; gap: 15px;">
+                            <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 10px rgba(255,255,255,0.4);">0</span>
+                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans'; font-weight: normal;">空包彈</span> x4
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div id="manual-modal-s2" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 80vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 100; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 1px solid rgba(0, 242, 254, 0.2);">
                     <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 3px;">CHARACTER_MANUAL.exe</div>
-                    <button id="close-manual-s2" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ff0844'" onmouseout="this.style.color='#fff'">✖</button>
+                    <button id="close-manual-s2" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#fff'; this.style.textShadow='0 0 10px #fff'" onmouseout="this.style.color='#fff'; this.style.textShadow='none'">✖</button>
                 </div>
                 <div id="manual-content-s2" style="flex: 1; padding: 30px; overflow-y: auto; overscroll-behavior: contain;">
                     <div class="manual-layout">
@@ -372,8 +431,8 @@ export function initScene2(playerState, switchScene) {
                                     <line x1="50" y1="70" x2="35" y2="95" /> 
                                     <line x1="50" y1="70" x2="65" y2="95" /> 
                                     <circle cx="85" cy="55" r="8" stroke="var(--brand-blue)" />
-                                    <circle cx="130" cy="85" r="10" stroke="#666" stroke-dasharray="4 4" />
-                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" />
+                                    <circle cx="130" cy="85" r="10" stroke="#888" stroke-dasharray="4 4" />
+                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="3 3" />
                                     <polyline points="102,52 95,58 102,64" stroke="#888" stroke-width="2" fill="none" />
                                 </svg>
                             </div>
@@ -389,13 +448,14 @@ export function initScene2(playerState, switchScene) {
                                     <line x1="40" y1="55" x2="60" y2="60" /> 
                                     <line x1="40" y1="75" x2="25" y2="95" />
                                     <line x1="40" y1="75" x2="55" y2="95" />
-                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#ccc" /> 
-                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#ccc" /> 
+                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#fff" /> 
+                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#fff" /> 
                                     <line x1="140" y1="35" x2="140" y2="75" />
                                     <line x1="140" y1="35" x2="160" y2="35" />
                                     <line x1="140" y1="75" x2="160" y2="75" />
                                     <path d="M 160 35 A 20 20 0 0 1 160 75" />
-                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#ccc" />
+                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#fff" />
+                                    
                                     <path d="M 65 60 Q 85 55 100 65" stroke="#888" stroke-width="2" stroke-dasharray="3 3" />
                                     <polyline points="93,58 100,65 93,68" stroke="#888" stroke-width="2" />
                                     <circle cx="110" cy="65" r="6" stroke="var(--brand-blue)" />
@@ -546,7 +606,7 @@ export function initScene2(playerState, switchScene) {
                 inA.innerText = selectedValue; inA.style.opacity = '1';
                 inA.classList.remove('ammo-loaded'); void inA.offsetWidth; inA.classList.add('ammo-loaded');
                 marqueeTitle.innerText = 'INPUT B';
-                if (ammoOnes <= 0 && ammoZeros <= 0) { stopMarquee(); marqueeSelector.classList.remove('active'); setTimeout(() => triggerBlueLaserDeath(true), 500); return; }
+                if (ammoOnes <= 0 && ammoZeros <= 0) { stopMarquee(); marqueeSelector.classList.remove('active'); setTimeout(() => triggerCircuitDestruction(true), 500); return; }
                 if (ammoOnes > 0 && ammoZeros <= 0) { option1.classList.remove('disabled'); option0.classList.add('disabled'); marqueeCurrent = 0; }
                 else if (ammoOnes <= 0 && ammoZeros > 0) { option1.classList.add('disabled'); option0.classList.remove('disabled'); marqueeCurrent = 1; }
                 updateMarqueeHighlight();
@@ -618,32 +678,55 @@ export function initScene2(playerState, switchScene) {
     }
 
     function fireLightningAttack(sourceWorldX) {
-        const cw = scene2.clientWidth; const ch = scene2.clientHeight;
-        let sx = ((sourceWorldX - cameraX) * cw) / 100 - 70; 
-        let sy = (50 * ch) / 100 + 10;
-        
-        if (sourceWorldX === 430) {
-            sx = ((430 - cameraX) * cw) / 100 - 250; 
-            sy = (50 * ch) / 100;
-        }
-
+        const cw = scene2.clientWidth; 
+        const ch = scene2.clientHeight;
         const ex = ((worldX - cameraX) * cw) / 100;
         const ey = (py * ch) / 100 - 15;
 
         const lightningInterval = setInterval(() => {
-            let d = `M ${sx},${sy} `;
-            const segments = 6;
-            for(let i=1; i<segments; i++) {
-                let px = sx + (ex - sx) * (i/segments) + (Math.random() - 0.5) * 60;
-                let py = sy + (ey - sy) * (i/segments) + (Math.random() - 0.5) * 60;
-                d += `L ${px},${py} `;
+            let d = "";
+            let startPoints = [];
+
+            // 動態計算每一幀的發射起點，確保攝影機移動時依然精準貼合武器尖端
+            if (sourceWorldX === 280) {
+                const tip1 = document.getElementById('xor-tip-1');
+                const tip2 = document.getElementById('xor-tip-2');
+                if (tip1 && tip2) {
+                    const rect1 = tip1.getBoundingClientRect();
+                    const rect2 = tip2.getBoundingClientRect();
+                    const sceneRect = scene2.getBoundingClientRect();
+                    // 尖端大約在 bounding box 的中上方
+                    startPoints.push({ x: rect1.left + rect1.width / 2 - sceneRect.left, y: rect1.top - sceneRect.top });
+                    startPoints.push({ x: rect2.left + rect2.width / 2 - sceneRect.left, y: rect2.top - sceneRect.top });
+                }
+            } else if (sourceWorldX === 430) {
+                startPoints.push({ x: ((430 - cameraX) * cw) / 100 - 250, y: (50 * ch) / 100 });
+            } else {
+                startPoints.push({ x: ((sourceWorldX - cameraX) * cw) / 100 - 70, y: (50 * ch) / 100 + 10 });
             }
-            d += `L ${ex},${ey}`;
+
+            // 遍歷所有起點，將多條閃電路徑合併繪製
+            startPoints.forEach(sp => {
+                let sx = sp.x;
+                let sy = sp.y;
+                d += `M ${sx},${sy} `;
+                const segments = 6;
+                for(let i = 1; i < segments; i++) {
+                    let px = sx + (ex - sx) * (i / segments) + (Math.random() - 0.5) * 60;
+                    let py = sy + (ey - sy) * (i / segments) + (Math.random() - 0.5) * 60;
+                    d += `L ${px},${py} `;
+                }
+                d += `L ${ex},${ey} `;
+            });
             lightningPath.setAttribute('d', d);
         }, 50); 
 
         lightningPath.style.opacity = 1;
-        setTimeout(() => { clearInterval(lightningInterval); lightningPath.style.opacity = 0; lightningPath.setAttribute('d', ''); }, 600);
+        setTimeout(() => { 
+            clearInterval(lightningInterval); 
+            lightningPath.style.opacity = 0; 
+            lightningPath.setAttribute('d', ''); 
+        }, 600);
     }
 
     function fireEnergyBalls(sourceWorldX, targetWorldX, outputXOffset = 0) {
@@ -655,7 +738,11 @@ export function initScene2(playerState, switchScene) {
 
         const canvas = document.getElementById('laser-canvas');
         const bossWeaponAnd = document.getElementById('boss-weapon-and');
+        const bossAndBody = document.getElementById('boss-and-body');
         const finalBossSVG = document.getElementById('final-boss');
+
+        // 對應圖中 1, 2, 3, 4 的上下膨脹幅度
+        const bulges = [25, 55, 95, 140]; 
 
         for (let i = 0; i < 5; i++) {
             setTimeout(() => {
@@ -679,32 +766,52 @@ export function initScene2(playerState, switchScene) {
                     setTimeout(() => ball.remove(), 200);
 
                     if (i < 4) {
-                        bossWeaponAnd.style.transform = 'scale(1.5)';
-                        bossWeaponAnd.style.filter = 'brightness(3) drop-shadow(0 0 25px #0ff)';
+                        // 🚀 第 1~4 顆：維持圓滑的上下膨脹
+                        let b = bulges[i];
+                        let pathData = `M 60 50 C 80 50, 100 ${50 - b}, 120 ${50 - b} C 150 ${50 - b}, 170 ${75 - b*0.3}, 170 100 C 170 ${125 + b*0.3}, 150 ${150 + b}, 120 ${150 + b} C 100 ${150 + b}, 80 150, 60 150 Z`;
+                        bossAndBody.setAttribute('d', pathData);
+                        
+                        bossWeaponAnd.style.filter = 'drop-shadow(0 0 30px #fff) brightness(1.5)';
+                        
+                        let shake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`; }, 40);
                         setTimeout(() => {
-                            bossWeaponAnd.style.transform = 'scale(1)';
+                            clearInterval(shake);
+                            scene2.style.transform = 'none';
                             bossWeaponAnd.style.filter = 'none';
                         }, 150);
                     } else {
-                        // 第 5 顆：引發科幻大爆炸煙滅！
-                        const explosion = document.createElement('div');
-                        explosion.className = 'sci-fi-explosion';
-                        explosion.style.position = 'absolute';
-                        const bossCenter = ((targetWorldX - cameraX) * cw) / 100;
-                        explosion.style.left = `${bossCenter}px`; 
-                        explosion.style.top = `${ey}px`;
-                        document.getElementById('environment-layer-s2').appendChild(explosion);
+                        // 💥 第 5 顆：極巨化鋸齒爆炸！
+                        // 將您的鋸齒圖標座標極度放大，完全吞噬右半邊的敵人
+                        let megaJaggedPath = `M 60 50 L 150 -150 L 500 -400 L 250 -50 L 800 -100 L 350 50 L 1000 100 L 350 150 L 800 300 L 250 250 L 500 600 L 150 350 L 60 150 Z`;
+                        
+                        // 瞬間隱藏敵人的其他身體部位 (眼睛、管線等)，避免穿幫
+                        Array.from(finalBossSVG.children).forEach((child, index) => {
+                            if (index > 0) child.style.display = 'none';
+                        });
 
-                        // 魔王模糊化為煙霧消失
-                        finalBossSVG.classList.add('boss-vaporize');
-                        setTimeout(() => finalBossSVG.remove(), 1000); 
-
-                        // 主角安全留在原地，並恢復控制！
+                        // 瞬間變形為超級巨大的鋸齒
+                        bossAndBody.style.transition = 'd 0.05s ease-out, fill 0.05s ease-out';
+                        bossAndBody.setAttribute('d', megaJaggedPath);
+                        bossAndBody.setAttribute('fill', '#fff'); // 瞬間純白閃光
+                        
+                        // 加上極度強烈的白光，模擬刺眼的爆炸感
+                        bossWeaponAnd.style.filter = 'drop-shadow(0 0 150px #fff) drop-shadow(0 0 80px #fff) brightness(5)';
+                        
+                        // 劇烈的爆破畫面震動
+                        let bigShake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`; }, 40);
+                        
+                        // 震動結束後，沒有任何動畫，直接乾淨俐落地消失！
                         setTimeout(() => {
-                            explosion.remove();
+                            clearInterval(bigShake);
+                            scene2.style.transform = 'none';
+                            
+                            // 💥 瞬間蒸發
+                            finalBossSVG.remove();
+                            
+                            // 恢復主角控制
                             isPlayerControllable = true;
-                            activePuzzle = 5; // 切換至下個階段
-                        }, 1500);
+                            activePuzzle = 5; 
+                        }, 800);
                     }
                 }, 400); 
 
@@ -747,6 +854,74 @@ export function initScene2(playerState, switchScene) {
                 setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
             }, 600); 
         }, 100); 
+    }
+
+    function fireMegaBlueLaser(sourceWorldX) {
+        const cw = scene2.clientWidth; const ch = scene2.clientHeight;
+        const sx = ((sourceWorldX - cameraX) * cw) / 100 - 120; // 發射起點 (王的武器前)
+        const sy = (50 * ch) / 100;
+        
+        // 🚀 貫穿到極遠處：X 座標直接射向螢幕最左側的外面 (-cw)
+        const ex = -cw; 
+        const ey = (50 * ch) / 100;
+
+        const megaLaser = document.getElementById('mega-blue-laser');
+        const megaLaserCore = document.getElementById('mega-blue-laser-core');
+        
+        const pathData = `M ${sx},${sy} L ${ex},${ey}`;
+        
+        // 顯示外層青藍色大光束
+        megaLaser.setAttribute('d', pathData);
+        megaLaser.style.opacity = 1;
+        megaLaser.style.transition = 'none';
+        
+        // 顯示內層純白核心
+        if (megaLaserCore) {
+            megaLaserCore.setAttribute('d', pathData);
+            megaLaserCore.style.opacity = 1;
+            megaLaserCore.style.transition = 'none';
+        }
+
+        // 🚀 強烈畫面震動效果 (震幅加大到 25px，呈現壓倒性威力)
+        let shake = setInterval(() => {
+            scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`;
+        }, 40);
+
+        setTimeout(() => { 
+            clearInterval(shake);
+            scene2.style.transform = 'none';
+            // 光束消散動畫
+            megaLaser.style.transition = 'opacity 0.6s ease-out'; 
+            megaLaser.style.opacity = 0; 
+            if (megaLaserCore) {
+                megaLaserCore.style.transition = 'opacity 0.6s ease-out'; 
+                megaLaserCore.style.opacity = 0; 
+            }
+        }, 600);
+    }
+
+    function triggerCircuitDestruction(returnToScene1 = false) {
+        // 主角不倒下，只鎖定控制
+        isPlayerControllable = false; stickman.classList.add('stand-still');
+        
+        fireMegaBlueLaser(430);
+        
+        setTimeout(() => {
+            // 電路燒毀變黑
+            document.getElementById('circuit-3').classList.add('circuit-broken');
+            
+            // 🚀 讓所有已經輸入的 0 與 1 也一起被波及燒毀！
+            for(let i=1; i<=5; i++){
+                let disp = document.getElementById(`input-d${i}-display`);
+                if(disp && disp.innerText !== "") {
+                    disp.style.transition = 'none'; // 移除預設的淡出動畫，確保被強烈破壞
+                    disp.classList.add('text-broken'); 
+                }
+            }
+            
+            // 延遲後重啟關卡
+            setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
+        }, 150); // 光束擊中延遲
     }
 
     function evaluatePuzzle1() {
@@ -797,7 +972,7 @@ export function initScene2(playerState, switchScene) {
                 fireEnergyBalls(380, 430, 160);
             } else { 
                 const totalAmmo = (playerState.ammoOnes || 0) + (playerState.ammoZeros || 0) + (ammoOnes + ammoZeros);
-                triggerLightningDeath(totalAmmo < 5, 430); 
+                triggerCircuitDestruction(totalAmmo < 5);
             } 
         }, 500);
     }
@@ -822,18 +997,21 @@ export function initScene2(playerState, switchScene) {
                 chest.classList.remove('chest-dropped'); chest.classList.add('chest-opening');
                 
                 setTimeout(() => {
-                    chest.classList.remove('chest-opening'); chest.style.filter = 'drop-shadow(0 0 15px #0ff)'; chest.style.stroke = '#0ff';
+                    chest.classList.remove('chest-opening'); chest.style.filter = 'drop-shadow(0 0 15px #fff)'; chest.style.stroke = '#fff';
+                    
+                    // 🚀 觸發新版寶箱動畫
                     const lootPanel = document.getElementById('loot-panel');
-                    lootPanel.style.opacity = '1'; lootPanel.style.transform = 'translate(-50%, -50%) scale(1)';
+                    lootPanel.classList.add('loot-show');
                     
                     ammoOnes += 1; ammoZeros += 4;
                     document.getElementById('held-1-s2').style.opacity = '1'; document.getElementById('held-0-s2').style.opacity = '1';
 
                     setTimeout(() => {
-                        lootPanel.style.opacity = '0'; lootPanel.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        // 🚀 關閉寶箱動畫
+                        lootPanel.classList.remove('loot-show');
                         isPlayerControllable = true; activePuzzle = 4; marqueeTitle.innerText = 'NOT INPUT'; 
                     }, 3000);
-                }, 800); 
+                }, 800);
             } 
         }
     }
@@ -901,6 +1079,11 @@ export function initScene2(playerState, switchScene) {
             const ePrompt = document.getElementById('chest-e-prompt');
             if (distanceToChest < 30 && !chestOpened) { isNearChest = true; ePrompt.style.opacity = '1'; } 
             else { isNearChest = false; ePrompt.style.opacity = '0'; }
+
+            if (worldX > 400 && !chestOpened) {
+                chestOpened = true; 
+                triggerCircuitDestruction(false); 
+            }
         }
         else if (activePuzzle === 4) {
             const distanceToGate3 = Math.abs(worldX - 380);
@@ -915,7 +1098,7 @@ export function initScene2(playerState, switchScene) {
             if (worldX > 400 && !gate3Triggered && inputValues3.length < 5) {
                 gate3Triggered = true; stopMarquee(); marqueeSelector.classList.remove('active');
                 const hasEnoughAmmo = (ammoOnes + ammoZeros) >= (5 - inputValues3.length);
-                triggerLightningDeath(!hasEnoughAmmo, 430); 
+                triggerCircuitDestruction(!hasEnoughAmmo);
             }
         }
 
