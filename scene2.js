@@ -5,7 +5,6 @@
 export function initScene2(playerState, switchScene) {
     const scene2 = document.getElementById('scene-2');
     
-    // 移除舊的鍵盤事件監聽器
     if (window._scene2KeyDown) {
         window.removeEventListener('keydown', window._scene2KeyDown);
         window.removeEventListener('keyup', window._scene2KeyUp);
@@ -15,7 +14,6 @@ export function initScene2(playerState, switchScene) {
         window.removeEventListener('keyup', window._scene1KeyUp);
     }
     
-    // 從 playerState 讀取剛進入 scene2 時的彈藥數量
     let ammoOnes = playerState.ammoOnes || 0;
     let ammoZeros = playerState.ammoZeros || 0;
     
@@ -39,6 +37,25 @@ export function initScene2(playerState, switchScene) {
             .stand-still #legL-s2 { animation: none !important; transform: rotate(-15deg) !important; transition: transform 0.3s ease; }
             .stand-still #legR-s2 { animation: none !important; transform: rotate(15deg) !important; transition: transform 0.3s ease; }
 
+            #held-hammer-s2 {
+                opacity: 0; 
+                transform-origin: 40px 85px; 
+                transform: rotate(110deg) scale(0.4); 
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+            }
+            .stand-still #held-hammer-s2 {
+                transform: rotate(60deg) scale(0.4) !important; 
+            }
+
+            @keyframes attackSwing {
+                0% { transform: rotate(60deg) scale(0.4); }
+                40% { transform: rotate(180deg) scale(0.4); }
+                100% { transform: rotate(60deg) scale(0.4); }
+            }
+            .anim-attack #held-hammer-s2 {
+                animation: attackSwing 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+            }
+
             .manual-active { opacity: 1 !important; pointer-events: auto !important; transform: translate(-50%, -50%) scale(1) !important; }
             
             .manual-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; height: 100%; }
@@ -52,6 +69,20 @@ export function initScene2(playerState, switchScene) {
             .action-block { width: 100%; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 20px; margin-bottom: 20px; }
             .action-block:last-child { border-bottom: none; margin-bottom: 0; }
             
+            .manual-page { display: none; flex: 1; flex-direction: column; gap: 30px; }
+            .manual-page.active-page { display: flex; }
+            
+            @keyframes techScan {
+                0% { opacity: 0; transform: scaleY(1.05); filter: blur(4px) brightness(2) drop-shadow(0 0 20px var(--brand-blue)); clip-path: polygon(0 0, 100% 0, 100% 5%, 0 5%); }
+                30% { opacity: 0.6; transform: scaleY(1.02); filter: blur(1px) brightness(1.5); clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%); }
+                100% { opacity: 1; transform: scaleY(1); filter: blur(0) brightness(1); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+            }
+            .scan-transition { animation: techScan 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important; }
+
+            .page-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--brand-blue); color: var(--brand-blue); width: 45px; height: 45px; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+            .page-btn:hover { background: rgba(0, 242, 254, 0.2); box-shadow: 0 0 20px rgba(0, 242, 254, 0.6); color: #fff; }
+            .page-btn.disabled { opacity: 0.2; pointer-events: none; border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.2); box-shadow: none; }
+
             .env-prop { position: absolute; opacity: 1; z-index: 2; transform: translate(-50%, -50%); }
             .svg-glow { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); }
 
@@ -95,31 +126,6 @@ export function initScene2(playerState, switchScene) {
             .chest-opening { animation: chestJump 0.8s ease-in-out, chestGlowAnim 0.8s infinite alternate !important; }
             @keyframes floatPrompt { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-            @keyframes megaExplosion {
-                0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; background: radial-gradient(circle, #fff 10%, #0ff 40%, transparent 70%); box-shadow: 0 0 0px #0ff; }
-                40% { transform: translate(-50%, -50%) scale(1); opacity: 1; background: radial-gradient(circle, #fff 20%, #0ff 50%, transparent 80%); box-shadow: 0 0 80px 40px #0ff; }
-                100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; background: radial-gradient(circle, #fff 0%, #0ff 30%, transparent 60%); box-shadow: 0 0 150px 80px transparent; }
-            }
-            .sci-fi-explosion { width: 400px; height: 400px; border-radius: 50%; animation: sciFiExplosion 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; z-index: 1000; pointer-events: none; }
-
-            @keyframes vaporize {
-                0% { filter: brightness(1) blur(0px); opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                40% { filter: brightness(3) drop-shadow(0 0 20px #0ff) blur(2px); opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
-                100% { filter: brightness(5) drop-shadow(0 0 50px #0ff) blur(15px); opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
-            }
-            .boss-vaporize { animation: vaporize 1.2s ease-out forwards !important; }
-
-            @keyframes whiteBurst {
-                0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; background: radial-gradient(circle, #fff 40%, transparent 70%); box-shadow: 0 0 20px #fff; }
-                20% { transform: translate(-50%, -50%) scale(3); opacity: 1; background: radial-gradient(circle, #fff 50%, transparent 80%); box-shadow: 0 0 200px 100px #fff; filter: brightness(2); }
-                100% { transform: translate(-50%, -50%) scale(6); opacity: 0; background: radial-gradient(circle, #fff 0%, transparent 60%); box-shadow: 0 0 0px transparent; }
-            }
-            .white-burst-explosion { 
-                width: 400px; height: 400px; border-radius: 50%; 
-                animation: whiteBurst 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; 
-                z-index: 1000; pointer-events: none; 
-            }
-
             @keyframes circuitBreak {
                 0% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); stroke: #fff; transform: translate(-50%, -50%) scale(1); }
                 20% { filter: drop-shadow(0 0 20px #f00); stroke: #f00; transform: translate(-52%, -48%) scale(1.05); }
@@ -136,30 +142,22 @@ export function initScene2(playerState, switchScene) {
             }
             .text-broken { animation: textBreak 0.8s forwards !important; }
 
-            /* 🚀 寶箱開啟介面優化：複製實彈/空包彈模態視窗的 3D 質感 */
             #loot-panel { 
-                position: absolute; 
-                top: 40%; 
-                left: 50%; 
-                filter: blur(15px) brightness(2); 
+                position: absolute; top: 40%; left: 50%; filter: blur(15px) brightness(2); 
                 transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); 
-                opacity: 0; 
-                pointer-events: none; 
-                background: rgba(10, 10, 15, 0.85); 
-                border: 1px solid var(--brand-blue); 
-                border-radius: 8px; 
-                padding: 35px 60px; 
-                text-align: center; 
-                backdrop-filter: blur(10px); 
-                z-index: 300; 
+                opacity: 0; pointer-events: none; background: rgba(10, 10, 15, 0.85); 
+                border: 1px solid var(--brand-blue); border-radius: 8px; padding: 35px 60px; 
+                text-align: center; backdrop-filter: blur(10px); z-index: 300; 
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; 
                 box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 242, 254, 0.2);
             }
-            #loot-panel.loot-show { 
-                filter: blur(0px) brightness(1); 
-                transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg); 
-                opacity: 1; 
+            #loot-panel.loot-show { filter: blur(0px) brightness(1); transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg); opacity: 1; }
+
+            @keyframes hammerBreath {
+                0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.6)) brightness(0.9); transform: translateY(-25px) scale(1); }
+                50% { filter: drop-shadow(0 0 20px #fff) drop-shadow(0 0 35px var(--brand-blue)) brightness(1.3); transform: translateY(-30px) scale(1.02); }
             }
+            .hammer-breath { animation: hammerBreath 2.5s infinite ease-in-out !important; }
 
         </style>
 
@@ -272,7 +270,6 @@ export function initScene2(playerState, switchScene) {
                 <div id="input-d5-display" style="position:absolute; left:calc(380% - 175px); top:calc(50% + 86px); color:#fff; font-family:'Orbitron', sans-serif; font-size:18px; font-weight:900; text-shadow:0 0 10px #fff; opacity:0; transition:0.3s; z-index: 5;"></div>
 
                 <svg id="final-boss" class="env-prop svg-glow" viewBox="-250 0 650 500" stroke="#fff" stroke-width="4" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 650px; height: 500px; left: 430%; top: 50%; overflow: visible;">
-                    
                     <g transform="translate(-170, 150)">
                         <g id="boss-weapon-and" style="transform-origin: 90px 100px; transition: transform 0.1s ease-out, filter 0.1s ease-out;">
                             <path d="M 20 70 L 60 70" fill="none" />
@@ -281,12 +278,10 @@ export function initScene2(playerState, switchScene) {
                             <path id="boss-and-body" d="M 60 50 C 80 50, 100 50, 120 50 C 150 50, 170 75, 170 100 C 170 125, 150 150, 120 150 C 100 150, 80 150, 60 150 Z" fill="#000" stroke-width="5" style="transition: d 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);" />
                         </g>
                     </g>
-
                     <path d="M 0 250 L 100 250" fill="none" stroke-width="5" />
                     <path d="M 100 250 L 100 180 L 176 180 L 176 140.4" fill="none" stroke-width="5" /> 
                     <path d="M 100 250 L 245 250" fill="none" stroke-width="5" /> 
                     <path d="M 100 250 L 100 320 L 176 320 L 176 359.6" fill="none" stroke-width="5" /> 
-
                     <g>
                         <line x1="200" y1="40" x2="200" y2="10" stroke-width="6" /> 
                         <path d="M 160 150 Q 200 120 240 150" fill="none" stroke-width="5" /> 
@@ -301,7 +296,6 @@ export function initScene2(playerState, switchScene) {
                             <path d="M 209 87 L 215 93 M 215 87 L 209 93" stroke="#fff" stroke-width="2" />
                         </g>
                     </g>
-
                     <g>
                         <line x1="340" y1="250" x2="370" y2="250" stroke-width="6" /> 
                         <path d="M 230 210 Q 260 250 230 290" fill="none" stroke-width="5" />
@@ -315,7 +309,6 @@ export function initScene2(playerState, switchScene) {
                             <path d="M 287 259 L 293 265 M 293 259 L 287 265" stroke="#fff" stroke-width="2" />
                         </g>
                     </g>
-
                     <g>
                         <line x1="200" y1="460" x2="200" y2="490" stroke-width="6" /> 
                         <path d="M 240 350 Q 200 380 160 350" fill="none" stroke-width="5" />
@@ -331,6 +324,39 @@ export function initScene2(playerState, switchScene) {
                         </g>
                     </g>
                 </svg>
+
+                <div id="chest-3-container" class="env-prop" style="left: 430%; top: 50%; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 0.5s; width: 240px; height: 240px; overflow: visible;">
+                    
+                    <svg id="chest-inputs" viewBox="-120 -120 240 240" style="position:absolute; width:100%; height:100%; left:0; top:0; z-index:1; overflow:visible;">
+                        <line id="in1" x1="-15" y1="-30" x2="-15" y2="-50" stroke="#fff" stroke-width="4" stroke-linecap="round" style="transition: all 0.4s ease-in-out;" />
+                        <line id="in2" x1="0" y1="-30" x2="0" y2="-50" stroke="#fff" stroke-width="4" stroke-linecap="round" style="transition: opacity 0s;" />
+                        <line id="in3" x1="15" y1="-30" x2="15" y2="-50" stroke="#fff" stroke-width="4" stroke-linecap="round" style="transition: all 0.4s ease-in-out;" />
+                    </svg>
+
+                    <svg id="and-hammer-drawn" viewBox="-120 -120 240 240" style="position:absolute; width:100%; height:100%; left:0; top:0; opacity:0; z-index:3; transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0s; overflow:visible;">
+                        <path d="M -20 -65 L 20 -65 A 20 30 0 0 1 -20 -65 Z" fill="#000" stroke="#fff" stroke-width="4" style="filter: drop-shadow(0 0 8px #fff);"/>
+                        <line x1="0" y1="-35" x2="0" y2="5" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+
+                    <svg id="hammer-motion" viewBox="-120 -120 240 240" style="position:absolute; width:100%; height:100%; left:0; top:0; opacity:0; z-index:1; pointer-events:none; overflow:visible; transition: opacity 0.3s;">
+                        <path d="M 20 -40 Q 55 -55 75 -20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #fff);"/>
+                        <path d="M 25 -25 Q 60 -40 80 -5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #fff);"/>
+                        <path d="M 30 -10 Q 65 -25 85 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #fff);"/>
+                    </svg>
+
+                    <svg id="and-chest-3" viewBox="-120 -120 240 240" style="width: 100%; height: 100%; position: absolute; left:0; top:0; z-index: 3; overflow:visible;">
+                        <path id="chest-3-body" d="M -30 -30 L 30 -30 C 30 -10, 30 30, 0 30 C -30 30, -30 -10, -30 -30 Z" fill="#000" stroke="#fff" stroke-width="4" stroke-linejoin="round" style="transition: d 0.4s ease-in-out, filter 0.4s;" />
+                    </svg>
+                </div>
+
+                <div id="chest-e-prompt-3" style="position: absolute; left: calc(430% - 15px); top: calc(50% - 80px); width: 30px; height: 30px; background: rgba(0, 242, 254, 0.15); border: 2px solid var(--brand-blue); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; z-index: 20; box-shadow: 0 0 10px var(--brand-blue); animation: floatPrompt 1.5s infinite ease-in-out; pointer-events: none;">E</div>
+
+                <div id="hammer-e-prompt" style="position: absolute; left: calc(430% - 15px); top: calc(50% - 110px); width: 30px; height: 30px; background: rgba(0, 242, 254, 0.15); border: 2px solid var(--brand-blue); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; z-index: 20; box-shadow: 0 0 10px var(--brand-blue); animation: floatPrompt 1.5s infinite ease-in-out; pointer-events: none;">E</div>
+
+                <div id="falling-book-s2" style="position: absolute; left: 430%; top: 50%; width: 45px; height: 60px; background-color: #094b8e; border: 2px solid #fff; border-left: 8px solid #042a53; border-radius: 2px 6px 6px 2px; box-shadow: inset -4px 0 0 #ddd, 0 0 15px rgba(0, 242, 254, 0.5); display: flex; justify-content: center; align-items: center; opacity: 0; z-index: 4; transform: translate(-50%, -50%) scale(0.1); pointer-events: none;">
+                    <span style="color: #fff; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900; transform: rotate(-90deg); letter-spacing: 2px;">C++</span>
+                </div>
+                <div id="book-e-prompt-s2" style="position: absolute; left: calc(430% + 65px); top: calc(50% + 15px); width: 30px; height: 30px; background: rgba(0, 242, 254, 0.15); border: 2px solid var(--brand-blue); border-radius: 6px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 14px; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; z-index: 20; box-shadow: 0 0 10px var(--brand-blue); animation: floatPrompt 1.5s infinite ease-in-out; pointer-events: none;">E</div>
 
             </div>
 
@@ -352,13 +378,19 @@ export function initScene2(playerState, switchScene) {
             </div>
 
             <div id="stickman-s2" class="stand-still" style="position: absolute; top: 50%; left: 20%; transform: translate(-50%, -50%); width: 80px; height: 120px; transition: none; z-index: 5;">
-                <svg id="stickman-body-s2" viewBox="0 0 80 120" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <svg id="stickman-body-s2" viewBox="0 0 80 120" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" style="overflow: visible;">
                     <circle cx="40" cy="32" r="16" />
                     <line x1="40" y1="48" x2="40" y2="75" />
+                    
                     <g id="armL-s2">
                         <line x1="40" y1="56" x2="40" y2="85" />
                         <text id="held-1-s2" x="10" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" opacity="0">1</text>
+                        <g id="held-hammer-s2">
+                            <line x1="40" y1="85" x2="40" y2="20" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M 5 -10 L 75 -10 A 35 50 0 0 1 5 -10 Z" fill="#000" stroke="#fff" stroke-width="8" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));"/>
+                        </g>
                     </g>
+                    
                     <g id="armR-s2">
                         <line x1="40" y1="56" x2="40" y2="85" />
                         <text id="held-0-s2" x="70" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" opacity="0">0</text>
@@ -370,7 +402,6 @@ export function initScene2(playerState, switchScene) {
 
             <div id="loot-panel">
                 <div style="font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);">CHEST OPENED</div>
-                
                 <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; justify-content: center;">
                     <div style="display: flex; gap: 50px; font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900;">
                         <div style="color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); display: flex; align-items: center; gap: 15px;">
@@ -385,86 +416,153 @@ export function initScene2(playerState, switchScene) {
                 </div>
             </div>
 
-            <div id="manual-modal-s2" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 80vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 100; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
+            <div id="hammer-loot-modal" style="position: absolute; top: 40%; left: 50%; filter: blur(15px) brightness(2); transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); opacity: 0; pointer-events: none; background: rgba(10, 10, 15, 0.9); border: 2px solid var(--brand-blue); border-radius: 12px; padding: 40px 80px; text-align: center; backdrop-filter: blur(15px); z-index: 500; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <div style="font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--brand-blue); letter-spacing: 5px; margin-bottom: 10px;">NEW WEAPON ACQUIRED</div>
+                <div style="font-family: 'Orbitron', sans-serif; font-size: 3.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8); margin-bottom: 5px;">AND Hammer</div>
+                <div style="font-family: 'Kumbh Sans', sans-serif; font-size: 1.8rem; font-weight: bold; color: #fff; margin-bottom: 20px;">AND 槌</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 1rem; letter-spacing: 2px; border-top: 1px solid rgba(0,242,254,0.3); padding-top: 20px;">
+                    [ 系統分析 ]：具備邏輯改寫能力的重型裝備。<br>可用於粉碎錯誤的邏輯屏障。
+                </div>
+            </div>
+
+            <div id="manual-modal-s2" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 85vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 100; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
+                
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 1px solid rgba(0, 242, 254, 0.2);">
                     <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 3px;">CHARACTER_MANUAL.exe</div>
                     <button id="close-manual-s2" style="background: transparent; border: none; outline: none; padding: 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#fff'; this.style.textShadow='0 0 10px #fff'" onmouseout="this.style.color='#fff'; this.style.textShadow='none'">✖</button>
                 </div>
-                <div id="manual-content-s2" style="flex: 1; padding: 30px; overflow-y: auto; overscroll-behavior: contain;">
-                    <div class="manual-layout">
-                        <div class="manual-panel">
-                            <div class="panel-title">MOVEMENT</div>
-                            <div style="position: relative; width: 160px; height: 160px; margin: 20px 0;">
-                                <svg class="svg-glow" viewBox="0 0 160 160" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="80" cy="40" r="14" />
-                                    <line x1="80" y1="54" x2="80" y2="95" />
-                                    <line x1="80" y1="65" x2="55" y2="85" />
-                                    <line x1="80" y1="65" x2="105" y2="85" />
-                                    <line x1="80" y1="95" x2="60" y2="130" />
-                                    <line x1="80" y1="95" x2="100" y2="130" />
-                                    <line x1="80" y1="20" x2="80" y2="4" />
-                                    <polyline points="72,12 80,4 88,12" />
-                                    <line x1="80" y1="140" x2="80" y2="156" />
-                                    <polyline points="72,148 80,156 88,148" />
-                                    <line x1="25" y1="80" x2="5" y2="80" />
-                                    <polyline points="15,70 5,80 15,90" />
-                                    <line x1="135" y1="80" x2="155" y2="80" />
-                                    <polyline points="145,70 155,80 145,90" />
-                                </svg>
+                
+                <div id="manual-content-s2" style="flex: 1; padding: 30px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column;">
+                    
+                    <div id="manual-page-1" class="manual-page active-page">
+                        <div class="manual-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <div class="manual-panel">
+                                <div class="panel-title">MOVEMENT</div>
+                                <div style="position: relative; width: 160px; height: 160px; margin: 20px 0;">
+                                    <svg class="svg-glow" viewBox="0 0 160 160" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="80" cy="40" r="14" />
+                                        <line x1="80" y1="54" x2="80" y2="95" />
+                                        <line x1="80" y1="65" x2="55" y2="85" />
+                                        <line x1="80" y1="65" x2="105" y2="85" />
+                                        <line x1="80" y1="95" x2="60" y2="130" />
+                                        <line x1="80" y1="95" x2="100" y2="130" />
+                                        <line x1="80" y1="20" x2="80" y2="4" />
+                                        <polyline points="72,12 80,4 88,12" />
+                                        <line x1="80" y1="140" x2="80" y2="156" />
+                                        <polyline points="72,148 80,156 88,148" />
+                                        <line x1="25" y1="80" x2="5" y2="80" />
+                                        <polyline points="15,70 5,80 15,90" />
+                                        <line x1="135" y1="80" x2="155" y2="80" />
+                                        <polyline points="145,70 155,80 145,90" />
+                                    </svg>
+                                </div>
+                                <div class="key-group-wasd">
+                                    <div class="key-row"><div class="key-btn">W</div></div>
+                                    <div class="key-row"><div class="key-btn">A</div><div class="key-btn">S</div><div class="key-btn">D</div></div>
+                                </div>
                             </div>
-                            <div class="key-group-wasd">
-                                <div class="key-row"><div class="key-btn">W</div></div>
-                                <div class="key-row"><div class="key-btn">A</div><div class="key-btn">S</div><div class="key-btn">D</div></div>
+                            <div class="manual-panel" style="justify-content: flex-start;">
+                                <div class="action-block">
+                                    <div class="action-header">
+                                        <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">E</div>
+                                        <div class="action-text">Pick up</div>
+                                    </div>
+                                    <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
+                                        <circle cx="50" cy="30" r="12" />
+                                        <line x1="50" y1="42" x2="50" y2="70" />
+                                        <line x1="50" y1="50" x2="35" y2="80" /> 
+                                        <line x1="50" y1="50" x2="80" y2="60" /> 
+                                        <line x1="50" y1="70" x2="35" y2="95" /> 
+                                        <line x1="50" y1="70" x2="65" y2="95" /> 
+                                        <circle cx="85" cy="55" r="8" stroke="var(--brand-blue)" />
+                                        <circle cx="130" cy="85" r="10" stroke="#888" stroke-dasharray="4 4" />
+                                        <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="3 3" />
+                                        <polyline points="102,52 95,58 102,64" stroke="#888" stroke-width="2" fill="none" />
+                                    </svg>
+                                </div>
+                                <div class="action-block" style="border-bottom: none;">
+                                    <div class="action-header">
+                                        <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">Q</div>
+                                        <div class="action-text">USE</div>
+                                    </div>
+                                    <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
+                                        <circle cx="40" cy="40" r="10" />
+                                        <line x1="40" y1="50" x2="40" y2="75" />
+                                        <line x1="40" y1="55" x2="25" y2="80" />
+                                        <line x1="40" y1="55" x2="60" y2="60" /> 
+                                        <line x1="40" y1="75" x2="25" y2="95" />
+                                        <line x1="40" y1="75" x2="55" y2="95" />
+                                        <line x1="120" y1="45" x2="140" y2="45" stroke="#fff" /> 
+                                        <line x1="120" y1="65" x2="140" y2="65" stroke="#fff" /> 
+                                        <line x1="140" y1="35" x2="140" y2="75" />
+                                        <line x1="140" y1="35" x2="160" y2="35" />
+                                        <line x1="140" y1="75" x2="160" y2="75" />
+                                        <path d="M 160 35 A 20 20 0 0 1 160 75" />
+                                        <line x1="180" y1="55" x2="195" y2="55" stroke="#fff" />
+                                        <path d="M 65 60 Q 85 55 100 65" stroke="#888" stroke-width="2" stroke-dasharray="3 3" />
+                                        <polyline points="93,58 100,65 93,68" stroke="#888" stroke-width="2" />
+                                        <circle cx="110" cy="65" r="6" stroke="var(--brand-blue)" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
-                        <div class="manual-panel" style="justify-content: flex-start;">
-                            <div class="action-block">
-                                <div class="action-header">
-                                    <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">E</div>
-                                    <div class="action-text">Pick up</div>
+                    </div>
+
+                    <div id="manual-page-2" class="manual-page">
+                        <div class="manual-panel" style="width: 100%; flex: 1; justify-content: center;">
+                            <div class="action-block" style="border-bottom: none; width: 100%; margin-bottom: 0;">
+                                <div class="action-header" style="justify-content: flex-start; margin-bottom: 30px;">
+                                    <div class="key-btn" style="border-color: var(--brand-red); color: var(--brand-red); box-shadow: 0 4px 0 #5a001a, 0 0 10px rgba(255,8,68,0.4);">J</div>
+                                    <div class="action-text" style="font-size: 2rem;">Attack</div>
                                 </div>
-                                <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
-                                    <circle cx="50" cy="30" r="12" />
-                                    <line x1="50" y1="42" x2="50" y2="70" />
-                                    <line x1="50" y1="50" x2="35" y2="80" /> 
-                                    <line x1="50" y1="50" x2="80" y2="60" /> 
-                                    <line x1="50" y1="70" x2="35" y2="95" /> 
-                                    <line x1="50" y1="70" x2="65" y2="95" /> 
-                                    <circle cx="85" cy="55" r="8" stroke="var(--brand-blue)" />
-                                    <circle cx="130" cy="85" r="10" stroke="#888" stroke-dasharray="4 4" />
-                                    <path d="M 120 75 Q 110 58 95 58" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="3 3" />
-                                    <polyline points="102,52 95,58 102,64" stroke="#888" stroke-width="2" fill="none" />
-                                </svg>
-                            </div>
-                            <div class="action-block" style="border-bottom: none;">
-                                <div class="action-header">
-                                    <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">Q</div>
-                                    <div class="action-text">USE</div>
-                                </div>
-                                <svg class="svg-glow" viewBox="0 0 200 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 120px;">
-                                    <circle cx="40" cy="40" r="10" />
-                                    <line x1="40" y1="50" x2="40" y2="75" />
-                                    <line x1="40" y1="55" x2="25" y2="80" />
-                                    <line x1="40" y1="55" x2="60" y2="60" /> 
-                                    <line x1="40" y1="75" x2="25" y2="95" />
-                                    <line x1="40" y1="75" x2="55" y2="95" />
-                                    <line x1="120" y1="45" x2="140" y2="45" stroke="#fff" /> 
-                                    <line x1="120" y1="65" x2="140" y2="65" stroke="#fff" /> 
-                                    <line x1="140" y1="35" x2="140" y2="75" />
-                                    <line x1="140" y1="35" x2="160" y2="35" />
-                                    <line x1="140" y1="75" x2="160" y2="75" />
-                                    <path d="M 160 35 A 20 20 0 0 1 160 75" />
-                                    <line x1="180" y1="55" x2="195" y2="55" stroke="#fff" />
-                                    
-                                    <path d="M 65 60 Q 85 55 100 65" stroke="#888" stroke-width="2" stroke-dasharray="3 3" />
-                                    <polyline points="93,58 100,65 93,68" stroke="#888" stroke-width="2" />
-                                    <circle cx="110" cy="65" r="6" stroke="var(--brand-blue)" />
+                                <svg class="svg-glow" viewBox="0 0 450 180" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 220px; display: block; margin: 0 auto;">
+                                    <g stroke="#888" stroke-width="3" fill="none" stroke-dasharray="6 6">
+                                        <line x1="80" y1="95" x2="110" y2="40" stroke-width="4"/>
+                                        <path d="M 90 40 L 130 40 A 20 30 0 0 1 90 40 Z" />
+                                    </g>
+                                    <line x1="260" y1="60" x2="240" y2="45" stroke="#fff" stroke-width="3"/>
+                                    <line x1="270" y1="75" x2="245" y2="60" stroke="#fff" stroke-width="3"/>
+                                    <line x1="275" y1="95" x2="250" y2="85" stroke="#fff" stroke-width="3"/>
+                                    <circle cx="80" cy="50" r="16" stroke="#fff" stroke-width="4" fill="none"/>
+                                    <line x1="80" y1="66" x2="80" y2="115" stroke="#fff" stroke-width="4"/>
+                                    <line x1="80" y1="115" x2="55" y2="160" stroke="#fff" stroke-width="4"/>
+                                    <line x1="80" y1="115" x2="105" y2="160" stroke="#fff" stroke-width="4"/>
+                                    <line x1="80" y1="85" x2="55" y2="100" stroke="#fff" stroke-width="4"/>
+                                    <g stroke="#fff" stroke-width="4" fill="none">
+                                        <line x1="80" y1="85" x2="230" y2="100" stroke-width="5"/>
+                                        <path d="M 230 60 L 230 140 A 45 40 0 0 0 230 60 Z" fill="#000" stroke="#fff" stroke-width="4"/>
+                                    </g>
+                                    <g stroke="#fff" stroke-width="4" fill="#000">
+                                        <line x1="330" y1="50" x2="330" y2="20" />
+                                        <path d="M 270 140 L 270 90 A 60 70 0 0 1 390 90 L 390 140 Z" />
+                                        <g stroke-width="3" stroke="#fff" stroke-linecap="round">
+                                            <path d="M 295 80 L 310 95 M 310 80 L 295 95" />
+                                            <path d="M 330 80 L 345 95 M 345 80 L 330 95" />
+                                        </g>
+                                        <path d="M 280 140 Q 270 160 260 170" fill="none" stroke-width="4"/>
+                                        <path d="M 310 140 Q 305 160 300 175" fill="none" stroke-width="4"/>
+                                        <path d="M 350 140 Q 355 160 360 175" fill="none" stroke-width="4"/>
+                                        <path d="M 380 140 Q 390 160 400 170" fill="none" stroke-width="4"/>
+                                    </g>
                                 </svg>
                             </div>
                         </div>
                     </div>
+
                 </div>
+
+                <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; border-top: 1px dashed rgba(0, 242, 254, 0.3); background: rgba(0, 0, 0, 0.4); border-radius: 0 0 12px 12px;">
+                    <button id="prev-page-btn" class="page-btn disabled" title="Previous Page">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="15,18 9,12 15,6" fill="currentColor"/></svg>
+                    </button>
+                    <div id="page-indicator" style="font-family: 'Orbitron', sans-serif; color: var(--brand-blue); letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px rgba(0,242,254,0.5);">PAGE 1 / 2</div>
+                    <button id="next-page-btn" class="page-btn" title="Next Page">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,18 15,12 9,6" fill="currentColor"/></svg>
+                    </button>
+                </div>
+
             </div>
+
         </div>
     `;
 
@@ -473,6 +571,49 @@ export function initScene2(playerState, switchScene) {
     const manualModal = document.getElementById('manual-modal-s2');
     const closeManual = document.getElementById('close-manual-s2');
     
+    const manualContent = document.getElementById('manual-content-s2');
+    const page1 = document.getElementById('manual-page-1');
+    const page2 = document.getElementById('manual-page-2');
+    const btnPrev = document.getElementById('prev-page-btn');
+    const btnNext = document.getElementById('next-page-btn');
+    const pageIndicator = document.getElementById('page-indicator');
+    let currentManualPage = 1;
+
+    // 🌟 科技掃描特效翻頁邏輯
+    function updateManualPage(targetPage, useFlash = true) {
+        if (useFlash) {
+            manualContent.classList.remove('scan-transition');
+            void manualContent.offsetWidth; 
+            manualContent.classList.add('scan-transition');
+        }
+
+        setTimeout(() => {
+            currentManualPage = targetPage;
+            if (currentManualPage === 1) {
+                page1.classList.add('active-page');
+                page2.classList.remove('active-page');
+                btnPrev.classList.add('disabled');
+                btnNext.classList.remove('disabled');
+            } else {
+                page1.classList.remove('active-page');
+                page2.classList.add('active-page');
+                btnPrev.classList.remove('disabled');
+                btnNext.classList.add('disabled');
+            }
+            pageIndicator.innerText = `PAGE ${currentManualPage} / 2`;
+        }, useFlash ? 100 : 0); 
+    }
+
+    btnPrev.addEventListener('click', () => { if (currentManualPage > 1) updateManualPage(currentManualPage - 1); });
+    btnNext.addEventListener('click', () => { if (currentManualPage < 2) updateManualPage(currentManualPage + 1); });
+
+    function openManual() {
+        updateManualPage(1, false); 
+        manualModal.classList.add('manual-active');
+        isPlayerControllable = false; 
+        stickman.classList.add('stand-still');
+    }
+
     const marqueeSelector = document.getElementById('marquee-selector');
     const marqueeTitle = document.getElementById('marquee-title');
     const option1 = document.getElementById('option-1');
@@ -506,11 +647,7 @@ export function initScene2(playerState, switchScene) {
     if (oldBtn) {
         let manualBtn = oldBtn.cloneNode(true);
         oldBtn.parentNode.replaceChild(manualBtn, oldBtn);
-        manualBtn.addEventListener('click', () => {
-            manualModal.classList.add('manual-active');
-            isPlayerControllable = false; 
-            stickman.classList.add('stand-still');
-        });
+        manualBtn.addEventListener('click', openManual);
     }
     closeManual.addEventListener('click', () => {
         manualModal.classList.remove('manual-active');
@@ -536,6 +673,18 @@ export function initScene2(playerState, switchScene) {
     let isNearChest = false;
     let chestOpened = false;
     
+    let isNearChest3 = false;
+    let chest3Opened = false;
+    
+    let isNearHammer = false;
+    let hammerPickedUp = false;
+    let hammerReadyToPick = false; 
+
+    let bookReadyToPick = false;
+    let isNearBook = false;
+    let bookPickedUp = false;
+    const bookEPrompt = document.getElementById('book-e-prompt-s2');
+
     let marqueeCurrent = 0; 
     let marqueeInterval = null;
     let marqueeActive = false;
@@ -687,7 +836,6 @@ export function initScene2(playerState, switchScene) {
             let d = "";
             let startPoints = [];
 
-            // 動態計算每一幀的發射起點，確保攝影機移動時依然精準貼合武器尖端
             if (sourceWorldX === 280) {
                 const tip1 = document.getElementById('xor-tip-1');
                 const tip2 = document.getElementById('xor-tip-2');
@@ -695,7 +843,6 @@ export function initScene2(playerState, switchScene) {
                     const rect1 = tip1.getBoundingClientRect();
                     const rect2 = tip2.getBoundingClientRect();
                     const sceneRect = scene2.getBoundingClientRect();
-                    // 尖端大約在 bounding box 的中上方
                     startPoints.push({ x: rect1.left + rect1.width / 2 - sceneRect.left, y: rect1.top - sceneRect.top });
                     startPoints.push({ x: rect2.left + rect2.width / 2 - sceneRect.left, y: rect2.top - sceneRect.top });
                 }
@@ -705,7 +852,6 @@ export function initScene2(playerState, switchScene) {
                 startPoints.push({ x: ((sourceWorldX - cameraX) * cw) / 100 - 70, y: (50 * ch) / 100 + 10 });
             }
 
-            // 遍歷所有起點，將多條閃電路徑合併繪製
             startPoints.forEach(sp => {
                 let sx = sp.x;
                 let sy = sp.y;
@@ -741,7 +887,6 @@ export function initScene2(playerState, switchScene) {
         const bossAndBody = document.getElementById('boss-and-body');
         const finalBossSVG = document.getElementById('final-boss');
 
-        // 對應圖中 1, 2, 3, 4 的上下膨脹幅度
         const bulges = [25, 55, 95, 140]; 
 
         for (let i = 0; i < 5; i++) {
@@ -766,7 +911,6 @@ export function initScene2(playerState, switchScene) {
                     setTimeout(() => ball.remove(), 200);
 
                     if (i < 4) {
-                        // 🚀 第 1~4 顆：維持圓滑的上下膨脹
                         let b = bulges[i];
                         let pathData = `M 60 50 C 80 50, 100 ${50 - b}, 120 ${50 - b} C 150 ${50 - b}, 170 ${75 - b*0.3}, 170 100 C 170 ${125 + b*0.3}, 150 ${150 + b}, 120 ${150 + b} C 100 ${150 + b}, 80 150, 60 150 Z`;
                         bossAndBody.setAttribute('d', pathData);
@@ -780,35 +924,27 @@ export function initScene2(playerState, switchScene) {
                             bossWeaponAnd.style.filter = 'none';
                         }, 150);
                     } else {
-                        // 💥 第 5 顆：極巨化鋸齒爆炸！
-                        // 將您的鋸齒圖標座標極度放大，完全吞噬右半邊的敵人
                         let megaJaggedPath = `M 60 50 L 150 -150 L 500 -400 L 250 -50 L 800 -100 L 350 50 L 1000 100 L 350 150 L 800 300 L 250 250 L 500 600 L 150 350 L 60 150 Z`;
                         
-                        // 瞬間隱藏敵人的其他身體部位 (眼睛、管線等)，避免穿幫
                         Array.from(finalBossSVG.children).forEach((child, index) => {
                             if (index > 0) child.style.display = 'none';
                         });
 
-                        // 瞬間變形為超級巨大的鋸齒
                         bossAndBody.style.transition = 'd 0.05s ease-out, fill 0.05s ease-out';
                         bossAndBody.setAttribute('d', megaJaggedPath);
-                        bossAndBody.setAttribute('fill', '#fff'); // 瞬間純白閃光
-                        
-                        // 加上極度強烈的白光，模擬刺眼的爆炸感
+                        bossAndBody.setAttribute('fill', '#fff'); 
                         bossWeaponAnd.style.filter = 'drop-shadow(0 0 150px #fff) drop-shadow(0 0 80px #fff) brightness(5)';
                         
-                        // 劇烈的爆破畫面震動
                         let bigShake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`; }, 40);
                         
-                        // 震動結束後，沒有任何動畫，直接乾淨俐落地消失！
                         setTimeout(() => {
                             clearInterval(bigShake);
                             scene2.style.transform = 'none';
-                            
-                            // 💥 瞬間蒸發
                             finalBossSVG.remove();
                             
-                            // 恢復主角控制
+                            const chest3Container = document.getElementById('chest-3-container');
+                            chest3Container.style.opacity = '1';
+                            
                             isPlayerControllable = true;
                             activePuzzle = 5; 
                         }, 800);
@@ -858,10 +994,8 @@ export function initScene2(playerState, switchScene) {
 
     function fireMegaBlueLaser(sourceWorldX) {
         const cw = scene2.clientWidth; const ch = scene2.clientHeight;
-        const sx = ((sourceWorldX - cameraX) * cw) / 100 - 120; // 發射起點 (王的武器前)
+        const sx = ((sourceWorldX - cameraX) * cw) / 100 - 120; 
         const sy = (50 * ch) / 100;
-        
-        // 🚀 貫穿到極遠處：X 座標直接射向螢幕最左側的外面 (-cw)
         const ex = -cw; 
         const ey = (50 * ch) / 100;
 
@@ -870,19 +1004,16 @@ export function initScene2(playerState, switchScene) {
         
         const pathData = `M ${sx},${sy} L ${ex},${ey}`;
         
-        // 顯示外層青藍色大光束
         megaLaser.setAttribute('d', pathData);
         megaLaser.style.opacity = 1;
         megaLaser.style.transition = 'none';
         
-        // 顯示內層純白核心
         if (megaLaserCore) {
             megaLaserCore.setAttribute('d', pathData);
             megaLaserCore.style.opacity = 1;
             megaLaserCore.style.transition = 'none';
         }
 
-        // 🚀 強烈畫面震動效果 (震幅加大到 25px，呈現壓倒性威力)
         let shake = setInterval(() => {
             scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`;
         }, 40);
@@ -890,7 +1021,6 @@ export function initScene2(playerState, switchScene) {
         setTimeout(() => { 
             clearInterval(shake);
             scene2.style.transform = 'none';
-            // 光束消散動畫
             megaLaser.style.transition = 'opacity 0.6s ease-out'; 
             megaLaser.style.opacity = 0; 
             if (megaLaserCore) {
@@ -901,27 +1031,19 @@ export function initScene2(playerState, switchScene) {
     }
 
     function triggerCircuitDestruction(returnToScene1 = false) {
-        // 主角不倒下，只鎖定控制
         isPlayerControllable = false; stickman.classList.add('stand-still');
-        
         fireMegaBlueLaser(430);
-        
         setTimeout(() => {
-            // 電路燒毀變黑
             document.getElementById('circuit-3').classList.add('circuit-broken');
-            
-            // 🚀 讓所有已經輸入的 0 與 1 也一起被波及燒毀！
             for(let i=1; i<=5; i++){
                 let disp = document.getElementById(`input-d${i}-display`);
                 if(disp && disp.innerText !== "") {
-                    disp.style.transition = 'none'; // 移除預設的淡出動畫，確保被強烈破壞
+                    disp.style.transition = 'none'; 
                     disp.classList.add('text-broken'); 
                 }
             }
-            
-            // 延遲後重啟關卡
             setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-        }, 150); // 光束擊中延遲
+        }, 150); 
     }
 
     function evaluatePuzzle1() {
@@ -989,6 +1111,15 @@ export function initScene2(playerState, switchScene) {
 
         if (key === 'q' && marqueeActive) selectCurrentOption();
 
+        if (key === 'j' && hammerPickedUp && isPlayerControllable) {
+            stickman.classList.add('anim-attack');
+            setTimeout(() => stickman.classList.remove('anim-attack'), 300);
+            scene2.style.transform = 'translate(5px, 5px)';
+            setTimeout(() => scene2.style.transform = 'translate(-5px, -5px)', 50);
+            setTimeout(() => scene2.style.transform = 'translate(5px, -5px)', 100);
+            setTimeout(() => scene2.style.transform = 'none', 150);
+        }
+
         if (key === 'e') {
             if (activePuzzle === 3 && isNearChest && !chestOpened) {
                 chestOpened = true; isPlayerControllable = false; stickman.classList.add('stand-still');
@@ -999,7 +1130,6 @@ export function initScene2(playerState, switchScene) {
                 setTimeout(() => {
                     chest.classList.remove('chest-opening'); chest.style.filter = 'drop-shadow(0 0 15px #fff)'; chest.style.stroke = '#fff';
                     
-                    // 🚀 觸發新版寶箱動畫
                     const lootPanel = document.getElementById('loot-panel');
                     lootPanel.classList.add('loot-show');
                     
@@ -1007,12 +1137,132 @@ export function initScene2(playerState, switchScene) {
                     document.getElementById('held-1-s2').style.opacity = '1'; document.getElementById('held-0-s2').style.opacity = '1';
 
                     setTimeout(() => {
-                        // 🚀 關閉寶箱動畫
                         lootPanel.classList.remove('loot-show');
                         isPlayerControllable = true; activePuzzle = 4; marqueeTitle.innerText = 'NOT INPUT'; 
                     }, 3000);
                 }, 800);
             } 
+
+            if (activePuzzle === 5 && isNearChest3 && !chest3Opened) {
+                chest3Opened = true; 
+                isPlayerControllable = false; 
+                stickman.classList.add('stand-still');
+                document.getElementById('chest-e-prompt-3').style.opacity = '0';
+                
+                const chest3Body = document.getElementById('chest-3-body');
+                const andHammer = document.getElementById('and-hammer-drawn');
+                const motionLines = document.getElementById('hammer-motion');
+                const book = document.getElementById('falling-book-s2');
+                const in1 = document.getElementById('in1');
+                const in2 = document.getElementById('in2');
+                const in3 = document.getElementById('in3');
+                
+                chest3Body.style.filter = 'drop-shadow(0 0 15px #fff)';
+
+                setTimeout(() => {
+                    chest3Body.setAttribute('d', 'M -30 -30 L 30 -30 C 30 -10, 55 55, 0 55 C -55 55, -30 -10, -30 -30 Z');
+                    chest3Body.style.filter = 'drop-shadow(0 0 25px #0ff)';
+                    chest3Body.style.stroke = '#0ff';
+                }, 100);
+
+                setTimeout(() => {
+                    chest3Body.setAttribute('d', 'M -30 -30 L 30 -30 C 75 -15, 75 35, 0 35 C -75 35, -75 -15, -30 -30 Z');
+                }, 500);
+
+                setTimeout(() => {
+                    chest3Body.setAttribute('d', 'M -30 -30 L 30 -30 C -10 -5, 60 40, 0 45 C -60 40, 10 -5, -30 -30 Z');
+                }, 900);
+
+                setTimeout(() => {
+                    chest3Body.setAttribute('d', 'M -35 -10 L 35 -10 C 35 30, 20 50, 0 50 C -20 50, -35 30, -35 -10 Z');
+                    chest3Body.style.filter = 'drop-shadow(0 0 15px rgba(255,255,255,0.8))';
+                    chest3Body.style.stroke = '#fff';
+
+                    in1.style.transformOrigin = '-15px -30px';
+                    in1.style.transform = 'translate(-20px, 20px) rotate(-45deg)';
+                    in3.style.transformOrigin = '15px -30px';
+                    in3.style.transform = 'translate(20px, 20px) rotate(45deg)';
+
+                    in2.style.opacity = '0';
+                    andHammer.style.opacity = '1';
+                    andHammer.style.transform = 'translateY(-25px)'; 
+
+                    motionLines.style.opacity = '1';
+
+                    book.style.transition = 'top 0.4s cubic-bezier(0.1, 0.8, 0.3, 1), left 0.4s linear, transform 0.4s linear, opacity 0.1s';
+                    book.style.opacity = '1';
+                    book.style.top = 'calc(50% - 20px)';
+                    book.style.left = 'calc(430% + 60px)';
+                    book.style.transform = 'translate(-50%, -50%) rotate(360deg) scale(1)';
+
+                    setTimeout(() => {
+                        motionLines.style.opacity = '0'; 
+                        andHammer.classList.add('hammer-breath');
+
+                        book.style.transition = 'top 0.3s cubic-bezier(0.5, 0, 0.8, 0.5), left 0.3s linear, transform 0.3s linear';
+                        book.style.top = 'calc(50% + 50px)';
+                        book.style.left = 'calc(430% + 80px)';
+                        book.style.transform = 'translate(-50%, -50%) rotate(375deg) scale(1)';
+                        
+                        setTimeout(() => {
+                            isPlayerControllable = true;
+                            hammerReadyToPick = true; 
+                            bookReadyToPick = true; 
+                        }, 400);
+                    }, 400);
+
+                }, 1300);
+            }
+
+            if (activePuzzle === 5 && isNearHammer && !hammerPickedUp && hammerReadyToPick) {
+                hammerPickedUp = true;
+                isNearHammer = false;
+                isPlayerControllable = false; 
+                stickman.classList.add('stand-still');
+                
+                document.getElementById('hammer-e-prompt').style.opacity = '0';
+                
+                const andHammer = document.getElementById('and-hammer-drawn');
+                andHammer.style.transition = 'all 0.5s cubic-bezier(0.55, 0.055, 0.675, 0.19)';
+                andHammer.style.transform = 'translateY(-150px) scale(0)';
+                andHammer.style.opacity = '0';
+
+                const modal = document.getElementById('hammer-loot-modal');
+                modal.style.filter = 'blur(0px) brightness(1)';
+                modal.style.transform = 'translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg)';
+                modal.style.opacity = '1';
+
+                setTimeout(() => {
+                    modal.style.opacity = '0';
+                    modal.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                    
+                    setTimeout(() => {
+                        isPlayerControllable = true;
+                        
+                        const heldOne = document.getElementById('held-1-s2');
+                        if (heldOne) heldOne.style.opacity = '0';
+                        
+                        const heldHammer = document.getElementById('held-hammer-s2');
+                        heldHammer.style.opacity = '1';
+                        
+                    }, 500); 
+                }, 3500); 
+            }
+
+            if (activePuzzle === 5 && isNearBook && !bookPickedUp && bookReadyToPick) {
+                bookPickedUp = true;
+                isNearBook = false;
+                bookEPrompt.style.opacity = '0';
+                
+                const book = document.getElementById('falling-book-s2');
+                book.style.transition = 'transform 0.3s ease-in, opacity 0.3s ease-in';
+                book.style.transform = 'translate(-50%, -50%) rotate(375deg) scale(0)';
+                book.style.opacity = '0';
+
+                setTimeout(() => {
+                    openManual(); 
+                }, 400); 
+            }
         }
     }
     
@@ -1099,6 +1349,38 @@ export function initScene2(playerState, switchScene) {
                 gate3Triggered = true; stopMarquee(); marqueeSelector.classList.remove('active');
                 const hasEnoughAmmo = (ammoOnes + ammoZeros) >= (5 - inputValues3.length);
                 triggerCircuitDestruction(!hasEnoughAmmo);
+            }
+        }
+        else if (activePuzzle === 5) {
+            const distanceToChest3 = Math.abs(worldX - 430);
+            const ePrompt3 = document.getElementById('chest-e-prompt-3');
+            const hPrompt = document.getElementById('hammer-e-prompt');
+            
+            if (distanceToChest3 < 30 && !chest3Opened) { 
+                isNearChest3 = true; ePrompt3.style.opacity = '1'; 
+            } else { 
+                isNearChest3 = false; ePrompt3.style.opacity = '0'; 
+            }
+
+            if (chest3Opened && hammerReadyToPick && !hammerPickedUp) {
+                if (distanceToChest3 < 25) { 
+                    isNearHammer = true;
+                    hPrompt.style.opacity = '1';
+                } else {
+                    isNearHammer = false;
+                    hPrompt.style.opacity = '0';
+                }
+            }
+
+            if (chest3Opened && bookReadyToPick && !bookPickedUp) {
+                const distanceToBook = Math.abs(worldX - 438); 
+                if (distanceToBook < 20) { 
+                    isNearBook = true;
+                    bookEPrompt.style.opacity = '1';
+                } else { 
+                    isNearBook = false;
+                    bookEPrompt.style.opacity = '0';
+                }
             }
         }
 
