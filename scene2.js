@@ -180,6 +180,23 @@ export function initScene2(playerState, switchScene) {
             }
             .hammer-breath { animation: hammerBreath 2.5s infinite ease-in-out !important; }
 
+            @keyframes btnPulseShake {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.8); }
+                15% { transform: scale(1.15) rotate(-5deg); box-shadow: 0 0 20px 10px rgba(0, 242, 254, 0); }
+                30% { transform: scale(1.1) rotate(5deg); }
+                45% { transform: scale(1.15) rotate(-5deg); }
+                60% { transform: scale(1.1) rotate(5deg); }
+                75% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+                100% { transform: scale(1); }
+            }
+            
+            .manual-btn-notice {
+                animation: btnPulseShake 0.8s ease-in-out !important;
+                /* 🌟 已經移除了 border-color，不再出現白色框框 */
+                color: var(--brand-blue) !important;
+                text-shadow: 0 0 8px var(--brand-blue) !important;
+            }
+
         </style>
 
         <div style="width: 100%; height: 100%; background-color: #000; position: relative; overflow: hidden;">
@@ -446,7 +463,7 @@ export function initScene2(playerState, switchScene) {
                 </div>
             </div>
 
-            <div id="manual-modal-s2" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 85vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 100; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
+            <div id="manual-modal-s2" style="overscroll-behavior: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 85%; max-width: 900px; height: 85vh; background: rgba(10, 10, 15, 0.9); border: 1px solid var(--brand-blue); border-radius: 12px; box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8); z-index: 250; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px);">
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 1px solid rgba(0, 242, 254, 0.2);">
                     <div style="color: var(--brand-blue); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 3px;">CHARACTER_MANUAL.exe</div>
@@ -591,7 +608,7 @@ export function initScene2(playerState, switchScene) {
                     <button id="prev-page-btn" class="page-btn disabled" title="Previous Page">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="15,18 9,12 15,6" fill="currentColor"/></svg>
                     </button>
-                    <div id="page-indicator" style="font-family: 'Orbitron', sans-serif; color: var(--brand-blue); letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px rgba(0,242,254,0.5);">PAGE 1 / 2</div>
+                    <div id="page-indicator" style="font-family: 'Orbitron', sans-serif; color: var(--brand-blue); letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px rgba(0,242,254,0.5);">PAGE 1 / 1</div>
                     <button id="next-page-btn" class="page-btn" title="Next Page">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,18 15,12 9,6" fill="currentColor"/></svg>
                     </button>
@@ -631,8 +648,8 @@ export function initScene2(playerState, switchScene) {
                 page2.classList.remove('active-page');
                 btnPrev.classList.add('disabled');
                 
-                // 根據是否撿起第二本書，決定下一頁按鈕是否啟用
-                if (hasSecondManual) {
+                // 🌟 根據是否已撿起第二本書 (bookPickedUp)，決定下一頁按鈕是否啟用
+                if (bookPickedUp) {
                     btnNext.classList.remove('disabled');
                 } else {
                     btnNext.classList.add('disabled');
@@ -643,19 +660,31 @@ export function initScene2(playerState, switchScene) {
                 btnPrev.classList.remove('disabled');
                 btnNext.classList.add('disabled');
             }
-            pageIndicator.innerText = `PAGE ${currentManualPage} / 2`;
+            // 🌟 動態顯示總頁數：拿到書就顯示 /2，沒拿到就顯示 /1
+            pageIndicator.innerText = `PAGE ${currentManualPage} / ${bookPickedUp ? 2 : 1}`;
         }, useFlash ? 100 : 0); 
     }
 
     btnPrev.addEventListener('click', () => { if (currentManualPage > 1) updateManualPage(currentManualPage - 1); });
-    // 加上 hasSecondManual 防護，沒拿到書之前不能按
-    btnNext.addEventListener('click', () => { if (currentManualPage < 2 && hasSecondManual) updateManualPage(currentManualPage + 1); });
+    // 🌟 加上 bookPickedUp 防護，沒拿到書前，不管怎麼按都不會翻頁
+    btnNext.addEventListener('click', () => { if (currentManualPage < 2 && bookPickedUp) updateManualPage(currentManualPage + 1); });
 
     function openManual() {
         updateManualPage(1, false); 
         manualModal.classList.add('manual-active');
         isPlayerControllable = false; 
         stickman.classList.add('stand-still');
+        
+        // 🌟 1. 解除 gameScreen 圖層封印，並提升場景層級，讓說明書完美蓋過 Icon
+        const gameScreen = document.getElementById('gameScreen');
+        const sceneManager = document.getElementById('scene-manager');
+        const gameControls = document.querySelector('.game-controls');
+        
+        if (gameScreen) gameScreen.style.zIndex = 'auto';   // 解除父層的 stacking context
+        if (sceneManager) sceneManager.style.zIndex = '20'; // 提升場景層級 (高於按鈕的 10)
+        
+        // 🌟 2. 鎖定右下角的 Icon，使其在說明書開啟期間完全無法被點擊或 Hover
+        if (gameControls) gameControls.style.pointerEvents = 'none'; 
     }
 
     const marqueeSelector = document.getElementById('marquee-selector');
@@ -696,6 +725,32 @@ export function initScene2(playerState, switchScene) {
     closeManual.addEventListener('click', () => {
         manualModal.classList.remove('manual-active');
         isPlayerControllable = true;
+
+        // 🌟 3. 關閉說明書時，將所有的圖層設定與點擊權限恢復原狀
+        const gameScreen = document.getElementById('gameScreen');
+        const sceneManager = document.getElementById('scene-manager');
+        const gameControls = document.querySelector('.game-controls');
+
+        if (gameScreen) gameScreen.style.zIndex = '1';
+        if (sceneManager) sceneManager.style.zIndex = '2';
+        if (gameControls) gameControls.style.pointerEvents = 'auto';
+
+        // 檢查是否需要觸發閃爍動畫
+        if (needsManualNotice) {
+            needsManualNotice = false; // 重置狀態
+            const manualBtn = document.getElementById('inventory-manual-btn');
+            
+            if (manualBtn) {
+                manualBtn.classList.remove('manual-btn-notice');
+                void manualBtn.offsetWidth; // 重新觸發 DOM 渲染
+                manualBtn.classList.add('manual-btn-notice');
+                
+                // 動畫結束後乾淨俐落地移除
+                setTimeout(() => {
+                    manualBtn.classList.remove('manual-btn-notice');
+                }, 850); 
+            }
+        }
     });
 
     let isPlayerControllable = true; 
@@ -728,6 +783,7 @@ export function initScene2(playerState, switchScene) {
     let bookReadyToPick = false;
     let isNearBook = false;
     let bookPickedUp = false;
+    let needsManualNotice = false; // 🌟 新增：用來記錄關閉時是否要閃爍
     const bookEPrompt = document.getElementById('book-e-prompt-s2');
 
     let marqueeCurrent = 0; 
@@ -1156,17 +1212,16 @@ export function initScene2(playerState, switchScene) {
 
         if (key === 'q' && marqueeActive) selectCurrentOption();
 
-        if (key === 'j' && hammerPickedUp && isPlayerControllable) {
-            canAttack = false; // 🌟 進入冷卻狀態
+        // 🌟 新增 bookPickedUp 條件：沒撿起第二本書前，按 J 無效
+        if (key === 'j' && hammerPickedUp && bookPickedUp && isPlayerControllable && canAttack) {
+            canAttack = false;
 
             stickman.classList.add('anim-attack');
             
-            // 配合上面修改的動畫時間 (0.4秒)，動畫結束後移除 class
             setTimeout(() => {
                 stickman.classList.remove('anim-attack');
             }, 400);
             
-            // 🌟 設定 1 秒鐘的冷卻時間，時間到後才能再次揮動
             setTimeout(() => {
                 canAttack = true;
             }, 1000);
@@ -1302,7 +1357,7 @@ export function initScene2(playerState, switchScene) {
             }
             if (activePuzzle === 5 && isNearBook && !bookPickedUp && bookReadyToPick) {
                 bookPickedUp = true;
-                hasSecondManual = true; // 🌟 解鎖第二頁
+                needsManualNotice = true; // 🌟 告訴系統：等等關閉說明書時要閃爍！
                 isNearBook = false;
                 bookEPrompt.style.opacity = '0';
                 
@@ -1313,7 +1368,7 @@ export function initScene2(playerState, switchScene) {
 
                 setTimeout(() => {
                     openManual(); 
-                    updateManualPage(2, false); // 🌟 打開說明書後，自動切換到第二頁讓玩家看新招式！
+                    updateManualPage(2, false); // 🌟 打開說明書的同時，直接幫玩家翻到新獲得的第二頁！
                 }, 400); 
             }
         }
@@ -1349,12 +1404,14 @@ export function initScene2(playerState, switchScene) {
 
         if (activePuzzle === 1) {
             const distanceToGate1 = Math.abs(worldX - 80);
+            const distanceY = Math.abs(py - 50); // 🌟 新增 Y 軸距離判斷
             const monster1InView = (130 - cameraX) <= 100; 
             
-            if (distanceToGate1 < 25 && !gate1Triggered && monster1InView) {
+            // 🌟 加入 distanceY < 15，限制上下距離
+            if (distanceToGate1 < 25 && distanceY < 15 && !gate1Triggered && monster1InView) {
                 isNearGate = true; marqueeSelector.style.left = `calc(${80 - cameraX}% - 30px)`; marqueeSelector.style.top = 'calc(50% + 80px)';
                 if (!marqueeActive && inputValues1.length < 2) { marqueeSelector.classList.add('active'); startMarquee(); }
-            } else if (distanceToGate1 >= 25 || !monster1InView) {
+            } else if (distanceToGate1 >= 25 || distanceY >= 15 || !monster1InView) {
                 isNearGate = false; if (marqueeActive && inputValues1.length < 2) { marqueeSelector.classList.remove('active'); stopMarquee(); }
             }
             if (worldX > 100 && !gate1Triggered && inputValues1.length < 2) {
@@ -1364,12 +1421,13 @@ export function initScene2(playerState, switchScene) {
         } 
         else if (activePuzzle === 2) {
             const distanceToGate2 = Math.abs(worldX - 230);
+            const distanceY = Math.abs(py - 50); // 🌟 新增 Y 軸距離判斷
             const monster2InView = (280 - cameraX) <= 100; 
             
-            if (distanceToGate2 < 30 && !gate2Triggered && monster2InView) {
+            if (distanceToGate2 < 30 && distanceY < 15 && !gate2Triggered && monster2InView) {
                 isNearGate = true; marqueeSelector.style.left = `calc(${230 - cameraX}% - 30px)`; marqueeSelector.style.top = 'calc(50% + 100px)';
                 if (!marqueeActive && inputValues2.length < 4) { marqueeSelector.classList.add('active'); startMarquee(); }
-            } else if (distanceToGate2 >= 30 || !monster2InView) {
+            } else if (distanceToGate2 >= 30 || distanceY >= 15 || !monster2InView) {
                 isNearGate = false; if (marqueeActive && inputValues2.length < 4) { marqueeSelector.classList.remove('active'); stopMarquee(); }
             }
             if (worldX > 250 && !gate2Triggered && inputValues2.length < 4) {
@@ -1379,9 +1437,14 @@ export function initScene2(playerState, switchScene) {
         }
         else if (activePuzzle === 3) {
             const distanceToChest = Math.abs(worldX - 285);
+            const distanceY = Math.abs(py - 58); // 🌟 第一個寶箱的位置偏低 (58%)
             const ePrompt = document.getElementById('chest-e-prompt');
-            if (distanceToChest < 30 && !chestOpened) { isNearChest = true; ePrompt.style.opacity = '1'; } 
-            else { isNearChest = false; ePrompt.style.opacity = '0'; }
+            
+            if (distanceToChest < 30 && distanceY < 15 && !chestOpened) { 
+                isNearChest = true; ePrompt.style.opacity = '1'; 
+            } else { 
+                isNearChest = false; ePrompt.style.opacity = '0'; 
+            }
 
             if (worldX > 400 && !chestOpened) {
                 chestOpened = true; 
@@ -1390,12 +1453,14 @@ export function initScene2(playerState, switchScene) {
         }
         else if (activePuzzle === 4) {
             const distanceToGate3 = Math.abs(worldX - 380);
-            if (distanceToGate3 < 35 && !gate3Triggered) {
+            const distanceY = Math.abs(py - 50); // 🌟 新增 Y 軸距離判斷
+
+            if (distanceToGate3 < 35 && distanceY < 15 && !gate3Triggered) {
                 isNearGate = true; 
                 marqueeSelector.style.left = `calc(${380 - cameraX}% - 30px)`; 
                 marqueeSelector.style.top = 'calc(50% + 130px)'; 
                 if (!marqueeActive && inputValues3.length < 5) { marqueeSelector.classList.add('active'); startMarquee(); }
-            } else if (distanceToGate3 >= 35) {
+            } else if (distanceToGate3 >= 35 || distanceY >= 15) {
                 isNearGate = false; if (marqueeActive && inputValues3.length < 5) { marqueeSelector.classList.remove('active'); stopMarquee(); }
             }
             if (worldX > 400 && !gate3Triggered && inputValues3.length < 5) {
@@ -1406,18 +1471,18 @@ export function initScene2(playerState, switchScene) {
         }
         else if (activePuzzle === 5) {
             const distanceToChest3 = Math.abs(worldX - 430);
+            const distanceY = Math.abs(py - 50); // 🌟 新增 Y 軸距離判斷
             const ePrompt3 = document.getElementById('chest-e-prompt-3');
             const hPrompt = document.getElementById('hammer-e-prompt');
             
-            if (distanceToChest3 < 30 && !chest3Opened) { 
+            if (distanceToChest3 < 30 && distanceY < 15 && !chest3Opened) { 
                 isNearChest3 = true; ePrompt3.style.opacity = '1'; 
             } else { 
                 isNearChest3 = false; ePrompt3.style.opacity = '0'; 
             }
 
             if (chest3Opened && hammerReadyToPick && !hammerPickedUp) {
-                // 🌟 把 25 縮小為 10
-                if (distanceToChest3 < 10) { 
+                if (distanceToChest3 < 25 && distanceY < 15) { 
                     isNearHammer = true;
                     hPrompt.style.opacity = '1';
                 } else {
@@ -1428,8 +1493,8 @@ export function initScene2(playerState, switchScene) {
 
             if (chest3Opened && bookReadyToPick && !bookPickedUp) {
                 const distanceToBook = Math.abs(worldX - 438); 
-                // 🌟 把 20 縮小為 8
-                if (distanceToBook < 8) { 
+                // 🌟 書本的互動也要加上上下距離判定
+                if (distanceToBook < 20 && distanceY < 15) { 
                     isNearBook = true;
                     bookEPrompt.style.opacity = '1';
                 } else { 
