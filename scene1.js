@@ -227,6 +227,21 @@ export function initScene1(playerState, switchScene) {
     const closeManual = document.getElementById('close-manual');
     const envProps = document.querySelectorAll('.env-prop');
 
+    // 🌟 1. 載入互動音效 (請確認路徑與檔名一致)
+    const sfxGrass = new Audio('game_audio/game_grass.mp3');
+    const sfxStone = new Audio('game_audio/game_mushroomstone.mp3');
+    const sfxPickup = new Audio('game_audio/game_pickup_01.mp3');
+    const sfxOpenBook = new Audio('game_audio/game_openbook.mp3');
+
+    // 🌟 2. 專屬播放函式：支援音量拉桿與多重音效重疊
+    function playActionSfx(audioObj) {
+        const volSlider = document.getElementById('volumeSlider');
+        if (!volSlider || volSlider.value == 0) return; 
+        const sound = audioObj.cloneNode(); 
+        sound.volume = volSlider.value / 100;
+        sound.play().catch(e => console.log("SFX play prevented:", e));
+    }
+
     let manualBtn = document.getElementById('inventory-manual-btn');
     if (!manualBtn) {
         manualBtn = document.createElement('button');
@@ -244,6 +259,7 @@ export function initScene1(playerState, switchScene) {
     }
 
     manualBtn.addEventListener('click', () => {
+        playActionSfx(sfxOpenBook);
         manualModal.classList.add('manual-active');
         isPlayerControllable = false; 
         stickman.classList.add('stand-still');
@@ -346,11 +362,13 @@ export function initScene1(playerState, switchScene) {
                 book.style.opacity = '0';
 
                 setTimeout(() => {
+                    playActionSfx(sfxOpenBook); 
                     manualModal.classList.add('manual-active');
                 }, 400); 
-            } 
+            }
             else if (nearbyAmmo) {
                 const type = nearbyAmmo.dataset.type;
+                playActionSfx(sfxPickup);
                 nearbyAmmo.classList.add('picked'); 
                 nearbyAmmo.style.opacity = '0';
                 nearbyAmmo.style.transform = 'translate(-50%, -50%) scale(0)';
@@ -471,6 +489,14 @@ export function initScene1(playerState, switchScene) {
             if (distance < 8) {
                 if (prop.dataset.bumped !== 'true') {
                     prop.dataset.bumped = 'true';
+                    
+                    // 🌟 4. 判斷撞到的是草還是石頭，播放對應音效
+                    if (prop.classList.contains('env-grass')) {
+                        playActionSfx(sfxGrass);
+                    } else if (prop.classList.contains('env-stone')) {
+                        playActionSfx(sfxStone);
+                    }
+
                     prop.classList.remove('bump-anim');
                     void prop.offsetWidth; 
                     prop.classList.add('bump-anim');
