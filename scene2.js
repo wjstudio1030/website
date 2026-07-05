@@ -630,8 +630,76 @@ export function initScene2(playerState, switchScene) {
     const btnPrev = document.getElementById('prev-page-btn');
     const btnNext = document.getElementById('next-page-btn');
     const pageIndicator = document.getElementById('page-indicator');
+    // 🌟 載入音效與輔助函式
+    const sfxOpenBook = new Audio('game_audio/game_openbook.mp3');
+    const sfxPageTurn = new Audio('game_audio/game_pageturn.mp3');
+    const sfxPickupWeapon = new Audio('game_audio/game_pickup_weapon.mp3');
+    
+    // 🌟 射擊音效
+    const sfxShoot1and2 = new Audio('game_audio/game_shoot_enemy1and2.mp3');
+    
+    // ==============================================================
+    // 🌟 終極修復：使用 Web Audio API 處理高頻率連發的子彈音效
+    // ==============================================================
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let shoot3Buffer = null;
+
+    // 預先抓取音效檔案並解碼成 Buffer (純數據)
+    fetch('game_audio/game_shoot_enemy3.mp3')
+        .then(response => response.arrayBuffer())
+        .then(data => audioCtx.decodeAudioData(data))
+        .then(buffer => { shoot3Buffer = buffer; })
+        .catch(e => console.error("Audio decode error:", e));
+
+    // 專屬的高頻連發播放函式
+    function playShoot3Rapid(volume) {
+        if (!shoot3Buffer) return; // 如果還沒載入完就不播
+        
+        // 喚醒音效引擎 (突破瀏覽器的自動靜音限制)
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        // 每次播放都建立一個無負擔的數據發射源
+        const source = audioCtx.createBufferSource();
+        source.buffer = shoot3Buffer;
+
+        // 連接音量控制器
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = volume;
+
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        source.start(0); // 零延遲瞬間播放！
+    }
+    // ==============================================================
+    
+    // 🌟 邏輯怪的攻擊音效
+    const sfxAttack1 = new Audio('game_audio/game_attack_enemy1.mp3');
+    const sfxAttack2 = new Audio('game_audio/game_attack_enemy2.mp3');
+
+    // 🌟 新增：邏輯怪 3 專屬的三重爆炸音效
+    const sfxExplosion1 = new Audio('game_audio/game_enemy3_explosion1.mp3');
+    const sfxExplosion2 = new Audio('game_audio/game_enemy3_explosion2.mp3');
+    const sfxExplosion3 = new Audio('game_audio/game_enemy3_explosion3.mp3');
+
+    // 🌟 新增：寶箱相關音效
+    const sfxOpenChest = new Audio('game_audio/openchest.mp3'); // 第一個寶箱打開
+    const sfxChestPop = new Audio('game_audio/chestpop.mp3');   // AND Hammer 彈出
+
+    // 🌟 新增：輸入邏輯訊號 (0與1) 的音效
+    const sfxPut0 = new Audio('game_audio/put0.mp3');
+    const sfxPut1 = new Audio('game_audio/put1.mp3');
+
     let currentManualPage = 1;
-    let hasSecondManual = false; // 🌟 新增：記錄是否已經撿起第二本說明書
+    let hasSecondManual = false; 
+
+    // 🌟 保留一個乾淨的播放輔助函式即可
+    function playActionSfx(audioObj) {
+        const volSlider = document.getElementById('volumeSlider');
+        if (!volSlider || volSlider.value == 0) return; 
+        const sound = audioObj.cloneNode(); 
+        sound.volume = volSlider.value / 100;
+        sound.play().catch(e => console.log("SFX play prevented:", e));
+    }
 
     // 🌟 更新翻頁功能，加入 hasSecondManual 的判斷
     function updateManualPage(targetPage, useFlash = true) {
@@ -665,11 +733,22 @@ export function initScene2(playerState, switchScene) {
         }, useFlash ? 100 : 0); 
     }
 
-    btnPrev.addEventListener('click', () => { if (currentManualPage > 1) updateManualPage(currentManualPage - 1); });
-    // 🌟 加上 bookPickedUp 防護，沒拿到書前，不管怎麼按都不會翻頁
-    btnNext.addEventListener('click', () => { if (currentManualPage < 2 && bookPickedUp) updateManualPage(currentManualPage + 1); });
+    btnPrev.addEventListener('click', () => { 
+        if (currentManualPage > 1) {
+            playActionSfx(sfxPageTurn); // 🌟 播放翻頁音效
+            updateManualPage(currentManualPage - 1); 
+        }
+    });
+
+    btnNext.addEventListener('click', () => { 
+        if (currentManualPage < 2 && bookPickedUp) {
+            playActionSfx(sfxPageTurn); // 🌟 播放翻頁音效
+            updateManualPage(currentManualPage + 1); 
+        }
+    });
 
     function openManual() {
+        playActionSfx(sfxOpenBook);
         updateManualPage(1, false); 
         manualModal.classList.add('manual-active');
         isPlayerControllable = false; 
@@ -840,8 +919,16 @@ export function initScene2(playerState, switchScene) {
         if (!marqueeActive) return;
         
         let selectedValue;
-        if (marqueeCurrent === 0 && ammoOnes > 0) { selectedValue = 1; ammoOnes--; } 
-        else if (marqueeCurrent === 1 && ammoZeros > 0) { selectedValue = 0; ammoZeros--; } 
+        if (marqueeCurrent === 0 && ammoOnes > 0) { 
+            selectedValue = 1; 
+            ammoOnes--; 
+            playActionSfx(sfxPut1); // 🌟 播放放入 1 的音效
+        } 
+        else if (marqueeCurrent === 1 && ammoZeros > 0) { 
+            selectedValue = 0; 
+            ammoZeros--; 
+            playActionSfx(sfxPut0); // 🌟 播放放入 0 的音效
+        } 
         else { return; }
         
         stickman.classList.add('anim-insert');
@@ -992,6 +1079,13 @@ export function initScene2(playerState, switchScene) {
 
         for (let i = 0; i < 5; i++) {
             setTimeout(() => {
+                
+                // 🌟 直接呼叫 Web Audio API 播放器，無延遲、無限制連發！
+                const volSlider = document.getElementById('volumeSlider');
+                if (volSlider && volSlider.value > 0) {
+                    playShoot3Rapid(volSlider.value / 100);
+                }
+
                 const ball = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 ball.setAttribute('cx', sx);
                 ball.setAttribute('cy', sy);
@@ -1025,6 +1119,11 @@ export function initScene2(playerState, switchScene) {
                             bossWeaponAnd.style.filter = 'none';
                         }, 150);
                     } else {
+                        // 🌟 第 5 顆子彈擊中！瞬間同時觸發三重爆炸音效！
+                        playActionSfx(sfxExplosion1);
+                        playActionSfx(sfxExplosion2);
+                        playActionSfx(sfxExplosion3);
+
                         let megaJaggedPath = `M 60 50 L 150 -150 L 500 -400 L 250 -50 L 800 -100 L 350 50 L 1000 100 L 350 150 L 800 300 L 250 250 L 500 600 L 150 350 L 60 150 Z`;
                         
                         Array.from(finalBossSVG.children).forEach((child, index) => {
@@ -1077,12 +1176,14 @@ export function initScene2(playerState, switchScene) {
 
     function triggerBlueLaserDeath(returnToScene1 = false) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
+        playActionSfx(sfxAttack1);
         fireBlueLaser();
         setTimeout(() => { stickman.classList.add('player-dead'); setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500); }, 350); 
     }
 
     function triggerLightningDeath(returnToScene1 = false, sourceX = 280) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
+        playActionSfx(sfxAttack2);
         fireLightningAttack(sourceX);
         setTimeout(() => {
             stickman.classList.add('electrocuted'); 
@@ -1151,6 +1252,7 @@ export function initScene2(playerState, switchScene) {
         const result = (inputValues1[0] === 1 && inputValues1[1] === 1) ? 1 : 0;
         setTimeout(() => {
             if (result === 1) {
+                playActionSfx(sfxShoot1and2);
                 fireWhiteLaser(80, 130, 70);
                 setTimeout(() => {
                     document.getElementById('monster-eyes-alive').style.opacity = '0'; 
@@ -1169,6 +1271,7 @@ export function initScene2(playerState, switchScene) {
 
         setTimeout(() => {
             if (finalResult === 1) {
+                playActionSfx(sfxShoot1and2);
                 fireWhiteLaser(230, 280, 122);
                 setTimeout(() => {
                     const xorM = document.getElementById('xor-monster');
@@ -1231,6 +1334,10 @@ export function initScene2(playerState, switchScene) {
             if (activePuzzle === 3 && isNearChest && !chestOpened) {
                 chestOpened = true; isPlayerControllable = false; stickman.classList.add('stand-still');
                 document.getElementById('chest-e-prompt').style.opacity = '0';
+                
+                // 🌟 播放第一個寶箱打開音效
+                playActionSfx(sfxOpenChest);
+
                 const chest = document.getElementById('and-chest');
                 chest.classList.remove('chest-dropped'); chest.classList.add('chest-opening');
                 
@@ -1291,6 +1398,10 @@ export function initScene2(playerState, switchScene) {
                     in3.style.transform = 'translate(20px, 20px) rotate(45deg)';
 
                     in2.style.opacity = '0';
+                    
+                    // 🌟 在 AND Hammer 彈出的這瞬間播放音效！
+                    playActionSfx(sfxChestPop);
+                    
                     andHammer.style.opacity = '1';
                     andHammer.style.transform = 'translateY(-25px)'; 
 
@@ -1322,6 +1433,7 @@ export function initScene2(playerState, switchScene) {
             }
 
             if (activePuzzle === 5 && isNearHammer && !hammerPickedUp && hammerReadyToPick) {
+                playActionSfx(sfxPickupWeapon);
                 hammerPickedUp = true;
                 isNearHammer = false;
                 isPlayerControllable = false; 
@@ -1471,7 +1583,7 @@ export function initScene2(playerState, switchScene) {
         }
         else if (activePuzzle === 5) {
             const distanceToChest3 = Math.abs(worldX - 430);
-            const distanceY = Math.abs(py - 50); // 🌟 新增 Y 軸距離判斷
+            const distanceY = Math.abs(py - 50); 
             const ePrompt3 = document.getElementById('chest-e-prompt-3');
             const hPrompt = document.getElementById('hammer-e-prompt');
             
@@ -1493,7 +1605,6 @@ export function initScene2(playerState, switchScene) {
 
             if (chest3Opened && bookReadyToPick && !bookPickedUp) {
                 const distanceToBook = Math.abs(worldX - 438); 
-                // 🌟 書本的互動也要加上上下距離判定
                 if (distanceToBook < 20 && distanceY < 15) { 
                     isNearBook = true;
                     bookEPrompt.style.opacity = '1';
@@ -1501,6 +1612,22 @@ export function initScene2(playerState, switchScene) {
                     isNearBook = false;
                     bookEPrompt.style.opacity = '0';
                 }
+            }
+
+            // 🌟 觸發切換到 Scene 3 的過場邏輯
+            // 當玩家往右走超過 480 且已經拿到了書跟槌子（可以根據需求放寬條件）
+            if (worldX > 480) { 
+                isPlayerControllable = false;
+                stickman.classList.add('stand-still');
+                
+                // 🌟 把重要狀態存入 playerState，讓 scene3 可以無縫讀取
+                playerState.ammoOnes = ammoOnes;
+                playerState.ammoZeros = ammoZeros;
+                playerState.hasHammer = hammerPickedUp;
+                playerState.hasSecondManual = bookPickedUp;
+                
+                switchScene(2, 3);
+                return; // 停止 scene2 的迴圈
             }
         }
 
