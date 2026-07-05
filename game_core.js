@@ -6,13 +6,20 @@
 import { initScene1 } from './scene1.js';
 // 🌟 匯入 Scene 2
 import { initScene2 } from './scene2.js';
+// 🌟 匯入 Scene 3 (你接下來要建立的檔案)
+import { initScene3 } from './scene3.js';
 
 // 🚀 全局玩家資料庫
 export const playerState = {
     playerName: "WJ_GUEST",
     inventory: [],      // 獲得的道具
     score: 0,           // 總積分
-    currentLevel: 0     // 目前場景編號
+    currentLevel: 0,    // 目前場景編號
+    // 🌟 預先加入這些屬性，用來把 scene2 的狀態帶進 scene3
+    ammoOnes: 0,
+    ammoZeros: 0,
+    hasHammer: false,
+    hasSecondManual: false
 };
 
 // 🚀 場景切換引擎 (Scene Switcher)
@@ -32,12 +39,9 @@ export function switchScene(fromId, toId) {
         playerState.currentLevel = toId;
 
         // 初始化對應場景
-        if (toId === 1) {
-            initScene1(playerState, switchScene);
-        }
-        if (toId === 2) {
-            initScene2(playerState, switchScene);
-        }
+        if (toId === 1) initScene1(playerState, switchScene);
+        if (toId === 2) initScene2(playerState, switchScene);
+        if (toId === 3) initScene3(playerState, switchScene); // 🌟 初始化 Scene 3
     }, 500);
 }
 
@@ -142,6 +146,25 @@ startGameBtn.addEventListener('click', () => {
 });
 
 function playGameIntro() {
+    // 🌟 載入你的專屬音效 (路徑已更新)
+    const sfxTyping = new Audio('game_audio/typing.mp3');  // 1. 打字音效
+    const sfxBinary = new Audio('game_audio/binary.mp3');  // 2. 01 跑動音效
+    const sfxGlitch = new Audio('game_audio/glitchA.mp3'); // 3. 顯示標題音效 A
+    const sfxImpact = new Audio('game_audio/glitchB.mp3'); // 4. 新增的標題音效 B
+
+    function playSound(audioObj, loop = false) {
+        if (isMuted) return; 
+        audioObj.volume = (volumeSlider.value / 100); 
+        audioObj.loop = loop;
+        audioObj.currentTime = 0;
+        audioObj.play().catch(e => console.log("Audio play prevented:", e));
+    }
+
+    function stopSound(audioObj) {
+        audioObj.pause();
+        audioObj.currentTime = 0;
+    }
+
     const scene0 = document.getElementById('scene-0');
     const terminal = document.createElement('div');
     terminal.className = 'boot-terminal';
@@ -157,6 +180,9 @@ function playGameIntro() {
     ];
 
     let lineIndex = 0; let charIndex = 0;
+    
+    playSound(sfxTyping, true);
+
     function typeBootSequence() {
         if (lineIndex < bootSequence.length) {
             let htmlContent = "";
@@ -167,11 +193,16 @@ function playGameIntro() {
 
             if (charIndex < currentObj.text.length) setTimeout(typeBootSequence, Math.random() > 0.75 ? 0 : Math.random() * 20 + 10);
             else { lineIndex++; charIndex = 0; setTimeout(typeBootSequence, 150); }
-        } else setTimeout(() => { terminal.style.display = 'none'; startBinaryRain(); }, 500);
+        } else { 
+            stopSound(sfxTyping);
+            setTimeout(() => { terminal.style.display = 'none'; startBinaryRain(); }, 500); 
+        }
     }
     typeBootSequence();
 
     function startBinaryRain() {
+        playSound(sfxBinary);
+
         let rainInterval = setInterval(() => {
             for(let i=0; i<3; i++) {
                 let binary = document.createElement('div');
@@ -189,6 +220,13 @@ function playGameIntro() {
         gameScreen.style.backgroundColor = '#fff';
         setTimeout(() => { gameScreen.style.backgroundColor = '#050505'; }, 50);
 
+        // 🌟 瞬間切斷 01 跑動音效，營造系統突變的駭客感！
+        stopSound(sfxBinary);
+
+        // 🌟 同時播放兩個 Glitch / 撞擊音效
+        playSound(sfxGlitch);
+        playSound(sfxImpact);
+
         const title = document.createElement('div');
         title.className = 'glitch-title glitch-active';
         title.innerHTML = "WJ STUDIO<br>ECE WORLD";
@@ -198,7 +236,7 @@ function playGameIntro() {
         setTimeout(() => {
             title.remove();
             document.body.classList.remove('hide-custom-cursor');
-            switchScene(0, 1); // 自動進入第一關
+            switchScene(0, 1); 
         }, 2500);
     }
 }
