@@ -675,6 +675,7 @@ export function initScene2(playerState, switchScene) {
     // 🌟 邏輯怪的攻擊音效
     const sfxAttack1 = new Audio('game_audio/game_attack_enemy1.mp3');
     const sfxAttack2 = new Audio('game_audio/game_attack_enemy2.mp3');
+    const sfxAttack3 = new Audio('game_audio/game_attack_enemy3.mp3');
 
     // 🌟 新增：邏輯怪 3 專屬的三重爆炸音效
     const sfxExplosion1 = new Audio('game_audio/game_enemy3_explosion1.mp3');
@@ -1234,6 +1235,7 @@ export function initScene2(playerState, switchScene) {
 
     function triggerCircuitDestruction(returnToScene1 = false) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
+        playActionSfx(sfxAttack3);
         fireMegaBlueLaser(430);
         setTimeout(() => {
             document.getElementById('circuit-3').classList.add('circuit-broken');
