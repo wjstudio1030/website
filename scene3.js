@@ -14,6 +14,14 @@ export function initScene3(playerState, switchScene) {
         window.removeEventListener('keyup', window._scene3KeyUp);
     }
 
+    // =========================================================
+    // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
+    // =========================================================
+    const existingBpBtn = document.getElementById('inventory-backpack-btn');
+    if (existingBpBtn) {
+        existingBpBtn.remove();
+    }
+
     let ammoOnes = playerState.ammoOnes || 0;
     let ammoZeros = playerState.ammoZeros || 0;
     let hasHammer = playerState.hasHammer || true; 
@@ -55,6 +63,25 @@ export function initScene3(playerState, switchScene) {
 
     scene3.innerHTML = `
         <style>
+            /* =========================================
+               🌟 第一隻小怪專屬死亡剝落動畫
+               ========================================= */
+            @keyframes antennaFlyAway {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(-40px) rotate(25deg); opacity: 0; }
+            }
+            @keyframes legDropAway {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(40px) rotate(-25deg); opacity: 0; }
+            }
+            
+            .anim-antenna-fly { animation: antennaFlyAway 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: 65px 30px; }
+            .anim-leg-drop { animation: legDropAway 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; transform-origin: 65px 90px; }
+            .freeze-anim, .freeze-anim * {
+                animation-play-state: paused !important;
+                transition: none !important;
+            }
+
             @keyframes walkBounce { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, calc(-50% - 8px)); } }
             @keyframes armSwingL { 0%, 100% { transform: rotate(40deg); } 50% { transform: rotate(-40deg); } }
             @keyframes armSwingR { 0%, 100% { transform: rotate(-40deg); } 50% { transform: rotate(40deg); } }
@@ -259,6 +286,22 @@ export function initScene3(playerState, switchScene) {
             
             @keyframes shrinkEyeSm { 0%, 20% { r: 3.5px; } 100% { r: 3px; } }
             .split-eye-l-sm circle, .split-eye-r-sm circle { animation: shrinkEyeSm 1.4s forwards; }
+
+            /* 🌟 背包 Icon 生成與閃爍動畫 */
+            @keyframes iconPopIn { 
+                0% { transform: scale(0) rotate(-20deg); opacity: 0; box-shadow: 0 0 0 transparent; } 
+                50% { transform: scale(1.3) rotate(10deg); opacity: 1; box-shadow: 0 0 25px var(--brand-blue); } 
+                100% { transform: scale(1) rotate(0deg); opacity: 1; box-shadow: 0 0 0 transparent; } 
+            }
+            @keyframes btnPulseShake {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.8); }
+                15% { transform: scale(1.15) rotate(-5deg); box-shadow: 0 0 20px 10px rgba(0, 242, 254, 0); }
+                30% { transform: scale(1.1) rotate(5deg); }
+                45% { transform: scale(1.15) rotate(-5deg); }
+                60% { transform: scale(1.1) rotate(5deg); }
+                75% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+                100% { transform: scale(1); }
+            }
 
         </style>
 
@@ -554,6 +597,13 @@ export function initScene3(playerState, switchScene) {
     let hasHitInCurrentAttack = false; // 🌟 新增：用來記錄本次揮擊是否已經打中過目標
     let playerDead = false;
 
+    // 🌟 新增：第一隻小怪死亡事件與時間暫停控制
+    let firstSmallEnemyDefeated = false;
+    let isGamePaused = false;
+    let readyToPickUpTriangle = false;
+    let pauseStartTime = 0;
+    let totalPausedTime = 0;
+
     let worldX = 20; 
     let py = 50; 
     let cameraX = 0; 
@@ -579,14 +629,90 @@ export function initScene3(playerState, switchScene) {
         { el: document.getElementById('enemy-large'), worldX: 75, worldY: 28, speed: 0.12, facing: 1, alive: true, sideOffset: 6, delayMs: 500, state: 'jumping', jumpStartTime: null, lastAttackTime: 0, attackEndTime: 0 }
     ];
 
+    let backpackIsOpen = false;
+
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();
         if (keys.hasOwnProperty(key)) keys[key] = true;
 
+        // 🌟 1. 關閉背包並恢復遊戲時間 (按 X 關閉)
+        if (key === 'x' && backpackIsOpen) {
+            backpackIsOpen = false;
+            const overlay = document.getElementById('backpack-overlay');
+            if(overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    
+                    stickman.classList.remove('freeze-anim');
+                    enemies.forEach(e => {
+                        // 🌟 增加 e.alive 安全判定，防止找不到已死亡怪物的 DOM
+                        if (e.alive && e.el) e.el.classList.remove('freeze-anim');
+                    });
+                    
+                    isPlayerControllable = true;
+                    isGamePaused = false;
+                    totalPausedTime += (performance.now() - pauseStartTime);
+
+                    let bpBtn = document.getElementById('inventory-backpack-btn');
+                    if (!bpBtn) {
+                        bpBtn = document.createElement('button');
+                        bpBtn.id = 'inventory-backpack-btn';
+                        bpBtn.className = 'control-btn'; 
+                        bpBtn.title = "Backpack"; 
+                        bpBtn.innerHTML = '<i class="fas fa-campground"></i>'; 
+                        
+                        const manualBtn = document.getElementById('inventory-manual-btn');
+                        if (manualBtn && manualBtn.parentNode) {
+                            manualBtn.parentNode.insertBefore(bpBtn, manualBtn); 
+                        }
+                        
+                        bpBtn.addEventListener('click', function(event) {
+                            // 🌟 核心防呆：強制移除按鈕焦點，防止鍵盤與滑鼠事件衝突卡死！
+                            this.blur(); 
+                            if (document.getElementById('backpack-overlay')) return;
+
+                            isPlayerControllable = false; 
+                            isGamePaused = true;
+                            pauseStartTime = performance.now();
+                            
+                            stickman.classList.add('freeze-anim');
+                            enemies.forEach(e => {
+                                if (e.alive && e.el) e.el.classList.add('freeze-anim');
+                            });
+                            
+                            triggerBackpackAnimation(false); 
+                        });
+
+                        bpBtn.style.animation = 'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, btnPulseShake 0.8s ease-in-out';
+                        bpBtn.style.color = 'var(--brand-blue)';
+                        bpBtn.style.textShadow = '0 0 8px var(--brand-blue)';
+                        
+                        setTimeout(() => {
+                            bpBtn.style.animation = ''; 
+                            bpBtn.style.color = '';
+                            bpBtn.style.textShadow = '';
+                        }, 1000);
+                    }
+                }, 300);
+            }
+            return;
+        }
+
+        // 🌟 2. 撿起純粹三角形，觸發「首次」背包打開動畫
+        if (key === 'e' && readyToPickUpTriangle) {
+            readyToPickUpTriangle = false;
+            
+            const lootContainer = document.getElementById('first-kill-container');
+            if (lootContainer) lootContainer.remove();
+            
+            triggerBackpackAnimation(true); 
+        }
+
         if (key === 'j' && hasHammer && isPlayerControllable && canAttack && !playerDead) {
             canAttack = false; 
             isPlayerAttacking = true;
-            hasHitInCurrentAttack = false; // 🌟 新增：每次開始揮擊時，重置命中狀態
+            hasHitInCurrentAttack = false; 
 
             stickman.classList.add('anim-attack');
             
@@ -611,9 +737,20 @@ export function initScene3(playerState, switchScene) {
 
     let isFirstFrame = true;
 
-    function gameLoopS3(timestamp) {
+    // 👇 這裡把括號內的參數改為 realTimestamp
+    function gameLoopS3(realTimestamp) {
+        // 🌟 1. 時間暫停攔截器
+        if (isGamePaused) {
+            stickman.classList.add('stand-still');
+            requestAnimationFrame(gameLoopS3);
+            return; 
+        }
+
+        // 🌟 2. 時間軸平移 (扣除暫停的時間，確保解除暫停時怪物的跳躍週期不會錯亂)
+        let timestamp = realTimestamp - totalPausedTime;
+
         if (!isPlayerControllable && !playerDead) { requestAnimationFrame(gameLoopS3); return; }
-        if (playerDead) return; 
+        if (playerDead) return;
         
         if (isFirstFrame) {
             enemies.forEach(e => {
@@ -755,8 +892,7 @@ export function initScene3(playerState, switchScene) {
                             const spawnX2 = targetEnemy.worldX + spawnOffsetX;
                             const spawnY = targetEnemy.worldY + 1;
 
-                            // 🌟 核心修復：在生成 DOM 的第一時間，立刻手動賦予初始座標！
-                            // 這樣即使主角已經死亡、gameLoop 停止運作，新生成的怪物也不會跑到左上角 (0,0) 去。
+                            // 第一時間手動賦予初始座標
                             if (newM1) {
                                 newM1.style.left = `${spawnX1}%`;
                                 newM1.style.top = `${spawnY}%`;
@@ -766,29 +902,93 @@ export function initScene3(playerState, switchScene) {
                                 newM2.style.top = `${spawnY}%`;
                             }
                             
+                            // =========================================================
+                            // 🌟 核心修復：校正時空！取得扣除暫停時間後的「真實遊戲時間」
+                            // =========================================================
+                            const currentSimTime = performance.now() - totalPausedTime;
+
                             enemies.push({
                                 el: newM1, worldX: spawnX1, worldY: spawnY, 
                                 speed: isLarge ? 0.18 : 0.25, facing: 1, alive: true, 
                                 sideOffset: isLarge ? 7 : 4, attackDist: isLarge ? 0.6 : 0.5, delayMs: 0, 
-                                state: 'jumping', jumpStartTime: performance.now(), lastAttackTime: 0, attackEndTime: 0 
+                                state: 'jumping', 
+                                jumpStartTime: currentSimTime, // 👈 修正這裡
+                                lastAttackTime: 0, attackEndTime: 0 
                             });
+                            
                             enemies.push({
                                 el: newM2, worldX: spawnX2, worldY: spawnY, 
                                 speed: isLarge ? 0.18 : 0.25, facing: -1, alive: true, 
                                 sideOffset: isLarge ? 7 : 4, attackDist: isLarge ? 0.6 : 0.5, delayMs: 750, 
-                                state: 'jumping', jumpStartTime: performance.now() + 750, lastAttackTime: 0, attackEndTime: 0 
+                                state: 'jumping', 
+                                jumpStartTime: currentSimTime + 750, // 👈 修正這裡
+                                lastAttackTime: 0, attackEndTime: 0 
                             });
                         }, 1400);
 
                     } else {
-                        targetEnemy.el.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
-                        targetEnemy.el.style.transform = 'translate(-50%, -50%) scale(0) rotate(180deg)'; 
-                        targetEnemy.el.style.opacity = '0';
-                        setTimeout(() => targetEnemy.el.remove(), 400);
+                        // 🌟 處理小型三角怪的死亡
+                        if (!firstSmallEnemyDefeated) {
+                            // 觸發「首殺」專屬事件
+                            firstSmallEnemyDefeated = true;
+                            isPlayerControllable = false; 
+                            isGamePaused = true;
+                            pauseStartTime = performance.now(); // 記錄暫停開始的時間
+
+                            // 🌟 立刻凍結玩家與其他所有怪物的 CSS 動畫，停在最後一幀
+                            stickman.classList.add('freeze-anim');
+                            enemies.forEach(e => {
+                                if (e.el && e.el !== targetEnemy.el) {
+                                    e.el.classList.add('freeze-anim');
+                                }
+                            });
+
+                            // 隱藏原本的小怪
+                            targetEnemy.el.style.display = 'none';
+
+                            // 插入剝落動畫的 HTML
+                            // 插入剝落動畫的 HTML
+                            const animHtml = `
+                                <!-- 🌟 1. 提升整個容器的 z-index 到 100，保證絕對在所有怪物(z-index: 4)之上 -->
+                                <div id="first-kill-container" style="position: absolute; left: ${targetEnemy.worldX}%; top: ${targetEnemy.worldY}%; width: 70px; height: 70px; transform: translate(-50%, -50%); z-index: 100;">
+                                    <svg viewBox="0 0 130 130" stroke="#fff" stroke-width="6" fill="#000" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%; overflow: visible;">
+                                        <!-- 天線往上飛 -->
+                                        <line class="anim-antenna-fly" x1="65" y1="30" x2="65" y2="15" />
+                                        <!-- 本體保留 (移除發光class) -->
+                                        <polygon id="first-kill-body" points="65,30 5,90 125,90" />
+                                        <!-- 腳往下掉 -->
+                                        <path class="anim-leg-drop" d="M 65 90 L 65 105 Q 65 112 73 112" fill="none" />
+                                    </svg>
+                                    
+                                    <!-- 🌟 2. 強化版 E 提示：
+                                         - 加入 backdrop-filter: blur(8px) 把背後的怪物線條模糊化
+                                         - 背景改為 rgba(10, 15, 25, 0.85) 加深對比度
+                                         - 稍微放大(36px)並往上提(top: -45px)，遠離怪物密集的中心
+                                         - 加上內發光 inset box-shadow 維持全息投影的科技感
+                                    -->
+                                    <div id="first-kill-e-prompt" style="position: absolute; top: -45px; left: 17px; width: 36px; height: 36px; background: rgba(10, 15, 25, 0.85); border: 2px solid var(--brand-blue); border-radius: 8px; color: #fff; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 16px; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; z-index: 999; box-shadow: 0 0 15px var(--brand-blue), inset 0 0 8px rgba(0, 242, 254, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: floatPrompt 1.5s infinite ease-in-out;">E</div>
+                                </div>
+                            `;
+                            environmentLayer.insertAdjacentHTML('beforeend', animHtml);
+
+                            // 1.5 秒動畫播完後，顯示 E 提示 (不加入發光特效，保持純白)
+                            setTimeout(() => {
+                                document.getElementById('first-kill-e-prompt').style.opacity = '1';
+                                readyToPickUpTriangle = true; // 開放 E 鍵撿起
+                            }, 1500);
+
+                        } else {
+                            // 之後其他的小怪就是原本的普通死亡動畫
+                            targetEnemy.el.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+                            targetEnemy.el.style.transform = 'translate(-50%, -50%) scale(0) rotate(180deg)'; 
+                            targetEnemy.el.style.opacity = '0';
+                            setTimeout(() => targetEnemy.el.remove(), 400);
+                        }
                     }
                 }
             }
         }
+        
 
         // ==============================================================
         // 🌟 原本怪物的 AI 移動與反擊判定邏輯 (移除了原本粗糙的擊中判定)
@@ -876,9 +1076,187 @@ export function initScene3(playerState, switchScene) {
             enemy.el.style.top = `${enemy.worldY}%`;
             enemy.el.style.setProperty('--facing', enemy.facing);
         });
-
         requestAnimationFrame(gameLoopS3);
     }
 
+// ==============================================================
+    // 🌟 全螢幕背包展開動畫 (慢速完整生長版、修正長柄重鎚比例)
+    // ==============================================================
+    function triggerBackpackAnimation(isFirstTime = true) {
+        const overlay = document.createElement('div');
+        overlay.id = 'backpack-overlay';
+        overlay.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 8, 15, 0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; backdrop-filter: blur(10px); overflow: hidden;';
+        
+        let rowGroupsHtml = '';
+        const a = 108, h = 94, dx = 130, dy = 106, row2Bottom = 569; 
+        
+        const rowY = [
+            row2Bottom - dy, row2Bottom, row2Bottom + dy, row2Bottom + 2 * dy    
+        ];
+
+        const gridRows = [
+            { y: rowY[0], centers: [-1, 1] },                             
+            { y: rowY[1], centers: [-1.5, -0.5, 0.5, 1.5] },              
+            { y: rowY[2], centers: [-2, -1, 0, 1, 2] },                   
+            { y: rowY[3], centers: [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5] }    
+        ];
+
+        gridRows.forEach((row, index) => {
+            let rowHtml = `<g id="bp-row-${index + 1}" opacity="0" style="transition: opacity 0.5s ease-out;">`;
+            row.centers.forEach(c => {
+                const cx = 500 + c * dx;
+                const p1x = cx, p1y = row.y - h;     
+                const p2x = cx - a/2, p2y = row.y;   
+                const p3x = cx + a/2, p3y = row.y;   
+                rowHtml += `<polygon points="${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}" fill="rgba(255,255,255,0.03)" stroke="#fff" stroke-width="4" stroke-linejoin="round" />`;
+            });
+            rowHtml += `</g>`;
+            rowGroupsHtml += rowHtml;
+        });
+
+        // 🌟 核心修改：大幅加長鎚子手柄(y1="80")，並把比例縮小為 scale(0.2) 完美裝入框內
+        let equippedItemsHtml = '';
+        if (hasHammer) {
+            equippedItemsHtml += `
+                <g id="bp-equipped-hammer" opacity="0" style="transition: opacity 0.6s ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));" transform="translate(555, 415) scale(0.3) rotate(25)">
+                    <line x1="0" y1="80" x2="0" y2="-20" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+                    <path d="M -35 -20 L 35 -20 A 35 50 0 0 1 -35 -20 Z" fill="#000" stroke="#fff" stroke-width="12" />
+                </g>
+            `;
+        }
+
+        // 🌟 核心修改：把「短線」獨立為第 0 步，這樣就能演出從小變大的完整過程
+        const animPaths = [
+            "M 450 800 L 475 800 L 500 800 L 525 800 L 550 800 Z", // [0] 短線
+            "M 100 800 L 300 800 L 500 800 L 700 800 L 900 800 Z", // [1] 長線
+            "M 100 800 L 433 569 L 500 569 L 567 569 L 900 800 Z", // [2] 小梯形
+            "M 100 800 L 367 338 L 500 338 L 633 338 L 900 800 Z", // [3] 大梯形
+            "M 100 800 L 367 338 L 500 107 L 633 338 L 900 800 Z", // [4] 巨大正三角形
+            "M 100 800 L 367 338 L 500 569 L 633 338 L 900 800 Z"  // [5] 往下折疊
+        ];
+
+        // 如果是首次播放，動畫速度放慢為 0.8秒；非首次則保持 0.5秒
+        const animSpeed = isFirstTime ? 0.8 : 0.5;
+        const initialPath = isFirstTime ? animPaths[0] : animPaths[4];
+        const initialCreaseOpacity = isFirstTime ? "0" : "1";
+
+        overlay.innerHTML = `
+            <svg viewBox="0 0 1000 1000" style="width: 135vh; height: 135vh; max-width: none; overflow: visible; transform: translateY(2%);">
+                
+                <path id="bp-outline" d="${initialPath}" fill="rgba(255,255,255,0.02)" stroke="#fff" stroke-width="8" stroke-linejoin="round" style="transition: d ${animSpeed}s ease-in-out, fill ${animSpeed}s;" />
+                <line id="bp-crease" x1="367" y1="338" x2="633" y2="338" stroke="#fff" stroke-width="6" opacity="${initialCreaseOpacity}" style="transition: opacity ${animSpeed}s;" stroke-dasharray="10 10" />
+
+                ${rowGroupsHtml}
+
+                <g id="bp-stickman" opacity="0" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: opacity 0.6s, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(20px);">
+                    <circle cx="500" cy="390" r="16" stroke-width="5" />
+                    <line x1="500" y1="406" x2="500" y2="470" stroke-width="5" />
+                    
+                    <path d="M 500 440 Q 475 450, 465 430" stroke-width="5" /> 
+                    <path d="M 500 440 Q 525 450, 535 430" stroke-width="5" />
+                    <path d="M 500 470 Q 485 480, 479 505" stroke-width="5" /> 
+                    <path d="M 500 470 Q 515 480, 521 505" stroke-width="5" />
+                    <line x1="484" y1="495" x2="516" y2="495" stroke-width="4" /> 
+
+                    <line x1="514" y1="382" x2="540" y2="368" stroke-dasharray="3,3" stroke-width="3" /> 
+                    <rect x="540" y="355" width="24" height="24" stroke-dasharray="4,4" stroke-width="3" /> 
+                    
+                    <rect x="435" y="400" width="40" height="40" stroke-dasharray="4,4" stroke-width="3" /> 
+                    <rect x="535" y="400" width="40" height="40" stroke-dasharray="4,4" stroke-width="3" /> 
+                    
+                    <rect x="472" y="485" width="18" height="26" stroke-dasharray="4,4" stroke-width="3" /> 
+                    <rect x="510" y="485" width="18" height="26" stroke-dasharray="4,4" stroke-width="3" /> 
+                </g>
+
+                ${equippedItemsHtml}
+            </svg>
+            
+            <div id="bp-close-hint" style="position: absolute; top: 20%; color: rgba(255,255,255,0.7); font-family: 'Orbitron', sans-serif; font-size: 1.2rem; opacity: 0; transition: opacity 0.5s; letter-spacing: 3px;">PRESS [ X ] TO CLOSE</div>
+        `;
+        
+        scene3.appendChild(overlay);
+        void overlay.offsetWidth; 
+        overlay.style.opacity = '1';
+
+        const outline = document.getElementById('bp-outline');
+        const crease = document.getElementById('bp-crease');
+        const stickmanSvg = document.getElementById('bp-stickman');
+        const hint = document.getElementById('bp-close-hint');
+
+        // 🌟 首次播放邏輯
+        if (isFirstTime) {
+            let step = 1; 
+            
+            // 給予短線 200ms 的停留時間讓玩家看清楚，然後才開始生長
+            setTimeout(() => {
+                const interval = setInterval(() => {
+                    if(step < animPaths.length) {
+                        outline.setAttribute('d', animPaths[step]);
+                        
+                        if (step === 4) { crease.style.opacity = '1'; }
+                        if (step === 5) {
+                            outline.style.fill = 'rgba(255, 255, 255, 0.08)';
+                            crease.removeAttribute('stroke-dasharray');
+                        }
+                        step++;
+                    } else {
+                        clearInterval(interval);
+                        
+                        setTimeout(() => {
+                            stickmanSvg.style.opacity = '1';
+                            stickmanSvg.style.transform = 'translateY(0)'; 
+                            
+                            setTimeout(() => { document.getElementById('bp-row-1').style.opacity = '1'; }, 300);
+                            setTimeout(() => { document.getElementById('bp-row-2').style.opacity = '1'; }, 600);
+                            setTimeout(() => { document.getElementById('bp-row-3').style.opacity = '1'; }, 900);
+                            setTimeout(() => { document.getElementById('bp-row-4').style.opacity = '1'; }, 1200);
+                            
+                            setTimeout(() => { 
+                                hint.style.opacity = '1';
+                                backpackIsOpen = true; 
+                            }, 1600);
+
+                            setTimeout(() => {
+                                const hammer = document.getElementById('bp-equipped-hammer');
+                                if (hammer) hammer.style.opacity = '1';
+                            }, 2000); 
+
+                        }, 400); 
+                    }
+                }, animSpeed * 1000); // 使用放慢的 800ms 節奏
+            }, 200);
+
+        } 
+        // 🌟 點擊 Icon 非首次開啟 (直接跳至大三角並瞬間折疊)
+        else {
+            let step = 5; 
+            setTimeout(() => {
+                outline.setAttribute('d', animPaths[5]);
+                outline.style.fill = 'rgba(255, 255, 255, 0.08)';
+                crease.removeAttribute('stroke-dasharray');
+                
+                setTimeout(() => {
+                    stickmanSvg.style.opacity = '1';
+                    stickmanSvg.style.transform = 'translateY(0)'; 
+                    
+                    setTimeout(() => { document.getElementById('bp-row-1').style.opacity = '1'; }, 150);
+                    setTimeout(() => { document.getElementById('bp-row-2').style.opacity = '1'; }, 300);
+                    setTimeout(() => { document.getElementById('bp-row-3').style.opacity = '1'; }, 450);
+                    setTimeout(() => { document.getElementById('bp-row-4').style.opacity = '1'; }, 600);
+                    
+                    setTimeout(() => { 
+                        hint.style.opacity = '1';
+                        backpackIsOpen = true; 
+                    }, 800);
+
+                    setTimeout(() => {
+                        const hammer = document.getElementById('bp-equipped-hammer');
+                        if (hammer) hammer.style.opacity = '1';
+                    }, 1000); 
+
+                }, 500); 
+            }, 100); 
+        }
+    }
     requestAnimationFrame(gameLoopS3);
 }
