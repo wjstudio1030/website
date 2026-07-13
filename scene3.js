@@ -108,7 +108,11 @@ export function initScene3(playerState, switchScene) {
             .anim-attack #armL-s3 { animation: none !important; transform: rotate(-35deg) !important; transition: transform 0.1s ease; }
             .anim-attack #armR-s3 { animation: none !important; transform: rotate(45deg) !important; transition: transform 0.1s ease; }
 
-            @keyframes playerDie { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(-90deg) translate(-30px, -20px); } }
+            /* 🌟 使用 CSS 變數控制死亡傾倒的方向 */
+            @keyframes playerDie { 
+                0% { transform: translate(-50%, -50%) rotate(0deg); } 
+                100% { transform: translate(-50%, -50%) rotate(var(--die-rot, -90deg)) translate(var(--die-tx, -30px), -20px); } 
+            }
             .player-dead { animation: playerDie 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; pointer-events: none; }
 
             .manual-active { opacity: 1 !important; pointer-events: auto !important; transform: translate(-50%, -50%) scale(1) !important; }
@@ -494,14 +498,31 @@ export function initScene3(playerState, switchScene) {
         sound.play().catch(e => console.log("SFX play prevented:", e));
     }
 
-    if (hasHammer) {
-        document.getElementById('held-hammer-s3').style.opacity = '1';
-        document.getElementById('held-1-s3').style.opacity = '0';
-        document.getElementById('held-0-s3').style.opacity = '0';
-    } else {
-        if (ammoOnes > 0) document.getElementById('held-1-s3').style.opacity = '1';
-        if (ammoZeros > 0) document.getElementById('held-0-s3').style.opacity = '1';
+    // 🌟 初始化與強制重置裝備狀態 (每次進入場景都強制回到手上)
+    window._hammerSlot = { type: 'handR', x: 555, y: 415 };
+    let isHammerEquipped = true;
+
+    // 🌟 動態同步角色手部外觀的函數
+    function updateMainStickmanEquipment() {
+        const heldHammer = document.getElementById('held-hammer-s3');
+        const held1 = document.getElementById('held-1-s3');
+        const held0 = document.getElementById('held-0-s3');
+        
+        if (isHammerEquipped) {
+            if (heldHammer) heldHammer.style.opacity = '1';
+            // 如果拿著槌子，就隱藏手上的彈藥
+            if (held1) held1.style.opacity = '0';
+            if (held0) held0.style.opacity = '0';
+        } else {
+            if (heldHammer) heldHammer.style.opacity = '0';
+            // 如果脫下槌子，恢復顯示手中的彈藥
+            if (held1) held1.style.opacity = ammoOnes > 0 ? '1' : '0';
+            if (held0) held0.style.opacity = ammoZeros > 0 ? '1' : '0';
+        }
     }
+    
+    // 初始化執行一次
+    updateMainStickmanEquipment();
 
     function updateManualPage(targetPage, useFlash = true) {
         if (useFlash) {
@@ -709,7 +730,7 @@ export function initScene3(playerState, switchScene) {
             triggerBackpackAnimation(true); 
         }
 
-        if (key === 'j' && hasHammer && isPlayerControllable && canAttack && !playerDead) {
+        if (key === 'j' && isHammerEquipped && isPlayerControllable && canAttack && !playerDead) {
             canAttack = false; 
             isPlayerAttacking = true;
             hasHitInCurrentAttack = false; 
@@ -1008,6 +1029,11 @@ export function initScene3(playerState, switchScene) {
                         playerDead = true;
                         isPlayerControllable = false;
                         
+                        // 🌟 動態判斷怪物在左邊還是右邊，決定角色倒下的方向
+                        let fallRight = enemy.worldX < worldX; // 如果怪物在玩家左側，玩家就往右倒
+                        stickman.style.setProperty('--die-rot', fallRight ? '90deg' : '-90deg');
+                        stickman.style.setProperty('--die-tx', fallRight ? '30px' : '-30px');
+
                         stickman.classList.remove('anim-attack'); 
                         stickman.classList.add('stand-still');    
                         stickman.classList.add('player-dead');
@@ -1080,7 +1106,7 @@ export function initScene3(playerState, switchScene) {
     }
 
 // ==============================================================
-    // 🌟 全螢幕背包展開動畫 (慢速完整生長版、修正長柄重鎚比例)
+    // 🌟 全螢幕背包展開動畫 (裝備實時連動版，包含縮放與圖示修復)
     // ==============================================================
     function triggerBackpackAnimation(isFirstTime = true) {
         const overlay = document.createElement('div');
@@ -1101,6 +1127,8 @@ export function initScene3(playerState, switchScene) {
             { y: rowY[3], centers: [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5] }    
         ];
 
+        const bpSlotsData = []; 
+
         gridRows.forEach((row, index) => {
             let rowHtml = `<g id="bp-row-${index + 1}" opacity="0" style="transition: opacity 0.5s ease-out;">`;
             row.centers.forEach(c => {
@@ -1109,35 +1137,42 @@ export function initScene3(playerState, switchScene) {
                 const p2x = cx - a/2, p2y = row.y;   
                 const p3x = cx + a/2, p3y = row.y;   
                 rowHtml += `<polygon points="${p1x},${p1y} ${p2x},${p2y} ${p3x},${p3y}" fill="rgba(255,255,255,0.03)" stroke="#fff" stroke-width="4" stroke-linejoin="round" />`;
+                
+                bpSlotsData.push({ x: cx, y: row.y - 40, type: 'triangle' });
             });
             rowHtml += `</g>`;
             rowGroupsHtml += rowHtml;
         });
 
-        // 🌟 核心修改：大幅加長鎚子手柄(y1="80")，並把比例縮小為 scale(0.2) 完美裝入框內
+        bpSlotsData.push({ x: 555, y: 415, type: 'handR' });
+
+        let initialTransform = window._hammerSlot.type === 'handR' 
+            ? `translate(555, 415) scale(0.3) rotate(25)`
+            : `translate(${window._hammerSlot.x}, ${window._hammerSlot.y}) scale(0.48) rotate(0)`;
+
         let equippedItemsHtml = '';
         if (hasHammer) {
             equippedItemsHtml += `
-                <g id="bp-equipped-hammer" opacity="0" style="transition: opacity 0.6s ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));" transform="translate(555, 415) scale(0.3) rotate(25)">
-                    <line x1="0" y1="80" x2="0" y2="-20" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+                <g id="bp-equipped-hammer" opacity="0" style="transition: opacity 0.6s ease-out; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)); cursor: grab; pointer-events: none;" transform="${initialTransform}">
+                    <rect x="-50" y="-30" width="100" height="120" fill="transparent" />
+                    <!-- 🌟 修正鎚子手柄突起：y2 改為 -5，將圓角完美隱藏在鎚頭背後 -->
+                    <line x1="0" y1="80" x2="0" y2="-5" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
                     <path d="M -35 -20 L 35 -20 A 35 50 0 0 1 -35 -20 Z" fill="#000" stroke="#fff" stroke-width="12" />
                 </g>
             `;
         }
 
-        // 🌟 核心修改：把「短線」獨立為第 0 步，這樣就能演出從小變大的完整過程
         const animPaths = [
-            "M 450 800 L 475 800 L 500 800 L 525 800 L 550 800 Z", // [0] 短線
-            "M 100 800 L 300 800 L 500 800 L 700 800 L 900 800 Z", // [1] 長線
-            "M 100 800 L 433 569 L 500 569 L 567 569 L 900 800 Z", // [2] 小梯形
-            "M 100 800 L 367 338 L 500 338 L 633 338 L 900 800 Z", // [3] 大梯形
-            "M 100 800 L 367 338 L 500 107 L 633 338 L 900 800 Z", // [4] 巨大正三角形
-            "M 100 800 L 367 338 L 500 569 L 633 338 L 900 800 Z"  // [5] 往下折疊
+            "M 450 800 L 475 800 L 500 800 L 525 800 L 550 800 Z", 
+            "M 100 800 L 300 800 L 500 800 L 700 800 L 900 800 Z", 
+            "M 100 800 L 433 569 L 500 569 L 567 569 L 900 800 Z", 
+            "M 100 800 L 367 338 L 500 338 L 633 338 L 900 800 Z", 
+            "M 100 800 L 367 338 L 500 107 L 633 338 L 900 800 Z", 
+            "M 100 800 L 367 338 L 500 569 L 633 338 L 900 800 Z"  
         ];
 
-        // 如果是首次播放，動畫速度放慢為 0.8秒；非首次則保持 0.5秒
         const animSpeed = isFirstTime ? 0.8 : 0.5;
-        const initialPath = isFirstTime ? animPaths[0] : animPaths[4];
+        const initialPath = isFirstTime ? animPaths[0] : animPaths[5];
         const initialCreaseOpacity = isFirstTime ? "0" : "1";
 
         overlay.innerHTML = `
@@ -1151,7 +1186,6 @@ export function initScene3(playerState, switchScene) {
                 <g id="bp-stickman" opacity="0" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" style="transition: opacity 0.6s, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(20px);">
                     <circle cx="500" cy="390" r="16" stroke-width="5" />
                     <line x1="500" y1="406" x2="500" y2="470" stroke-width="5" />
-                    
                     <path d="M 500 440 Q 475 450, 465 430" stroke-width="5" /> 
                     <path d="M 500 440 Q 525 450, 535 430" stroke-width="5" />
                     <path d="M 500 470 Q 485 480, 479 505" stroke-width="5" /> 
@@ -1182,12 +1216,92 @@ export function initScene3(playerState, switchScene) {
         const crease = document.getElementById('bp-crease');
         const stickmanSvg = document.getElementById('bp-stickman');
         const hint = document.getElementById('bp-close-hint');
+        const svgFrame = overlay.querySelector('svg');
+        const hammerElem = document.getElementById('bp-equipped-hammer');
 
-        // 🌟 首次播放邏輯
+        // ==============================================================
+        // 🌟 武器拖曳系統 (實時裝備/卸下連動)
+        // ==============================================================
+        if (hammerElem) {
+            let isDragging = false;
+
+            hammerElem.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                hammerElem.style.transition = 'none'; 
+                hammerElem.style.cursor = 'grabbing';
+            });
+
+            overlay.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                let pt = svgFrame.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                let svgP = pt.matrixTransform(svgFrame.getScreenCTM().inverse());
+
+                // 🌟 使用更新後的 0.48 比例拖曳
+                hammerElem.setAttribute('transform', `translate(${svgP.x}, ${svgP.y}) scale(0.48) rotate(0)`);
+            });
+
+            overlay.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                hammerElem.style.cursor = 'grab';
+                hammerElem.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+                let pt = svgFrame.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                let svgP = pt.matrixTransform(svgFrame.getScreenCTM().inverse());
+
+                let closestSlot = bpSlotsData[0];
+                let minDist = Infinity;
+                bpSlotsData.forEach(slot => {
+                    let dist = Math.hypot(slot.x - svgP.x, slot.y - svgP.y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestSlot = slot;
+                    }
+                });
+
+                if (minDist > 120) {
+                    closestSlot = window._hammerSlot;
+                }
+
+                // 🌟 記憶新位置，並實時連動遊戲場景的主角外觀！
+                window._hammerSlot = closestSlot;
+                isHammerEquipped = (closestSlot.type === 'handR');
+                updateMainStickmanEquipment();
+
+                if (closestSlot.type === 'handR') {
+                    // 🌟 放回手上時比例為 0.3
+                    hammerElem.setAttribute('transform', `translate(555, 415) scale(0.3) rotate(25)`);
+                } else {
+                    // 🌟 放入背包庫存時比例為 0.48
+                    hammerElem.setAttribute('transform', `translate(${closestSlot.x}, ${closestSlot.y}) scale(0.48) rotate(0)`);
+                }
+            });
+
+            overlay.addEventListener('mouseleave', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    hammerElem.style.cursor = 'grab';
+                    hammerElem.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    
+                    if (window._hammerSlot.type === 'handR') {
+                        hammerElem.setAttribute('transform', `translate(555, 415) scale(0.3) rotate(25)`);
+                    } else {
+                        hammerElem.setAttribute('transform', `translate(${window._hammerSlot.x}, ${window._hammerSlot.y}) scale(0.48) rotate(0)`);
+                    }
+                }
+            });
+        }
+
+        // ==============================================================
+        // 🌟 展開動畫序列
+        // ==============================================================
         if (isFirstTime) {
             let step = 1; 
-            
-            // 給予短線 200ms 的停留時間讓玩家看清楚，然後才開始生長
             setTimeout(() => {
                 const interval = setInterval(() => {
                     if(step < animPaths.length) {
@@ -1217,21 +1331,19 @@ export function initScene3(playerState, switchScene) {
                             }, 1600);
 
                             setTimeout(() => {
-                                const hammer = document.getElementById('bp-equipped-hammer');
-                                if (hammer) hammer.style.opacity = '1';
+                                if (hammerElem) {
+                                    hammerElem.style.opacity = '1';
+                                    hammerElem.style.pointerEvents = 'auto'; 
+                                }
                             }, 2000); 
 
                         }, 400); 
                     }
-                }, animSpeed * 1000); // 使用放慢的 800ms 節奏
+                }, animSpeed * 1000);
             }, 200);
 
-        } 
-        // 🌟 點擊 Icon 非首次開啟 (直接跳至大三角並瞬間折疊)
-        else {
-            let step = 5; 
+        } else {
             setTimeout(() => {
-                outline.setAttribute('d', animPaths[5]);
                 outline.style.fill = 'rgba(255, 255, 255, 0.08)';
                 crease.removeAttribute('stroke-dasharray');
                 
@@ -1250,8 +1362,10 @@ export function initScene3(playerState, switchScene) {
                     }, 800);
 
                     setTimeout(() => {
-                        const hammer = document.getElementById('bp-equipped-hammer');
-                        if (hammer) hammer.style.opacity = '1';
+                        if (hammerElem) {
+                            hammerElem.style.opacity = '1';
+                            hammerElem.style.pointerEvents = 'auto'; 
+                        }
                     }, 1000); 
 
                 }, 500); 
