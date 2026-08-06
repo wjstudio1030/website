@@ -163,16 +163,83 @@ export function initScene2(playerState, switchScene) {
             }
             .text-broken { animation: textBreak 0.8s forwards !important; }
 
+            /* 🌟 1. 面板樣式微調 (保留 overflow: hidden 完美裁切邊界) */
             #loot-panel { 
                 position: absolute; top: 40%; left: 50%; filter: blur(15px) brightness(2); 
                 transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); 
                 opacity: 0; pointer-events: none; background: rgba(10, 10, 15, 0.85); 
-                border: 1px solid var(--brand-blue); border-radius: 8px; padding: 35px 60px; 
-                text-align: center; backdrop-filter: blur(10px); z-index: 300; 
+                border: 1px solid var(--brand-blue); border-radius: 8px; 
+                padding: 40px 80px; min-width: 650px; text-align: center; backdrop-filter: blur(10px); z-index: 300; 
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; 
                 box-shadow: 0 0 40px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 242, 254, 0.2);
+                overflow: hidden; 
             }
             #loot-panel.loot-show { filter: blur(0px) brightness(1); transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg); opacity: 1; }
+
+            /* ===================================================
+               🌟 寶箱怪 (Mimic) 三軸獨立物理引擎
+               =================================================== */
+
+            /* 💥 X 軸：只負責橫向移動與翻轉，強制等速 (linear) */
+            @keyframes mimicMoveX {
+                /* 前三跳向右飛出 */
+                0%    { transform: translateX(-500px) scaleX(1); opacity: 0; }
+                1%    { transform: translateX(-500px) scaleX(1); opacity: 1; }
+                85.7% { transform: translateX(500px) scaleX(1); opacity: 1; }
+                
+                /* 瞬間移動到畫面右側外，並翻轉開口朝左 */
+                85.8% { transform: translateX(250px) scaleX(-1); opacity: 0; }
+                86%   { transform: translateX(250px) scaleX(-1); opacity: 1; } 
+                
+                /* 最終橫向滑行到正中央 0px 停止 */
+                100%  { transform: translateX(0px) scaleX(-1); opacity: 1; }
+            }
+
+            /* 💥 Y 軸：只負責重力下墜，嚴格執行拋物線高度 */
+            @keyframes mimicMoveY {
+                /* 前三跳的地板高度皆為 120px，頂點為 -30px */
+                0%    { transform: translateY(120px); animation-timing-function: ease-out; }
+                14.3% { transform: translateY(-30px); animation-timing-function: ease-in; }
+                28.6% { transform: translateY(120px); animation-timing-function: ease-out; }
+                
+                42.9% { transform: translateY(-30px); animation-timing-function: ease-in; }
+                57.1% { transform: translateY(120px); animation-timing-function: ease-out; }
+                
+                71.4% { transform: translateY(-30px); animation-timing-function: ease-in; }
+                85.7% { transform: translateY(120px); animation-timing-function: linear; }
+                
+                /* 🌟 最終下墜：從頂點 -30px 完美落回到同一個地板高度 120px (介面最下方) */
+                85.8% { transform: translateY(-30px); animation-timing-function: ease-in; }
+                100%  { transform: translateY(100px); } 
+            }
+
+            /* 💥 旋轉軸：獨立掛載於 iframe，強制等速轉向，徹底解決落地暴衝的錯覺 */
+            @keyframes mimicRotate {
+                0%, 85.7% { transform: rotate(0deg); }
+                85.8%     { transform: rotate(0deg); }
+                100%      { transform: rotate(90deg); }
+            }
+
+            /* 容器設定 */
+            .mimic-jump-x {
+                position: absolute; top: 50%; left: 50%; 
+                margin-top: -90px; margin-left: -90px;
+                opacity: 0; z-index: 5;
+            }
+            .mimic-jump-y {
+                width: 100%; height: 100%;
+            }
+
+            /* 🌟 同步觸發三軸動畫，延遲 0.5 秒，總時長 5.25 秒 */
+            #loot-panel.loot-show .mimic-jump-x {
+                animation: mimicMoveX 5.25s 0.5s forwards linear; 
+            }
+            #loot-panel.loot-show .mimic-jump-y {
+                animation: mimicMoveY 5.25s 0.5s forwards; 
+            }
+            #loot-panel.loot-show #mimic-iframe {
+                animation: mimicRotate 5.25s 0.5s forwards linear; /* 獨立的等速旋轉 */
+            }
 
             @keyframes hammerBreath {
                 0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.6)) brightness(0.9); transform: translateY(-25px) scale(1); }
@@ -195,6 +262,122 @@ export function initScene2(playerState, switchScene) {
                 /* 🌟 已經移除了 border-color，不再出現白色框框 */
                 color: var(--brand-blue) !important;
                 text-shadow: 0 0 8px var(--brand-blue) !important;
+            }
+
+        
+            /* Modal Animation CSS */
+            .anim-modal {
+                position: absolute; top: 40%; left: 50%;
+                transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg);
+                opacity: 0; pointer-events: none;
+                background: rgba(10, 10, 15, 0); 
+                padding: 40px 60px;
+                text-align: center; backdrop-filter: blur(0px);
+                z-index: 500;
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+                border-radius: 12px;
+                min-width: 420px;
+            }
+            
+            .anim-modal.show-init {
+                transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg);
+                opacity: 1;
+            }
+
+            .anim-modal.show-bg {
+                background: rgba(10, 10, 15, 0.9);
+                backdrop-filter: blur(15px);
+                transition: background 0.4s ease, backdrop-filter 0.4s ease;
+                box-shadow: 0 0 40px rgba(0, 242, 254, 0.2), inset 0 0 20px rgba(0, 242, 254, 0.1);
+            }
+
+            /* Animated Borders */
+            .anim-border { position: absolute; background: var(--brand-blue); box-shadow: 0 0 10px var(--brand-blue); }
+            .top-border { top: 0; left: 50%; right: 50%; height: 2px; transition: left 0.25s ease-out, right 0.25s ease-out; }
+            .right-border { top: 0; right: 0; width: 2px; height: 0; transition: height 0.25s ease-out 0.25s; }
+            .left-border { top: 0; left: 0; width: 2px; height: 0; transition: height 0.25s ease-out 0.25s; }
+            .bottom-right-border { bottom: 0; right: 0; width: 0; height: 2px; transition: width 0.25s ease-out 0.5s; }
+            .bottom-left-border { bottom: 0; left: 0; width: 0; height: 2px; transition: width 0.25s ease-out 0.5s; }
+
+            .anim-modal.draw-borders .top-border { left: 0; right: 0; }
+            .anim-modal.draw-borders .right-border { height: 100%; }
+            .anim-modal.draw-borders .left-border { height: 100%; }
+            .anim-modal.draw-borders .bottom-right-border { width: 50%; }
+            .anim-modal.draw-borders .bottom-left-border { width: 50%; }
+            
+            /* Content Elements */
+            .modal-text-top {
+                font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--brand-blue);
+                letter-spacing: 5px; margin-bottom: 25px;
+                transform: translateY(-10px); transition: all 0.3s ease;
+            }
+            .modal-separator-container { width: 100%; height: 1px; margin-bottom: 20px; display: flex; justify-content: flex-start; }
+            .anim-separator { width: 0; height: 1px; background: rgba(0, 242, 254, 0.5); box-shadow: 0 0 5px var(--brand-blue); transition: width 0.4s ease-out; }
+            
+            .modal-text-desc {
+                color: rgba(255,255,255,0.6); font-size: 1rem; letter-spacing: 2px;
+                transform: translateY(10px); transition: all 0.3s ease; line-height: 1.5;
+            }
+
+            /* Spectacular Entry */
+            .spectacular-entry {
+                animation: propExplosion 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+
+            @keyframes propExplosion {
+                0% { transform: scale(0.2) translateY(-40px); opacity: 0; filter: brightness(3) blur(5px); }
+                40% { transform: scale(1.3) translateY(10px); opacity: 1; filter: brightness(2) blur(0px) drop-shadow(0 0 30px #fff); }
+                70% { transform: scale(0.9) translateY(-5px); opacity: 1; filter: brightness(1.2) drop-shadow(0 0 15px var(--brand-blue)); }
+                100% { transform: scale(1) translateY(0); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+            }
+
+            /* ===================================================
+               🌟 目標 AND 寶箱 (被咬替身) 動畫與圖層系統
+               =================================================== */
+            @keyframes targetChestPopAndBounce {
+                /* 0%~25% (第 4.8s~5.2s)：寶箱怪飛出右邊界時，AND 寶箱在中央底部彈出 */
+                /* 🌟 將 translateY 從原本的 80px 下移到 95px (數值越大位置越低) */
+                0%   { transform: translate(-50%, -50%) translateY(95px) scale(0); opacity: 0; }
+                25%  { transform: translate(-50%, -50%) translateY(95px) scale(1); opacity: 1; }
+                /* 25%~60% (第 5.2s~5.75s)：乖乖靜止在地面，等待上空的泰山壓頂 */
+                60%  { transform: translate(-50%, -50%) translateY(95px) scale(1); opacity: 1; }
+                
+                /* 🌟 60.1% (第 5.75s)：寶箱怪咬下！觸發重壓彈跳與擠壓變形！ */
+                70%  { transform: translate(-50%, -50%) translateY(80px) scale(0.9, 1.1); opacity: 1; }
+                80%  { transform: translate(-50%, -50%) translateY(95px) scale(1.1, 0.9); opacity: 1; }
+                90%  { transform: translate(-50%, -50%) translateY(88px) scale(0.95, 1.05); opacity: 1; }
+                100% { transform: translate(-50%, -50%) translateY(95px) scale(1); opacity: 1; }
+            }
+
+            #target-and-chest {
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 100px; height: 120px;
+                opacity: 0; /* 預設完全隱藏 */
+                /* 🌟 核心層級修改：設為 z-index: 6，高於寶箱怪的 z-index: 5！
+                     這會讓寶箱怪從後方咬住它時，AND 寶箱維持在畫面前方，立體透視感拉滿！ */
+                z-index: 6; 
+                transform: translate(-50%, -50%) translateY(95px) scale(0);
+            }
+
+            /* 4.8秒時彈出，5.75秒觸發被咬發光閃爍 */
+            #loot-panel.loot-show #target-and-chest {
+                animation: targetChestPopAndBounce 1.6s 4.8s forwards, chestGlowAnim 0.8s 5.75s infinite alternate;
+            }
+
+            /* ===================================================
+               🌟 戰利品文字 (0, 1彈藥) 絕對同步彈出特效
+               =================================================== */
+            @keyframes lootTextPopIn {
+                0%   { opacity: 0; transform: translateX(-50%) scale(0.7) translateY(20px); filter: blur(10px); }
+                60%  { opacity: 1; transform: translateX(-50%) scale(1.08) translateY(-5px); filter: blur(0px); }
+                100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0px); filter: blur(0px); }
+            }
+
+            /* 🌟 核心同步魔法：延遲 5.75 秒 (與寶箱怪咬下、寶箱彈起的那一毫秒完全一致)，
+                 以具有彈性的 cubic-bezier 曲線滑順彈出字樣！ */
+            #loot-panel.loot-show #loot-text-group {
+                animation: lootTextPopIn 0.6s 5.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             }
 
         </style>
@@ -439,27 +622,96 @@ export function initScene2(playerState, switchScene) {
             </div>
 
             <div id="loot-panel">
-                <div style="font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; margin-bottom: 25px; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);">CHEST OPENED</div>
-                <div style="display: flex; flex-direction: column; gap: 15px; align-items: center; justify-content: center;">
-                    <div style="display: flex; gap: 50px; font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900;">
-                        <div style="color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); display: flex; align-items: center; gap: 15px;">
-                            <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 10px rgba(255,255,255,0.4);">1</span>
-                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans'; font-weight: normal;">實彈</span> x1
-                        </div>
-                        <div style="color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); display: flex; align-items: center; gap: 15px;">
-                            <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 0 10px rgba(255,255,255,0.4);">0</span>
-                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans'; font-weight: normal;">空包彈</span> x4
+                
+                <!-- 🌟 戰利品道具 (top 已經大膽下推至 80px，真正來到畫面中間偏上的黃金位置！) -->
+                <div id="loot-text-group" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); display: flex; gap: 60px; font-family: 'Orbitron', sans-serif; z-index: 10; opacity: 0; transition: opacity 0.5s ease;">
+                    
+                    <!-- 【實彈區塊】採用 inline-flex 與 align-items: center 確保中英文 Y 軸精準置中對齊 -->
+                    <div style="display: inline-flex; align-items: center; gap: 14px;">
+                        <!-- 01 實體方塊 ICON (維持原樣) -->
+                        <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; font-family: 'Orbitron', sans-serif; font-weight: bold; color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.4); line-height: 1;">1</span>
+                        
+                        <!-- 中文字與 x1 的群組容器 (強制 Y 軸垂直居中) -->
+                        <span style="display: inline-flex; align-items: center; gap: 8px;">
+                            <!-- 中文字：維持 1.3rem、正常粗細與白色發光 -->
+                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans', sans-serif; font-weight: normal; text-shadow: 0 0 15px rgba(255,255,255,0.8); white-space: nowrap; line-height: 1;">實彈</span>
+                            <!-- 🌟 x1：為它穿上獨立 span！強制取消發光(text-shadow: none)、改用細體(font-weight: 300)與適中大小 -->
+                            <span style="font-size: 1.2rem; color: rgba(255,255,255,0.85); font-family: 'Orbitron', sans-serif; font-weight: 300; text-shadow: none; white-space: nowrap; line-height: 1;">x1</span>
+                        </span>
+                    </div>
+
+                    <!-- 【空包彈區塊】採用相同的高精度對齊設定 -->
+                    <div style="display: inline-flex; align-items: center; gap: 14px;">
+                        <!-- 00 實體方塊 ICON (維持原樣) -->
+                        <span style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; font-family: 'Orbitron', sans-serif; font-weight: bold; color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.4); line-height: 1;">0</span>
+                        
+                        <!-- 中文字與 x4 的群組容器 (強制 Y 軸垂直居中) -->
+                        <span style="display: inline-flex; align-items: center; gap: 8px;">
+                            <!-- 中文字：維持 1.3rem、正常粗細與白色發光 -->
+                            <span style="font-size: 1.3rem; color: #fff; font-family: 'Kumbh Sans', sans-serif; font-weight: normal; text-shadow: 0 0 15px rgba(255,255,255,0.8); white-space: nowrap; line-height: 1;">空包彈</span>
+                            <!-- 🌟 x4：強制取消發光(text-shadow: none)、改用細體(font-weight: 300)與適中大小 -->
+                            <span style="font-size: 1.2rem; color: rgba(255,255,255,0.85); font-family: 'Orbitron', sans-serif; font-weight: 300; text-shadow: none; white-space: nowrap; line-height: 1;">x4</span>
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- 🌟 跳躍空間 -->
+                <div style="position: relative; width: 100%; height: 260px; margin-top: 20px;">
+                    
+                    <!-- 🌟 新增：等待被咬的 AND 寶箱 (長相與關卡完全一致) -->
+                    <svg id="target-and-chest" class="svg-glow" viewBox="-50 -80 100 120" stroke="#fff" stroke-width="4" fill="#000" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="-15" y1="-70" x2="-15" y2="-30" />
+                        <line x1="15" y1="-70" x2="15" y2="-30" />
+                        <path d="M -30 -30 L 30 -30 L 30 0 A 30 30 0 0 1 -30 0 Z" fill="#000" />
+                    </svg>
+
+                    <!-- 原本的雙層跳躍寶箱怪 -->
+                    <div class="mimic-jump-x">
+                        <div class="mimic-jump-y">
+                            <iframe id="mimic-iframe" src="draw_svg/mimic.html" style="width: 180px; height: 180px; border: none; overflow: hidden; pointer-events: none; filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.8));"></iframe>
                         </div>
                     </div>
+                    
                 </div>
+
             </div>
 
-            <div id="hammer-loot-modal" style="position: absolute; top: 40%; left: 50%; filter: blur(15px) brightness(2); transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); opacity: 0; pointer-events: none; background: rgba(10, 10, 15, 0.9); border: 2px solid var(--brand-blue); border-radius: 12px; padding: 40px 80px; text-align: center; backdrop-filter: blur(15px); z-index: 500; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                <div style="font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--brand-blue); letter-spacing: 5px; margin-bottom: 10px;">NEW WEAPON ACQUIRED</div>
-                <div style="font-family: 'Orbitron', sans-serif; font-size: 3.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8); margin-bottom: 5px;">AND Hammer</div>
-                <div style="font-family: 'Kumbh Sans', sans-serif; font-size: 1.8rem; font-weight: bold; color: #fff; margin-bottom: 20px;">AND 槌</div>
-                <div style="color: rgba(255,255,255,0.6); font-size: 1rem; letter-spacing: 2px; border-top: 1px solid rgba(0,242,254,0.3); padding-top: 20px;">
-                    [ 系統分析 ]：具備邏輯改寫能力的重型裝備。<br>可用於粉碎錯誤的邏輯屏障。
+            <div id="hammer-loot-modal" class="anim-modal">
+                <div style="position: absolute; top:0; left:0; width:100%; height:100%; border-radius: 12px; overflow: hidden; pointer-events:none;">
+                    <div class="anim-border top-border"></div>
+                    <div class="anim-border right-border"></div>
+                    <div class="anim-border left-border"></div>
+                    <div class="anim-border bottom-right-border"></div>
+                    <div class="anim-border bottom-left-border"></div>
+                </div>
+
+                <div style="position:relative; z-index: 10;">
+                    <!-- 1. 最上方的提示字 -->
+                    <div id="hammer-top-text" class="modal-text-top" style="opacity:0;">NEW WEAPON ACQUIRED</div>
+                    
+                    <!-- 🌟 2. ICON 放在這裡（維持原本的中間位置），但等一下動畫會最後才顯示 -->
+                    <div id="hammer-center-content" style="opacity:0; height: 70px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: center;">
+                            <svg viewBox="-50 -30 100 120" style="width: 50px; height: 60px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));">
+                                <line x1="0" y1="80" x2="0" y2="-5" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+                                <path d="M -35 -20 L 35 -20 A 35 50 0 0 1 -35 -20 Z" fill="#000" stroke="#fff" stroke-width="12" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 3. 武器名稱在 ICON 下面 -->
+                    <div id="hammer-title" style="font-family: 'Kumbh Sans', sans-serif; font-size: 1.8rem; font-weight: bold; color: #fff; margin-bottom: 20px; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease;">AND槌 (AND HAMMER)</div>
+                    
+                    <!-- 4. 分隔線 -->
+                    <div class="modal-separator-container">
+                        <div id="hammer-separator" class="anim-separator"></div>
+                    </div>
+                    
+                    <!-- 5. 說明文字 -->
+                    <div id="hammer-desc" class="modal-text-desc" style="opacity:0;">
+                        [ 系統分析 ]：具備邏輯改寫能力的重型裝備。<br>可用於粉碎錯誤的邏輯屏障。
+                    </div>
                 </div>
             </div>
 
@@ -1337,7 +1589,6 @@ export function initScene2(playerState, switchScene) {
                 chestOpened = true; isPlayerControllable = false; stickman.classList.add('stand-still');
                 document.getElementById('chest-e-prompt').style.opacity = '0';
                 
-                // 🌟 播放第一個寶箱打開音效
                 playActionSfx(sfxOpenChest);
 
                 const chest = document.getElementById('and-chest');
@@ -1346,18 +1597,24 @@ export function initScene2(playerState, switchScene) {
                 setTimeout(() => {
                     chest.classList.remove('chest-opening'); chest.style.filter = 'drop-shadow(0 0 15px #fff)'; chest.style.stroke = '#fff';
                     
+                    // 🌟 核心同步魔法：重載 iframe
+                    const mimicIframe = document.getElementById('mimic-iframe');
+                    if (mimicIframe) mimicIframe.src = mimicIframe.src;
+
                     const lootPanel = document.getElementById('loot-panel');
                     lootPanel.classList.add('loot-show');
                     
                     ammoOnes += 1; ammoZeros += 4;
                     document.getElementById('held-1-s2').style.opacity = '1'; document.getElementById('held-0-s2').style.opacity = '1';
 
+                    // 🌟 將介面停留時間由 8000 延長到 8500 (比原本多停留 0.5 秒)
                     setTimeout(() => {
                         lootPanel.classList.remove('loot-show');
                         isPlayerControllable = true; activePuzzle = 4; marqueeTitle.innerText = 'NOT INPUT'; 
-                    }, 3000);
+                    }, 8500);
+
                 }, 800);
-            } 
+            }
 
             if (activePuzzle === 5 && isNearChest3 && !chest3Opened) {
                 chest3Opened = true; 
@@ -1449,13 +1706,42 @@ export function initScene2(playerState, switchScene) {
                 andHammer.style.opacity = '0';
 
                 const modal = document.getElementById('hammer-loot-modal');
-                modal.style.filter = 'blur(0px) brightness(1)';
-                modal.style.transform = 'translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg)';
-                modal.style.opacity = '1';
+                const topText = document.getElementById('hammer-top-text');
+                const titleEl = document.getElementById('hammer-title'); // 🌟 新增綁定
+                const separator = document.getElementById('hammer-separator');
+                const descEl = document.getElementById('hammer-desc');
+                const centerContent = document.getElementById('hammer-center-content');
+
+                // 初始化隱藏狀態
+                topText.style.opacity = '0'; topText.style.transform = 'translateY(-10px)';
+                titleEl.style.opacity = '0'; titleEl.style.transform = 'translateY(-10px)';
+                separator.style.width = '0';
+                descEl.style.opacity = '0'; descEl.style.transform = 'translateY(10px)';
+                centerContent.style.opacity = '0';
+                centerContent.classList.remove('spectacular-entry');
+
+                modal.classList.add('show-init');
+                
+                setTimeout(() => {
+                    modal.classList.add('draw-borders');
+                    modal.classList.add('show-bg');
+                }, 100);
+
+                // 動畫 1：顯示文字與名稱
+                setTimeout(() => { 
+                    topText.style.opacity = '1'; topText.style.transform = 'translateY(0)'; 
+                    titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
+                }, 800);
+                // 動畫 2：畫線
+                setTimeout(() => { separator.style.width = '100%'; }, 1100);
+                // 動畫 3：顯示說明
+                setTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
+                // 動畫 4：最後顯示 ICON
+                setTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
 
                 setTimeout(() => {
                     modal.style.opacity = '0';
-                    modal.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                    setTimeout(() => { modal.classList.remove('show-init', 'draw-borders', 'show-bg'); }, 400);
                     
                     setTimeout(() => {
                         isPlayerControllable = true;
@@ -1467,7 +1753,8 @@ export function initScene2(playerState, switchScene) {
                         heldHammer.style.opacity = '1';
                         
                     }, 500); 
-                }, 3500); 
+                }, 5500);
+             
             }
             if (activePuzzle === 5 && isNearBook && !bookPickedUp && bookReadyToPick) {
                 bookPickedUp = true;

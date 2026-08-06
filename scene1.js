@@ -78,11 +78,78 @@ export function initScene1(playerState, switchScene) {
             .ammo-item { position: absolute; font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900; transform: translate(-50%, -50%); transition: all 0.3s ease; z-index: 3; animation: floatAmmo 2s infinite ease-in-out; color: #fff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
             @keyframes floatAmmo { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-10px); } }
 
-            #ammo-modal { position: absolute; top: 40%; left: 50%; filter: blur(15px) brightness(2); transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg); opacity: 0; pointer-events: none; background: rgba(10, 10, 15, 0.85); border: 1px solid transparent; border-radius: 8px; padding: 30px 60px; text-align: center; backdrop-filter: blur(10px); z-index: 200; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s ease; }
-            #ammo-modal.ammo-show { filter: blur(0px) brightness(1); transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg); opacity: 1; }
-            #ammo-title { font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; margin-bottom: 5px; letter-spacing: 5px; }
-            #ammo-subtitle { font-family: 'Kumbh Sans', sans-serif; font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #fff; }
-            #ammo-desc { color: rgba(255,255,255,0.7); font-size: 1rem; letter-spacing: 2px; }
+            
+            
+            
+            
+            
+        
+            /* Modal Animation CSS */
+            .anim-modal {
+                position: absolute; top: 40%; left: 50%;
+                transform: translate(-50%, -50%) scale(1.5) perspective(600px) rotateX(45deg);
+                opacity: 0; pointer-events: none;
+                background: rgba(10, 10, 15, 0); 
+                padding: 40px 60px;
+                text-align: center; backdrop-filter: blur(0px);
+                z-index: 500;
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+                border-radius: 12px;
+                min-width: 420px;
+            }
+            
+            .anim-modal.show-init {
+                transform: translate(-50%, -50%) scale(1) perspective(600px) rotateX(0deg);
+                opacity: 1;
+            }
+
+            .anim-modal.show-bg {
+                background: rgba(10, 10, 15, 0.9);
+                backdrop-filter: blur(15px);
+                transition: background 0.4s ease, backdrop-filter 0.4s ease;
+                box-shadow: 0 0 40px rgba(0, 242, 254, 0.2), inset 0 0 20px rgba(0, 242, 254, 0.1);
+            }
+
+            /* Animated Borders */
+            .anim-border { position: absolute; background: var(--brand-blue); box-shadow: 0 0 10px var(--brand-blue); }
+            .top-border { top: 0; left: 50%; right: 50%; height: 2px; transition: left 0.25s ease-out, right 0.25s ease-out; }
+            .right-border { top: 0; right: 0; width: 2px; height: 0; transition: height 0.25s ease-out 0.25s; }
+            .left-border { top: 0; left: 0; width: 2px; height: 0; transition: height 0.25s ease-out 0.25s; }
+            .bottom-right-border { bottom: 0; right: 0; width: 0; height: 2px; transition: width 0.25s ease-out 0.5s; }
+            .bottom-left-border { bottom: 0; left: 0; width: 0; height: 2px; transition: width 0.25s ease-out 0.5s; }
+
+            .anim-modal.draw-borders .top-border { left: 0; right: 0; }
+            .anim-modal.draw-borders .right-border { height: 100%; }
+            .anim-modal.draw-borders .left-border { height: 100%; }
+            .anim-modal.draw-borders .bottom-right-border { width: 50%; }
+            .anim-modal.draw-borders .bottom-left-border { width: 50%; }
+            
+            /* Content Elements */
+            .modal-text-top {
+                font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--brand-blue);
+                letter-spacing: 5px; margin-bottom: 25px;
+                transform: translateY(-10px); transition: all 0.3s ease;
+            }
+            .modal-separator-container { width: 100%; height: 1px; margin-bottom: 20px; display: flex; justify-content: flex-start; }
+            .anim-separator { width: 0; height: 1px; background: rgba(0, 242, 254, 0.5); box-shadow: 0 0 5px var(--brand-blue); transition: width 0.4s ease-out; }
+            
+            .modal-text-desc {
+                color: rgba(255,255,255,0.6); font-size: 1rem; letter-spacing: 2px;
+                transform: translateY(10px); transition: all 0.3s ease; line-height: 1.5;
+            }
+
+            /* Spectacular Entry */
+            .spectacular-entry {
+                animation: propExplosion 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+
+            @keyframes propExplosion {
+                0% { transform: scale(0.2) translateY(-40px); opacity: 0; filter: brightness(3) blur(5px); }
+                40% { transform: scale(1.3) translateY(10px); opacity: 1; filter: brightness(2) blur(0px) drop-shadow(0 0 30px #fff); }
+                70% { transform: scale(0.9) translateY(-5px); opacity: 1; filter: brightness(1.2) drop-shadow(0 0 15px var(--brand-blue)); }
+                100% { transform: scale(1) translateY(0); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+            }
+
         </style>
 
         <div style="width: 100%; height: 100%; background-color: #000; position: relative; overflow: hidden;">
@@ -210,11 +277,37 @@ export function initScene1(playerState, switchScene) {
                 </div>
             </div>
 
-            <div id="ammo-modal">
-                <div id="ammo-title"></div>
-                <div id="ammo-subtitle"></div>
-                <div id="ammo-desc"></div>
+            <div id="ammo-modal" class="anim-modal">
+                <div style="position: absolute; top:0; left:0; width:100%; height:100%; border-radius: 12px; overflow: hidden; pointer-events:none;">
+                    <div class="anim-border top-border"></div>
+                    <div class="anim-border right-border"></div>
+                    <div class="anim-border left-border"></div>
+                    <div class="anim-border bottom-right-border"></div>
+                    <div class="anim-border bottom-left-border"></div>
+                </div>
+
+                <div style="position:relative; z-index: 10;">
+                    <!-- 1. 最上方的提示字 -->
+                    <div id="ammo-top-text" class="modal-text-top" style="opacity:0;">NEW PROP ACQUIRED</div>
+                    
+                    <!-- 🌟 2. ICON 放在這裡（維持原本的中間位置），但等一下動畫會最後才顯示 -->
+                    <div id="ammo-center-content" style="opacity:0; height: 60px; margin-bottom: 15px;">
+                        <div id="ammo-icon-container" style="display: flex; justify-content: center;"></div>
+                    </div>
+
+                    <!-- 3. 道具名稱在 ICON 下面 -->
+                    <div id="ammo-title" style="font-family: 'Kumbh Sans', sans-serif; font-size: 1.8rem; font-weight: bold; color: #fff; margin-bottom: 20px; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease;"></div>
+
+                    <!-- 4. 分隔線 -->
+                    <div class="modal-separator-container">
+                        <div id="ammo-separator" class="anim-separator"></div>
+                    </div>
+                    
+                    <!-- 5. 說明文字 -->
+                    <div id="ammo-desc" class="modal-text-desc" style="opacity:0;"></div>
+                </div>
             </div>
+            </div></div>
         </div>
     `;
 
@@ -325,27 +418,88 @@ export function initScene1(playerState, switchScene) {
     }, 4000);
 
     function showAmmoModal(type, title, subtitle, desc, color) {
+        // 🌟 強制暫停玩家動作
+        isPlayerControllable = false;
+        stickman.classList.add('stand-still');
+
         const modal = document.getElementById('ammo-modal');
+        
+        // 🌟 關鍵修復：清除上一次動畫結束時殘留的 inline style，把控制權還給 CSS！
+        modal.style.opacity = ''; 
+
+        const topText = document.getElementById('ammo-top-text');
         const titleEl = document.getElementById('ammo-title');
-        const subtitleEl = document.getElementById('ammo-subtitle');
+        const separator = document.getElementById('ammo-separator');
         const descEl = document.getElementById('ammo-desc');
+        const centerContent = document.getElementById('ammo-center-content');
+        const iconContainer = document.getElementById('ammo-icon-container');
 
-        titleEl.innerText = title;
-        titleEl.style.color = '#fff'; // 🚀 強制將大字 0 與 1 改為純白色
-        titleEl.style.textShadow = '0 0 20px rgba(255, 255, 255, 0.8)'; // 🚀 改為白色發光特效
-        subtitleEl.innerText = subtitle;
-        descEl.innerText = desc;
+            modal.className = 'anim-modal';
         
-        // 外框與面板本體依然保留原本設定的科技藍線條與發光，維持整體 UI 層次感
-        modal.style.borderColor = color;
-        modal.style.boxShadow = `0 0 40px ${color}44, inset 0 0 20px ${color}88`;
+            // ==========================================
+            // 🌟 修復殘影：暫時關閉所有的 CSS 動畫過渡 (Transition)
+            // ==========================================
+            topText.style.transition = 'none';
+            titleEl.style.transition = 'none';
+            separator.style.transition = 'none';
+            descEl.style.transition = 'none';
+            centerContent.style.transition = 'none';
 
-        modal.classList.add('ammo-show');
-        
-        setTimeout(() => {
-            modal.classList.remove('ammo-show');
-        }, 3000);
-    }
+            // 瞬間將數值歸零 (此時不會有淡出動畫，因為被關閉了)
+            topText.style.opacity = '0'; topText.style.transform = 'translateY(-10px)';
+            titleEl.style.opacity = '0'; titleEl.style.transform = 'translateY(-10px)';
+            separator.style.width = '0';
+            descEl.style.opacity = '0'; descEl.style.transform = 'translateY(10px)';
+            centerContent.style.opacity = '0';
+            centerContent.classList.remove('spectacular-entry');
+
+            // 🌟 關鍵魔法：強制瀏覽器重新渲染 (Reflow)，讓上述的「瞬間歸零」馬上生效
+            void modal.offsetWidth; 
+
+            // 恢復動畫過渡設定 (把動畫控制權還給 CSS，為接下來的淡入做準備)
+            topText.style.transition = '';
+            titleEl.style.transition = '';
+            separator.style.transition = '';
+            descEl.style.transition = '';
+            centerContent.style.transition = '';
+            // ==========================================
+
+            iconContainer.innerHTML = `<div style="border: 2px solid #fff; border-radius: 4px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.8rem; font-family: 'Orbitron'; font-weight: bold; color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.4);">${title}</div>`;
+            titleEl.innerText = subtitle;
+            descEl.innerHTML = desc;
+
+            modal.classList.add('show-init');
+            
+            setTimeout(() => {
+                modal.classList.add('draw-borders');
+                modal.classList.add('show-bg');
+            }, 100);
+
+            // 動畫 1：顯示頂部文字與道具名稱
+            setTimeout(() => {
+                topText.style.opacity = '1'; topText.style.transform = 'translateY(0)';
+                titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
+            }, 800);
+
+            // 動畫 2：畫線
+            setTimeout(() => { separator.style.width = '100%'; }, 1100);
+
+            // 動畫 3：顯示說明文字
+            setTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
+
+            // 動畫 4：最後單獨彈出 ICON
+            setTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
+
+            // 關閉 Modal 並恢復玩家控制
+            setTimeout(() => {
+                modal.style.opacity = '0';
+                setTimeout(() => { 
+                    modal.classList.remove('show-init', 'draw-borders', 'show-bg'); 
+                    isPlayerControllable = true; // 🌟 介面關閉後才允許玩家移動
+                }, 400);
+            }, 5500);
+        }
+
 
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();

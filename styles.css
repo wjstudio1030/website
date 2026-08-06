@@ -75,13 +75,16 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     justify-content: center;
     align-items: center;
     font-size: 1.2rem;
-    position: sticky;
+    position: relative;
+    /* 🌟 改成 relative，讓它停留在原位 */
     top: 0;
+    width: 100%;
+    /* 確保寬度滿版 */
     z-index: 999;
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    /* transition 可以保留，也可以刪除，因為不再有滑動動畫了 */
 }
 
 .navbar.nav-hidden {
@@ -208,13 +211,48 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     width: 100%;
     height: 100%;
     z-index: 0;
-    background-size: cover;
-    background-position: 25% 0%;
+
+    /* 🌟 1. 左側終極微調：把原本到 55% 才淡化完的黑影，提早到 45% 就結束！
+       這樣左圖的手臂與背景光影會更清澈，黑影只會緊緊貼在交界處。 */
+    background-image:
+        linear-gradient(to right, #141414 0%, #141414 39%, rgba(20, 20, 20, 0.6) 45%, rgba(20, 20, 20, 0.6) 100%),
+        url('images/WJ_TEDx.png');
+
+    background-size: 100% 100%, auto 100%;
+    background-position: center, right center;
     background-repeat: no-repeat;
-    background-image: linear-gradient(to right, #141414 0%, #141414 40%, rgba(20, 20, 20, 0.85) 60%, rgba(20, 20, 20, 0.6) 100%), url('images/TEST.png');
+
     opacity: 0;
-    transform: scale(1.05);
-    animation: bgReveal 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+    transform: scaleX(-1) scale(1.05);
+    /* 水平翻轉 */
+    animation: bgRevealFlip 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+}
+
+/* 🌟 右側正方形照片區塊 */
+.main::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+
+    /* 寬度維持 40% 不變，完美讓出版面 */
+    width: 40%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+
+    /* 🌟 2. 右側終極微調：黑影從接縫 (0%) 開始，在短短 15% 的距離內就「完全變成透明」(原本拖到了 35%)。
+       這會讓右邊的大腦與文字圖案更加明亮、完整！ */
+    background-image:
+        linear-gradient(to right, #141414 0%, rgba(20, 20, 20, 0.4) 5%, transparent 15%),
+        url('images/TEDx_SuperThinking.jpg');
+
+    background-size: 100% 100%, auto 110%;
+    background-position: left center, right 0% center;
+    background-repeat: no-repeat;
+
+    opacity: 0;
+    animation: bgRevealRight 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s forwards;
 }
 
 .main__container {
@@ -367,6 +405,367 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.6));
     outline: none;
     border: none;
+}
+
+/* =========================================
+   介紹動畫：輕盈純白薄霧特效 (Intro Overlay)
+   ========================================= */
+.intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    /* 🌟 核心修改：從原本的 990 一舉提升到 10000！
+       這樣整個劇院（包含上半部的投影幕、影片、Logo與彩帶）都會凌駕於 Navbar (999) 之上！
+       當動畫退場淡出完畢後，Navbar 就會完美現身、歸還點擊權限。 */
+    z-index: 10000;
+
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.intro-overlay.intro-active {
+    opacity: 1;
+    pointer-events: auto;
+    /* 只有在播放動畫時，才會攔截點擊 */
+}
+
+/* Canvas 煙霧畫布：全螢幕滿版 */
+#smokeCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* =========================================
+   TEDx 劇院舞台容器與 SVG 元件總管
+   ========================================= */
+/* 🌟 升級為 16:9 黃金比例舞台，確保所有 SVG 絕對定位不會跑版 */
+.svg-container {
+    position: relative;
+    z-index: 10;
+    width: 90%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    /* 鎖定劇院比例 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 舞台所有 SVG 元件的共用基礎設定 */
+.stage-element {
+    position: absolute;
+    opacity: 0;
+    /* 初始隱藏，等待 JS 觸發動畫 */
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+/* ----------------------------------------------------
+   1. 紅台階 (Red Steps) - 右側定位與物理超擺擴展
+   ---------------------------------------------------- */
+#stage-steps {
+    bottom: -20%;
+    /* 🌟 控制上下位置：距舞台底部 -20% */
+    left: 76%;
+    /* 🌟 控制左右位置：距舞台左側 76% (靠右) */
+    width: 30%;
+    /* 🌟 控制尺寸大小：佔舞台寬度的 30% */
+    z-index: 10;
+    /* 圖層高度：在 Logo 與講者之下 */
+    transform-origin: center bottom;
+    /* 鎖定底部中心，確保從地面向上爆發 */
+}
+
+/* 延遲 0.2 秒啟動物理彈性擴展 */
+.intro-overlay.intro-active #stage-steps {
+    animation: stepsHyperExpand 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+}
+
+@keyframes stepsHyperExpand {
+    0% {
+        opacity: 0;
+        transform: scaleX(0.05) scaleY(0.05) translateY(60px);
+        filter: blur(12px);
+    }
+
+    45% {
+        opacity: 1;
+        /* 🌟 第一次爆發：擴大到比原本還要大一點 (寬度放大 18%，高度放大 22%) */
+        transform: scaleX(1.18) scaleY(1.22) translateY(-12px);
+        filter: blur(0);
+    }
+
+    68% {
+        /* 🌟 物理回彈：受到重力牽引往回收縮到 92% */
+        transform: scaleX(0.92) scaleY(0.92) translateY(6px);
+    }
+
+    84% {
+        /* 🌟 二次振盪：微幅超擺到 104% */
+        transform: scaleX(1.04) scaleY(1.04) translateY(-2px);
+    }
+
+    100% {
+        opacity: 1;
+        /* 🌟 最終歸位：縮小並穩定成原本 100% 的完美大小 */
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* ----------------------------------------------------
+   2. TEDx Logo - 右側定位與 3D 空間旋轉重擊
+   ---------------------------------------------------- */
+#stage-logo {
+    bottom: 0%;
+    /* 🌟 控制上下位置：懸浮在台階上方 */
+    left: 70%;
+    /* 🌟 控制左右位置：偏向舞台右側，與台階對齊 */
+    width: 48%;
+    /* 🌟 控制尺寸大小：佔舞台寬度的 42% */
+    z-index: 15;
+    /* 圖層高度：蓋在台階之上 */
+    transform-origin: center center;
+}
+
+/* 延遲 0.6 秒（等台階第一波回彈時），高速旋轉殺入 */
+.intro-overlay.intro-active #stage-logo {
+    animation: logoCyberSpin 0.9s cubic-bezier(0.19, 1, 0.22, 1) 0.6s forwards;
+}
+
+@keyframes logoCyberSpin {
+    0% {
+        opacity: 0;
+        /* 🌟 結合 3D 空間深度的 Y 軸翻轉與 Z 軸 -360 度強力旋轉 */
+        transform: perspective(800px) rotateY(-180deg) rotateZ(-360deg) scale(0.1);
+        filter: blur(15px) drop-shadow(0 0 0 transparent);
+    }
+
+    50% {
+        opacity: 1;
+        /* 🌟 旋轉衝刺到達頂峰：放大到 115%，帶有空間傾斜角與強烈紅色激光陰影 */
+        transform: perspective(800px) rotateY(12deg) rotateZ(10deg) scale(1.15);
+        filter: blur(0px) drop-shadow(0 0 35px rgba(255, 8, 68, 0.8));
+    }
+
+    75% {
+        /* 🌟 反向旋轉減震：稍微往反方向回正並縮小到 95% */
+        transform: perspective(800px) rotateY(-6deg) rotateZ(-5deg) scale(0.95);
+        filter: drop-shadow(0 0 20px rgba(255, 8, 68, 0.5));
+    }
+
+    100% {
+        opacity: 1;
+        /* 🌟 完美歸位：旋轉角清零，鎖定原始 100% 比例與沉穩立體陰影 */
+        transform: perspective(800px) rotateY(0deg) rotateZ(0deg) scale(1);
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+    }
+}
+
+/* ----------------------------------------------------
+   0. 大投影幕 (Projection Screen) - 最底層與下拉掃描特效
+   ---------------------------------------------------- */
+#stage-screen {
+    top: -7%;
+    /* 🌟 控制上下位置：距舞台頂部 4% */
+    left: -6%;
+    /* 🌟 控制左右位置：水平置中 (距左 6%) */
+    width: 94%;
+    /* 🌟 控制尺寸大小：佔滿舞台寬度的 88% */
+    z-index: 5;
+    /* 圖層高度：最底層，在所有元件之後 */
+}
+
+/* 延遲 1.4 秒（等 TEDx Logo 旋轉定型後），啟動由上而下的下拉掃描 */
+.intro-overlay.intro-active #stage-screen {
+    animation: screenPullDown 0.95s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+}
+
+@keyframes screenPullDown {
+    0% {
+        opacity: 1;
+        /* 🌟 核心科技：將可見區域底部 100% 剪裁隱藏（只留最頂端線條） */
+        clip-path: inset(0 0 100% 0);
+        filter: drop-shadow(0 0 0 transparent);
+    }
+
+    80% {
+        /* 🌟 下拉到 0% (完全揭開)，伴隨科技感藍色發光光暈 */
+        clip-path: inset(0 0 0% 0);
+        filter: drop-shadow(0 15px 30px rgba(0, 242, 254, 0.25));
+    }
+
+    100% {
+        opacity: 1;
+        clip-path: inset(0 0 0% 0);
+        /* 最終穩定為沉穩的劇院背景陰影 */
+        filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.6));
+    }
+}
+
+/* ----------------------------------------------------
+   3. 觀眾群 (Audience) - 最前排定位與沉浸式淡入
+   ---------------------------------------------------- */
+#stage-audience {
+    bottom: -16%;
+    /* 🌟 控制上下位置：緊貼舞台最底部邊界 */
+    left: -21%;
+    /* 🌟 控制左右位置：左右完全貼齊 */
+    width: 142%;
+    /* 🌟 控制尺寸大小：100% 橫跨整個前景 */
+    z-index: 40;
+    /* 圖層高度：最高層，遮擋後方底框與講者腳部 */
+    transform-origin: center bottom;
+}
+
+/* 延遲 2.1 秒（等投影幕下拉完畢後），觀眾群優雅浮現 */
+.intro-overlay.intro-active #stage-audience {
+    animation: audienceCinematicFade 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2.1s forwards;
+}
+
+@keyframes audienceCinematicFade {
+    0% {
+        opacity: 0;
+        /* 搭配微幅往上升浮與模糊，營造燈光亮起時觀眾入座的立體景深 */
+        transform: translateY(25px) scale(0.98);
+        filter: blur(8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ----------------------------------------------------
+   4. 講者 (Presenter) - 站在紅台階之上的定位與淡入
+   ---------------------------------------------------- */
+#stage-presenter {
+    bottom: 5%;
+    /* 🌟 控制上下位置：剛好站在紅台階頂端 */
+    left: 73%;
+    /* 🌟 控制左右位置：與紅台階的中心點對齊 */
+    width: 36%;
+    /* 🌟 控制尺寸大小：佔舞台寬度的 22% */
+    z-index: 30;
+    /* 圖層高度：在 Logo(15)之上，觀眾(40)之下 */
+    transform-origin: center bottom;
+}
+
+/* 延遲 2.8 秒（等觀眾入座淡入後），講者自信淡入登場 */
+.intro-overlay.intro-active #stage-presenter {
+    animation: presenterFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2.8s forwards;
+}
+
+@keyframes presenterFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px) scale(0.96);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ----------------------------------------------------
+   0.5 投影幕影片 (Presentation Video) - 嵌入黑框與同步淡入
+   ---------------------------------------------------- */
+#stage-video {
+    top: 1%;
+    /* 🌟 控制內框上方邊界：避開投影幕上方的捲軸頂框 */
+    left: 2%;
+    /* 🌟 控制內框左方邊界：對齊黑框左側 */
+    width: 78%;
+    /* 🌟 控制影片寬度：剛好填滿投影幕內框 */
+    height: 80%;
+    /* 🌟 控制影片高度：剛好填滿到下框邊界 */
+    z-index: 6;
+    /* 圖層高度：在底層幕布(5)之上，紅台階(10)之下 */
+    object-fit: cover;
+    /* 確保影片畫面填滿內框，不留黑邊 */
+    background: #000000;
+    border-radius: 4px;
+    /* 微微的圓角，貼合投影幕內緣 */
+}
+
+/* 🌟 與講者同步於 2.8 秒開始淡入 (歷時 0.8 秒，在 3.6 秒時達到 100% 完整顯示) */
+.intro-overlay.intro-active #stage-video {
+    animation: videoFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2.8s forwards;
+}
+
+@keyframes videoFadeIn {
+    0% {
+        opacity: 0;
+        filter: brightness(0.2);
+    }
+
+    100% {
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+/* ----------------------------------------------------
+   5. & 6. 結局高潮影片層 (Clap & Streamers) - 定位與圖層
+   ---------------------------------------------------- */
+#stage-clap {
+    bottom: -10%;
+    left: -8%;
+    width: 120%;
+    z-index: 41;
+    object-fit: cover;
+}
+
+#stage-streamers {
+    top: -10%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    object-fit: cover;
+}
+
+/* 🌟 為靜態觀眾、歡呼層與彩帶層加上 CSS 平滑過渡 (0.6 秒優雅轉場) */
+#stage-audience,
+#stage-clap,
+#stage-streamers {
+    transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 🌟 JS 動態切換顯示狀態專用的通用類別 */
+.layer-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.layer-visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* 手機版防護：直接隱藏，100% 維持原本乾淨排版 */
+@media screen and (max-width: 960px) {
+    .intro-overlay {
+        display: none !important;
+    }
 }
 
 /* =========================================
@@ -821,6 +1220,34 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
     }
 }
 
+@keyframes bgRevealFlip {
+    0% {
+        opacity: 0;
+        transform: scaleX(-1) scale(1.15);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleX(-1) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes bgRevealRight {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+        filter: blur(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+    }
+}
+
 @keyframes fadeInUpBtn {
     from {
         opacity: 0;
@@ -998,6 +1425,15 @@ body.is-scrolling ::-webkit-scrollbar-thumb,
         background-image: url('images/Tedx.png') !important;
         background-size: cover !important;
         background-position: center center !important;
+        transform: scale(1) !important;
+        /* 取消手機版的翻轉 */
+        animation: bgReveal 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards !important;
+    }
+
+    /* 在 960px 媒體查詢區塊內加入這段 */
+    .main::after {
+        display: none !important;
+        /* 手機版隱藏右側圖片，保持原本乾淨的排版 */
     }
 
     .main__container {

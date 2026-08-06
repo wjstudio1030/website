@@ -161,6 +161,7 @@ function createParticle(x, y) {
 }
 
 // --- 6. 潛行導航欄邏輯 ---
+/*  🌟 將此區塊全部註解或刪除
 const navbar = document.querySelector('.navbar');
 let isScrolled = false;
 
@@ -181,6 +182,7 @@ if(navbar) {
         if (isScrolled) { navbar.classList.add('nav-hidden'); }
     });
 }
+*/
 
 // --- 首頁 JARVIS 影片動畫邏輯 ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -220,6 +222,444 @@ window.addEventListener('scroll', () => {
         document.body.classList.remove('is-scrolling');
     }, 500);
 });
+
+// =========================================
+// 進入網站 3 秒 + 下滑觸發：3方向氣流 ➔ 0.5s 極速微霧接班引擎
+// =========================================
+let isIntroTimeReady = false;
+let hasIntroTriggered = false;
+const introOverlay = document.getElementById('intro-animation-overlay');
+const smokeCanvas = document.getElementById('smokeCanvas');
+
+if (introOverlay && smokeCanvas) {
+    setTimeout(() => {
+        isIntroTimeReady = true;
+        checkIntroTrigger();
+    }, 3000);
+
+    window.addEventListener('scroll', () => {
+        checkIntroTrigger();
+    });
+}
+
+function checkIntroTrigger() {
+    if (window.innerWidth > 960 && isIntroTimeReady && !hasIntroTriggered) {
+        if (window.scrollY > 50) { 
+            hasIntroTriggered = true;
+            introOverlay.classList.add('intro-active');
+            console.log("🚀 [SYSTEM]: True Aerodynamic Stream -> Gentle Mist Engine Triggered!");
+            
+            startVolumetricSmokeEngine();
+        }
+    }
+}
+
+// 🌟 最終完美版：氣流與輕盈薄霧渲染引擎
+function startVolumetricSmokeEngine() {
+    const ctx = smokeCanvas.getContext('2d');
+    let width = smokeCanvas.width = window.innerWidth;
+    let height = smokeCanvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = smokeCanvas.width = window.innerWidth;
+        height = smokeCanvas.height = window.innerHeight;
+    });
+
+    const particles = [];
+    let isGentleCloudPhase = false;
+
+    // 🌟 0.5 秒極速無縫接班：讓「三方向氣流」衝刺 500ms 後，立即平滑過渡成「淡淡微霧」
+    setTimeout(() => {
+        isGentleCloudPhase = true;
+        console.log("🚀 [SYSTEM]: 0.5s Mark - Streams Rapidly Merging into Gentle Mist!");
+        // 溫和地補入 30 個淡淡微霧粒子，維持最後背景輕盈優雅的質感
+        for (let i = 0; i < 30; i++) {
+            particles.push(new SmokeParticle('cloud', true));
+        }
+    }, 500);
+
+    class SmokeParticle {
+        constructor(type = 'stream', isRespawnOrStage2 = false) {
+            this.type = type;
+            this.reset(isRespawnOrStage2);
+        }
+
+        reset(isRespawnOrStage2 = false) {
+            this.angle = Math.random() * Math.PI * 2; 
+            this.spinSpeed = (Math.random() - 0.5) * 0.025;
+
+            // ----------------------------------------------------
+            // 階段二 (0.5 秒後)：維持最後「微微淡淡、均勻遍布」的優雅薄霧
+            // ----------------------------------------------------
+            if (this.type === 'cloud') {
+                this.x = isRespawnOrStage2 ? Math.random() * width : -200;
+                this.y = Math.random() * height;
+                this.radius = 180 + Math.random() * 220; 
+                this.growthRate = 0.3 + Math.random() * 0.5; // 平緩膨脹
+                this.vx = 1.2 + Math.random() * 1.8; // 輕盈平穩向右飄
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.alpha = 0;
+                // 關鍵透明度：微薄柔和，維持質感絕不遮蔽背景
+                this.maxAlpha = 0.04 + Math.random() * 0.04; 
+                this.fadeIn = true;
+                return;
+            }
+
+            // ----------------------------------------------------
+            // 階段一 (0 ~ 0.5 秒)：極速銳利的「三方向獨立氣流」
+            // ----------------------------------------------------
+            const nozzle = Math.floor(Math.random() * 3);
+            
+            // 🌟 100% 鎖定在螢幕最左邊界外 (-350px ~ -60px) 待命，保證每一條氣流都從最左邊完整吹入！
+            this.x = -(60 + Math.random() * 290); 
+            
+            if (nozzle === 0) {
+                // 1. 左上氣流：往右下俯衝
+                this.y = Math.random() * (height * 0.22); 
+                this.vx = 8 + Math.random() * 4;  
+                this.vy = 3 + Math.random() * 3;   
+            } else if (nozzle === 1) {
+                // 2. 正左氣流：橫掃中央
+                this.y = (height * 0.38) + Math.random() * (height * 0.24); 
+                this.vx = 9 + Math.random() * 4.5;  
+                this.vy = (Math.random() - 0.5) * 1.5;
+            } else {
+                // 3. 左下氣流：往右上升騰
+                this.y = (height * 0.78) + Math.random() * (height * 0.22); 
+                this.vx = 8 + Math.random() * 4;  
+                this.vy = -(3 + Math.random() * 3); 
+            }
+
+            this.radius = 35 + Math.random() * 55; 
+            // 🌟 依照你的最新優化設定：收斂擴散速度，保持銳利迷人的氣流線條感！
+            this.growthRate = 2 + Math.random() * 0.5; 
+            this.alpha = 0;
+            this.maxAlpha = 0.06 + Math.random() * 0.06; 
+            this.fadeIn = true;
+        }
+
+        update() {
+            this.x += this.vx;
+            
+            // 空氣力學：S型正弦波微捲曲
+            this.angle += this.spinSpeed;
+            this.y += this.vy + Math.sin(this.angle) * 1.5;
+            
+            this.radius += this.growthRate;
+            if (this.radius > 300) this.growthRate = 0.2;
+
+            if (this.fadeIn) {
+                this.alpha += 0.012;
+                if (this.alpha >= this.maxAlpha) this.fadeIn = false;
+            }
+
+            // 飄出右側或上下邊界後重置
+            if (this.x - this.radius > width || this.y - this.radius > height || this.y + this.radius < 0) {
+                // 🌟 0.5 秒時間一到，飛出去的氣流噴線會順滑轉身，化為淡淡的巡航薄霧
+                if (isGentleCloudPhase && this.type === 'stream') {
+                    this.type = 'cloud';
+                }
+                this.reset(true);
+            }
+        }
+
+        draw() {
+            const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+            grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
+            grad.addColorStop(0.5, `rgba(255, 255, 255, ${this.alpha * 0.4})`);
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.beginPath();
+            ctx.fillStyle = grad;
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // 初始化：建立 120 個三方向氣流噴線粒子（全鎖定在最左側畫面外）
+    for (let i = 0; i < 120; i++) {
+        particles.push(new SmokeParticle('stream', false));
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        requestAnimationFrame(render);
+    }
+
+    render();
+}
+
+// =========================================
+// TEDx 舞台：終極防彈版大結局與退場引擎
+// =========================================
+const presenterImg = document.getElementById('stage-presenter');
+const stageVideo = document.getElementById('stage-video');
+const staticAudience = document.getElementById('stage-audience');
+const clapGif = document.getElementById('stage-clap');
+const streamersGif = document.getElementById('stage-streamers');
+
+const poseImages = {};
+let presenterInterval = null;
+let isFinaleTriggered = false; // 大結局防護鎖
+let isSequenceQueued = false;  // 🌟 新增：排程防護鎖 (徹底消滅滾輪滑動造成的加速亂跳 Bug)
+let smokeAnimationId = null;   
+
+const speechSequence = [
+    1, 2, 3, 4, 5, 4, 3, 4, 5, 6, 7, 6, 7, 6, 5, 6, 7, 8, 7, 8, 7, 6, 7, 8, 7, 8
+];
+
+if (presenterImg) {
+    for (let i = 1; i <= 9; i++) {
+        const img = new Image();
+        img.src = `WEB_Animation/WJ_Pose${i}.svg`;
+        poseImages[i] = img;
+    }
+}
+
+// 🌟 監聽介紹動畫觸發 (加入雙重防護與劇院鎖屏)
+const originalCheckIntroTrigger = typeof checkIntroTrigger === 'function' ? checkIntroTrigger : null;
+if (originalCheckIntroTrigger) {
+    checkIntroTrigger = function() {
+        originalCheckIntroTrigger();
+        
+        // 🌟 嚴格判定：只有在觸發過、且「從未排程過 (`!isSequenceQueued`)」的情況下才執行一次！
+        if (hasIntroTriggered && !isSequenceQueued && !presenterInterval && !isFinaleTriggered) {
+            isSequenceQueued = true; // 立刻上鎖！之後滾輪怎麼滑都無法再闖入！
+            console.log("🚀 [SYSTEM]: Presenter & Video sequence queued safely...");
+            
+            // 🌟 劇院鎖屏啟動：暫時停止網頁背景捲動，防止放映時畫面跑位
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                startVideoAndPresenterSequence();
+            }, 3600);
+        }
+    };
+}
+
+function startVideoAndPresenterSequence() {
+    console.log("🚀 [SYSTEM]: 100% Faded In! Starting Video Playback & Speech Sequence!");
+    
+    if (presenterImg) {
+        let currentStep = 0;
+        const frameSpeed = 200; 
+
+        // 確保沒有舊的定時器在前行
+        if (presenterInterval) clearInterval(presenterInterval);
+
+        presenterInterval = setInterval(() => {
+            const poseNumber = speechSequence[currentStep];
+            presenterImg.src = `WEB_Animation/WJ_Pose${poseNumber}.svg`;
+            
+            currentStep++;
+            if (currentStep >= speechSequence.length) {
+                currentStep = 0; 
+            }
+        }, frameSpeed);
+    }
+
+    if (stageVideo) {
+        stageVideo.currentTime = 0;
+        stageVideo.play().catch(e => console.log("Video play prevented:", e));
+        
+        stageVideo.ontimeupdate = () => {
+            if (stageVideo.duration > 0 && (stageVideo.duration - stageVideo.currentTime <= 0.6)) {
+                triggerGrandFinaleSequence();
+            }
+        };
+
+        stageVideo.onended = () => {
+            triggerGrandFinaleSequence();
+        };
+    }
+}
+
+function triggerGrandFinaleSequence() {
+    if (isFinaleTriggered) return; 
+    isFinaleTriggered = true;
+    console.log("🎉 [SYSTEM]: Triggering Grand Finale Sequence with GIFs!");
+
+    if (presenterInterval) {
+        clearInterval(presenterInterval);
+        presenterInterval = null;
+    }
+    if (presenterImg) {
+        presenterImg.src = 'WEB_Animation/WJ_Pose9.svg';
+    }
+
+    if (staticAudience) {
+        staticAudience.classList.add('layer-hidden');
+    }
+    if (clapGif) {
+        const clapSrc = clapGif.getAttribute('data-src');
+        clapGif.src = `${clapSrc}?t=${new Date().getTime()}`;
+        clapGif.classList.remove('layer-hidden');
+        clapGif.classList.add('layer-visible');
+    }
+
+    setTimeout(() => {
+        if (streamersGif) {
+            const streamersSrc = streamersGif.getAttribute('data-src');
+            streamersGif.src = `${streamersSrc}?t=${new Date().getTime()}`;
+            streamersGif.classList.remove('layer-hidden');
+            streamersGif.classList.add('layer-visible');
+
+            setTimeout(() => {
+                endIntroAnimation();
+            }, 3000);
+        }
+    }, 500);
+}
+
+// 🌟 終極退場系統：淡出畫面、停止引擎並解鎖網頁捲動
+function endIntroAnimation() {
+    console.log("🎬 [SYSTEM]: 3s Streamers completed! Fading out entire intro stage...");
+    const introOverlay = document.getElementById('intro-animation-overlay');
+    
+    if (introOverlay) {
+        introOverlay.classList.remove('intro-active');
+        
+        // 🌟 劇院解鎖：瞬間恢復網頁滾動條與點擊權限，使用者立刻能順暢下滑瀏覽！
+        document.body.style.overflow = '';
+        
+        setTimeout(() => {
+            if (smokeAnimationId) {
+                cancelAnimationFrame(smokeAnimationId);
+                smokeAnimationId = null;
+            }
+            if (stageVideo) stageVideo.pause();
+            introOverlay.style.display = 'none'; 
+            console.log("✅ [SYSTEM]: Intro animation fully terminated. Welcome to WJ STUDIO!");
+        }, 1500);
+    }
+}
+
+// =========================================
+// 煙霧引擎 (維持不變)
+// =========================================
+function startVolumetricSmokeEngine() {
+    const ctx = smokeCanvas.getContext('2d');
+    let width = smokeCanvas.width = window.innerWidth;
+    let height = smokeCanvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = smokeCanvas.width = window.innerWidth;
+        height = smokeCanvas.height = window.innerHeight;
+    });
+
+    const particles = [];
+    let isGentleCloudPhase = false;
+
+    setTimeout(() => {
+        isGentleCloudPhase = true;
+        for (let i = 0; i < 30; i++) {
+            particles.push(new SmokeParticle('cloud', true));
+        }
+    }, 500);
+
+    class SmokeParticle {
+        constructor(type = 'stream', isRespawnOrStage2 = false) {
+            this.type = type;
+            this.reset(isRespawnOrStage2);
+        }
+
+        reset(isRespawnOrStage2 = false) {
+            this.angle = Math.random() * Math.PI * 2; 
+            this.spinSpeed = (Math.random() - 0.5) * 0.025;
+
+            if (this.type === 'cloud') {
+                this.x = isRespawnOrStage2 ? Math.random() * width : -200;
+                this.y = Math.random() * height;
+                this.radius = 180 + Math.random() * 220; 
+                this.growthRate = 0.3 + Math.random() * 0.5; 
+                this.vx = 1.2 + Math.random() * 1.8; 
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.alpha = 0;
+                this.maxAlpha = 0.04 + Math.random() * 0.04; 
+                this.fadeIn = true;
+                return;
+            }
+
+            const nozzle = Math.floor(Math.random() * 3);
+            this.x = -(60 + Math.random() * 290); 
+            
+            if (nozzle === 0) {
+                this.y = Math.random() * (height * 0.22); 
+                this.vx = 8 + Math.random() * 4;  
+                this.vy = 3 + Math.random() * 3;   
+            } else if (nozzle === 1) {
+                this.y = (height * 0.38) + Math.random() * (height * 0.24); 
+                this.vx = 9 + Math.random() * 4.5;  
+                this.vy = (Math.random() - 0.5) * 1.5;
+            } else {
+                this.y = (height * 0.78) + Math.random() * (height * 0.22); 
+                this.vx = 8 + Math.random() * 4;  
+                this.vy = -(3 + Math.random() * 3); 
+            }
+
+            this.radius = 35 + Math.random() * 55; 
+            this.growthRate = 2 + Math.random() * 0.5; 
+            this.alpha = 0;
+            this.maxAlpha = 0.06 + Math.random() * 0.06; 
+            this.fadeIn = true;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.angle += this.spinSpeed;
+            this.y += this.vy + Math.sin(this.angle) * 1.5;
+            this.radius += this.growthRate;
+            if (this.radius > 300) this.growthRate = 0.2;
+
+            if (this.fadeIn) {
+                this.alpha += 0.012;
+                if (this.alpha >= this.maxAlpha) this.fadeIn = false;
+            }
+
+            if (this.x - this.radius > width || this.y - this.radius > height || this.y + this.radius < 0) {
+                if (isGentleCloudPhase && this.type === 'stream') {
+                    this.type = 'cloud';
+                }
+                this.reset(true);
+            }
+        }
+
+        draw() {
+            const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+            grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
+            grad.addColorStop(0.5, `rgba(255, 255, 255, ${this.alpha * 0.4})`);
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.beginPath();
+            ctx.fillStyle = grad;
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 120; i++) {
+        particles.push(new SmokeParticle('stream', false));
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        smokeAnimationId = requestAnimationFrame(render);
+    }
+
+    render();
+}
 
 // =========================================
 // 8. 數位記憶之書邏輯 (Flipbook)
