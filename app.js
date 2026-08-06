@@ -417,7 +417,7 @@ const speechSequence = [
 if (presenterImg) {
     for (let i = 1; i <= 9; i++) {
         const img = new Image();
-        img.src = `WEB_Animation/WJ_Pose${i}.svg`;
+        img.src = `Web_Animation/WJ_Pose${i}.svg`;
         poseImages[i] = img;
     }
 }
@@ -455,7 +455,7 @@ function startVideoAndPresenterSequence() {
 
         presenterInterval = setInterval(() => {
             const poseNumber = speechSequence[currentStep];
-            presenterImg.src = `WEB_Animation/WJ_Pose${poseNumber}.svg`;
+            presenterImg.src = `Web_Animation/WJ_Pose${poseNumber}.svg`;
             
             currentStep++;
             if (currentStep >= speechSequence.length) {
@@ -490,7 +490,7 @@ function triggerGrandFinaleSequence() {
         presenterInterval = null;
     }
     if (presenterImg) {
-        presenterImg.src = 'WEB_Animation/WJ_Pose9.svg';
+        presenterImg.src = 'Web_Animation/WJ_Pose9.svg';
     }
 
     if (staticAudience) {
