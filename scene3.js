@@ -28,6 +28,8 @@ export function initScene3(playerState, switchScene) {
     let ammoZeros = Math.max(0, Number(playerState.ammoZeros) || 0);
     let hasHammer = playerState.hasHammer ?? true; 
     let bookPickedUp = playerState.hasSecondManual ?? true; 
+    let hasThirdManual = playerState.hasThirdManual === true;
+    let jumpManualUnlocked = hasThirdManual;
 
     // ==========================================
     // 🌟 新增：雙手與背包裝備資料庫
@@ -418,6 +420,110 @@ export function initScene3(playerState, switchScene) {
             .anim-attack #held-hammer-s3 { animation: attackSwing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; transition: none !important; }
             .anim-attack #armL-s3 { animation: none !important; transform: rotate(-35deg) !important; transition: transform 0.1s ease; }
             .anim-attack #armR-s3 { animation: none !important; transform: rotate(45deg) !important; transition: transform 0.1s ease; }
+
+            /* ===================================================
+               🌟 BOSS 離場後：C 鍵五幀垂直跳躍
+               狀態 2 → 3 → 4 → 5 → 6；落地後回到原本狀態 7。
+
+               外觀基準完全沿用 Scene 1 / Scene 2：
+               - 80 × 120 viewBox
+               - 頭部半徑 16
+               - 全身線寬固定 8px
+               - round linecap / round linejoin
+
+               一般狀態使用與 Scene 1 / 2 相同的 circle + line；只有跳躍期間
+               才切換到同線寬的曲線 Path。身體伸長直接改 SVG 幾何座標，
+               不對角色或四肢使用 scale，因此線條粗細永遠不會改變。
+               =================================================== */
+            #armL-s3, #armR-s3, #legL-s3, #legR-s3 {
+                transform-box: view-box;
+            }
+
+            #stickman-head-s3,
+            #stickman-torso-s3,
+            #armL-base-s3,
+            #armR-base-s3,
+            #armL-path-s3,
+            #armR-path-s3,
+            #legL-base-s3,
+            #legR-base-s3,
+            #legL-path-s3,
+            #legR-path-s3 {
+                stroke-width: 8px !important;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            #armL-path-s3,
+            #armR-path-s3,
+            #legL-path-s3,
+            #legR-path-s3 {
+                display: none;
+            }
+
+            #stickman-s3.player-jumping {
+                will-change: top, left;
+            }
+
+            #stickman-s3.player-jumping #stickman-roll-shell {
+                animation: none !important;
+                transform: none !important;
+            }
+
+            #stickman-s3.player-jumping #stickman-body-s3 {
+                animation: none !important;
+                transform: translate(-50%, -50%) !important;
+                transition: none !important;
+            }
+
+            #stickman-s3.player-jumping #armL-base-s3,
+            #stickman-s3.player-jumping #armR-base-s3,
+            #stickman-s3.player-jumping #legL-base-s3,
+            #stickman-s3.player-jumping #legR-base-s3 {
+                display: none;
+            }
+
+            #stickman-s3.player-jumping #armL-path-s3,
+            #stickman-s3.player-jumping #armR-path-s3,
+            #stickman-s3.player-jumping #legL-path-s3,
+            #stickman-s3.player-jumping #legR-path-s3 {
+                display: inline;
+            }
+
+            #stickman-s3.player-jumping #armL-s3 {
+                animation: none !important;
+                transform-origin: 40px var(--jump-shoulder-y, 56px);
+                transform: rotate(var(--jump-arm-l-rotation, -56deg)) !important;
+                transition: none !important;
+            }
+
+            #stickman-s3.player-jumping #armR-s3 {
+                animation: none !important;
+                transform-origin: 40px var(--jump-shoulder-y, 56px);
+                transform: rotate(var(--jump-arm-r-rotation, 56deg)) !important;
+                transition: none !important;
+            }
+
+            #stickman-s3.player-jumping #legL-s3 {
+                animation: none !important;
+                transform-origin: 40px var(--jump-hip-y, 75px);
+                transform: rotate(var(--jump-leg-l-rotation, -42deg)) !important;
+                transition: none !important;
+            }
+
+            #stickman-s3.player-jumping #legR-s3 {
+                animation: none !important;
+                transform-origin: 40px var(--jump-hip-y, 75px);
+                transform: rotate(var(--jump-leg-r-rotation, 42deg)) !important;
+                transition: none !important;
+            }
+
+            #stickman-s3.player-jumping #held-hammer-s3 {
+                animation: none !important;
+                transform-origin: 40px var(--jump-hand-y, 85px);
+                transform: rotate(var(--jump-hammer-rotation, 80deg)) scale(0.4) !important;
+                transition: none !important;
+            }
 
             /* 🌟 使用 CSS 變數控制死亡傾倒的方向 */
             @keyframes playerDie { 
@@ -1556,6 +1662,7 @@ export function initScene3(playerState, switchScene) {
                 inset: 0;
                 transform-origin: 50% 50%;
                 will-change: transform;
+                --tumble-rotation-end: -360deg;
             }
 
             #stickman-s3.player-tumble {
@@ -1574,7 +1681,7 @@ export function initScene3(playerState, switchScene) {
 
             @keyframes tumbleSpinOriginal {
                 0%   { transform: rotate(0deg); }
-                100% { transform: rotate(-360deg); }
+                100% { transform: rotate(var(--tumble-rotation-end, -360deg)); }
             }
 
             #stickman-s3.boss-wind-landed #stickman-body-s3 {
@@ -1582,9 +1689,9 @@ export function initScene3(playerState, switchScene) {
             }
 
             @keyframes bossWindLandingSquash {
-                0%   { transform: translate(-50%, -50%) scale(1.08, 0.92) rotate(-10deg); }
-                48%  { transform: translate(-50%, -50%) scale(0.82, 1.18) rotate(5deg); }
-                100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+                0%   { transform: translate(-50%, -50%) translateY(3px) rotate(-10deg); }
+                48%  { transform: translate(-50%, -50%) translateY(-2px) rotate(5deg); }
+                100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
             }
 
             @media (max-width: 760px) {
@@ -1667,73 +1774,73 @@ export function initScene3(playerState, switchScene) {
                 </svg>
 
                 <!-- 🌟 PLA 邏輯陣列電路圖 (完美還原等距、延伸網格與交點) -->
-                <svg class="pla-circuit" style="position: absolute; bottom: -20%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     
-                    <!-- ===== 1. 頂部標籤 ===== -->
+                    <!-- ===== 1. 頂部標籤（整組向下 25，與上方電路同步） ===== -->
                     <g class="pla-text" stroke="none" fill="#fff" font-family="'Orbitron', sans-serif" font-size="18" font-weight="bold" letter-spacing="2px">
-                        <text x="125" y="20">H</text>
-                        <text x="150" y="20">I</text>
-                        <text x="175" y="20">C</text>
-                        <text x="200" y="20">C'</text>
-                        <text x="225" y="20">E</text>
-                        <text x="250" y="20">E'</text>
-                        <text x="275" y="20">N</text>
-                        <text x="300" y="20">S</text>
+                        <text x="125" y="45">H</text>
+                        <text x="150" y="45">I</text>
+                        <text x="175" y="45">C</text>
+                        <text x="200" y="45">C'</text>
+                        <text x="225" y="45">E</text>
+                        <text x="250" y="45">E'</text>
+                        <text x="275" y="45">N</text>
+                        <text x="300" y="45">S</text>
                     </g>
 
-                    <!-- ===== 2. 左側輸入標籤 ===== -->
+                    <!-- ===== 2. 左側輸入標籤（整組向下 25） ===== -->
                     <g class="pla-text" stroke="none" fill="#fff" font-family="'Orbitron', sans-serif" font-size="20" font-weight="bold" text-anchor="middle">
-                        <text x="40" y="57">H</text>
-                        <text x="40" y="107">I</text>
-                        <text x="40" y="157">C</text>
-                        <text x="40" y="207">E</text>
-                        <text x="40" y="257">N</text>
-                        <text x="40" y="307">S</text>
+                        <text x="40" y="82">H</text>
+                        <text x="40" y="132">I</text>
+                        <text x="40" y="182">C</text>
+                        <text x="40" y="232">E</text>
+                        <text x="40" y="282">N</text>
+                        <text x="40" y="332">S</text>
                     </g>
 
-                    <!-- ===== 3. 左側精準還原邏輯閘 ===== -->
+                    <!-- ===== 3. 左側精準還原邏輯閘（整組向下 25） ===== -->
                     <!-- H & I 線 -->
-                    <line x1="55" y1="50" x2="305" y2="50" />
-                    <line x1="55" y1="100" x2="305" y2="100" />
+                    <line id="pla-top-platform-line-s3" x1="55" y1="75" x2="305" y2="75" />
+                    <line x1="55" y1="125" x2="305" y2="125" />
                     
                     <!-- C 輸入 -->
-                    <line x1="55" y1="150" x2="60" y2="150" />
-                    <path d="M 60 135 L 60 170 L 95 150 Z" />
-                    <line x1="95" y1="150" x2="305" y2="150" />
-                    <circle cx="78" cy="165" r="4.5" />
-                    <line x1="82.5" y1="165" x2="305" y2="165" />
+                    <line x1="55" y1="175" x2="60" y2="175" />
+                    <path d="M 60 160 L 60 195 L 95 175 Z" />
+                    <line x1="95" y1="175" x2="305" y2="175" />
+                    <circle cx="78" cy="190" r="4.5" />
+                    <line x1="82.5" y1="190" x2="305" y2="190" />
 
                     <!-- E 輸入 -->
-                    <line x1="55" y1="200" x2="60" y2="200" />
-                    <path d="M 60 185 L 60 220 L 95 200 Z" />
-                    <line x1="95" y1="200" x2="305" y2="200" />
-                    <circle cx="78" cy="215" r="4.5" />
-                    <line x1="82.5" y1="215" x2="305" y2="215" />
+                    <line x1="55" y1="225" x2="60" y2="225" />
+                    <path d="M 60 210 L 60 245 L 95 225 Z" />
+                    <line x1="95" y1="225" x2="305" y2="225" />
+                    <circle cx="78" cy="240" r="4.5" />
+                    <line x1="82.5" y1="240" x2="305" y2="240" />
 
                     <!-- N 與 S -->
-                    <line x1="55" y1="250" x2="305" y2="250" />
-                    <line x1="55" y1="300" x2="305" y2="300" />
+                    <line x1="55" y1="275" x2="305" y2="275" />
+                    <line x1="55" y1="325" x2="305" y2="325" />
 
-                    <!-- ===== 4. 垂直導線 (修復：底部延伸配合上移後的陣列，長度至 y=790) ===== -->
-                    <line x1="130" y1="30" x2="130" y2="790" />
-                    <line x1="155" y1="30" x2="155" y2="790" />
-                    <line x1="180" y1="30" x2="180" y2="790" />
-                    <line x1="205" y1="30" x2="205" y2="790" />
-                    <line x1="230" y1="30" x2="230" y2="790" />
-                    <line x1="255" y1="30" x2="255" y2="790" />
-                    <line x1="280" y1="30" x2="280" y2="790" />
-                    <line x1="305" y1="30" x2="305" y2="790" />
+                    <!-- ===== 4. 垂直導線：上端同步下移 25，底部仍延伸到 y=825 ===== -->
+                    <line x1="130" y1="55" x2="130" y2="825" />
+                    <line x1="155" y1="55" x2="155" y2="825" />
+                    <line x1="180" y1="55" x2="180" y2="825" />
+                    <line x1="205" y1="55" x2="205" y2="825" />
+                    <line x1="230" y1="55" x2="230" y2="825" />
+                    <line x1="255" y1="55" x2="255" y2="825" />
+                    <line x1="280" y1="55" x2="280" y2="825" />
+                    <line x1="305" y1="55" x2="305" y2="825" />
 
-                    <!-- ===== 5. 頂部連接圓點 (Dots •) ===== -->
+                    <!-- ===== 5. 頂部連接圓點：中心同步下移 25；最下圓點至第一排 X 由 50 縮為 25 ===== -->
                     <g fill="#fff">
-                        <circle cx="130" cy="50" r="4.5" />
-                        <circle cx="155" cy="100" r="4.5" />
-                        <circle cx="180" cy="150" r="4.5" />
-                        <circle cx="205" cy="165" r="4.5" />
-                        <circle cx="230" cy="200" r="4.5" />
-                        <circle cx="255" cy="215" r="4.5" />
-                        <circle cx="280" cy="250" r="4.5" />
-                        <circle cx="305" cy="300" r="4.5" />
+                        <circle cx="130" cy="75" r="4.5" />
+                        <circle cx="155" cy="125" r="4.5" />
+                        <circle cx="180" cy="175" r="4.5" />
+                        <circle cx="205" cy="190" r="4.5" />
+                        <circle cx="230" cy="225" r="4.5" />
+                        <circle cx="255" cy="240" r="4.5" />
+                        <circle cx="280" cy="275" r="4.5" />
+                        <circle cx="305" cy="325" r="4.5" />
                     </g>
 
                     <!-- ===== 6. 下方 9 條水平 AND 線與叉叉 (Crosses ×) (修復：向左延伸至 x1=55，整體向上平移 60 讓間距統一) ===== -->
@@ -1841,26 +1948,35 @@ export function initScene3(playerState, switchScene) {
             <div id="stickman-s3" class="stand-still" style="position: absolute; top: 50%; left: 20%; transform: translate(-50%, -50%); width: 80px; height: 120px; transition: none; z-index: 5;">
                 <div id="stickman-roll-shell">
                 <svg id="stickman-body-s3" viewBox="0 0 80 120" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" style="overflow: visible;">
-                    <circle cx="40" cy="32" r="16" />
-                    <line x1="40" y1="48" x2="40" y2="75" />
+                    <!-- 一般外觀與 Scene 1 / Scene 2 完全相同。 -->
+                    <circle id="stickman-head-s3" cx="40" cy="32" r="16" />
+                    <line id="stickman-torso-s3" x1="40" y1="48" x2="40" y2="75" />
                     <g id="armL-s3">
-                        <line x1="40" y1="56" x2="40" y2="85" />
+                        <line id="armL-base-s3" x1="40" y1="56" x2="40" y2="85" />
+                        <path id="armL-path-s3" d="M 40 56 L 40 85" />
                         <text id="held-1-s3" x="10" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" opacity="0">1</text>
                         <g id="held-hammer-s3">
-                            <line x1="40" y1="85" x2="40" y2="20" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+                            <line id="held-hammer-shaft-s3" x1="40" y1="85" x2="40" y2="20" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
                             <path d="M 5 -10 L 75 -10 A 35 50 0 0 1 5 -10 Z" fill="#000" stroke="#fff" stroke-width="8" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));"/>
                         </g>
                         <!-- 🌟 修正主手：改為 translate(17, 54) 精準握在根部，rotate(-22) 讓頂部朝上偏左！ -->
                         <g id="held-item-hand1" opacity="0" transform="translate(-8, 32) scale(0.35) rotate(-20, 65, 90)" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));"></g>
                     </g>
                     <g id="armR-s3">
-                        <line x1="40" y1="56" x2="40" y2="85" />
+                        <line id="armR-base-s3" x1="40" y1="56" x2="40" y2="85" />
+                        <path id="armR-path-s3" d="M 40 56 L 40 85" />
                         <text id="held-0-s3" x="70" y="50" dy="0.3em" text-anchor="middle" fill="#fff" font-size="23" font-family="'Orbitron', sans-serif" font-weight="25" opacity="0">0</text>
                         <!-- 🌟 修正副手：改為 translate(20, 54) 精準握在根部，rotate(-22) 讓頂部朝上偏左！ -->
                         <g id="held-item-hand2" opacity="0" transform="translate(6, 52) scale(0.35) rotate(-35, 65, 90)" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));"></g>
                     </g>
-                    <line x1="40" y1="75" x2="40" y2="105" id="legL-s3" /> 
-                    <line x1="40" y1="75" x2="40" y2="105" id="legR-s3" /> 
+                    <g id="legL-s3">
+                        <line id="legL-base-s3" x1="40" y1="75" x2="40" y2="105" />
+                        <path id="legL-path-s3" d="M 40 75 L 40 105" />
+                    </g>
+                    <g id="legR-s3">
+                        <line id="legR-base-s3" x1="40" y1="75" x2="40" y2="105" />
+                        <path id="legR-path-s3" d="M 40 75 L 40 105" />
+                    </g>
                 </svg>
                 </div>
             </div>
@@ -1922,13 +2038,204 @@ export function initScene3(playerState, switchScene) {
                             </div>
                         </div>
                     </div>
+
+
+                    <div id="manual-page-3-s3" class="manual-page">
+                        <div class="manual-panel" style="width: 100%; flex: 1; justify-content: flex-start; overflow: visible;">
+                            <div class="action-block" style="border-bottom: none; width: 100%; margin-bottom: 0; position: relative;">
+                                <div class="action-header" style="justify-content: flex-start; margin-bottom: 10px; position: relative; z-index: 2;">
+                                    <div class="key-btn" style="border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">C</div>
+                                    <div class="action-text" style="font-size: 2rem;">Jump</div>
+                                </div>
+
+                                <!--
+                                    PAGE 3 跳躍教學：依照手稿完整呈現七個連續序列幀。
+                                    兩端為相同站姿；左右第二、第三幀互相對稱；最高點固定在正中央，
+                                    並抬升到接近 Jump 標題的高度。所有人物使用同一組頭身比例與 4px 圓角線條。
+                                -->
+                                <svg class="svg-glow" viewBox="0 0 800 330" preserveAspectRatio="xMidYMid meet" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: clamp(280px, 42vh, 340px); display: block; margin: -54px auto 0; overflow: visible;">
+                                    <defs>
+                                        <!-- 起點／終點：完整正常比例，頭、軀幹、雙手與雙腳都與既有說明書一致。 -->
+                                        <g id="s3-manual-jump-ground">
+                                            <circle cx="40" cy="24" r="16" />
+                                            <line x1="40" y1="40" x2="40" y2="80" />
+                                            <path d="M 40 54 C 33 61 23 68 16 78" />
+                                            <path d="M 40 54 C 47 61 57 68 64 78" />
+                                            <path d="M 40 80 C 33 92 23 105 14 118" />
+                                            <path d="M 40 80 C 47 92 57 105 66 118" />
+                                        </g>
+
+                                        <!-- 第一段上升／最後一段下降：手腳開始向外彎曲。 -->
+                                        <g id="s3-manual-jump-rise-1">
+                                            <circle cx="40" cy="24" r="16" />
+                                            <line x1="40" y1="40" x2="40" y2="80" />
+                                            <path d="M 40 54 C 34 64 22 71 8 73" />
+                                            <path d="M 40 54 C 46 64 58 71 72 73" />
+                                            <path d="M 40 80 C 34 92 22 105 8 112" />
+                                            <path d="M 40 80 C 46 92 58 105 72 112" />
+                                        </g>
+
+                                        <!-- 第二段上升／第一段下降：雙手接近水平、雙腿形成寬而淺的弧線。 -->
+                                        <g id="s3-manual-jump-rise-2">
+                                            <circle cx="40" cy="24" r="16" />
+                                            <line x1="40" y1="40" x2="40" y2="80" />
+                                            <path d="M 40 54 C 30 62 16 63 3 55" />
+                                            <path d="M 40 54 C 50 62 64 63 77 55" />
+                                            <path d="M 40 80 C 31 94 16 101 2 96" />
+                                            <path d="M 40 80 C 49 94 64 101 78 96" />
+                                        </g>
+
+                                        <!-- 最高點：手、腳皆向上收成 U 形；腳下左右長、中間短的三條躍升線。 -->
+                                        <g id="s3-manual-jump-apex">
+                                            <circle cx="40" cy="24" r="16" />
+                                            <line x1="40" y1="40" x2="40" y2="80" />
+                                            <path d="M 40 54 C 31 75 17 78 5 39" />
+                                            <path d="M 40 54 C 49 75 63 78 75 39" />
+                                            <path d="M 40 80 C 31 104 17 110 3 72" />
+                                            <path d="M 40 80 C 49 104 63 110 77 72" />
+                                            <g stroke-width="2.4" opacity="0.95">
+                                                <line x1="31" y1="106" x2="31" y2="128" />
+                                                <line x1="40" y1="111" x2="40" y2="124" />
+                                                <line x1="49" y1="106" x2="49" y2="128" />
+                                            </g>
+                                        </g>
+                                    </defs>
+
+                                    <!-- 七個序列幀依手稿的弧線高度與左右相對位置排列。 -->
+                                    <use href="#s3-manual-jump-ground" transform="translate(12 205)" />
+                                    <use href="#s3-manual-jump-rise-1" transform="translate(126 158)" />
+                                    <use href="#s3-manual-jump-rise-2" transform="translate(245 94)" />
+                                    <use href="#s3-manual-jump-apex" transform="translate(360 0)" />
+                                    <use href="#s3-manual-jump-rise-2" transform="translate(478 94)" />
+                                    <use href="#s3-manual-jump-rise-1" transform="translate(597 158)" />
+                                    <use href="#s3-manual-jump-ground" transform="translate(708 205)" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="manual-page-4-s3" class="manual-page" style="min-height: 0; height: auto; flex: 0 0 auto; overflow: visible;">
+                        <div id="s3-manual-page4-panel" class="manual-panel" style="width: 100%; height: auto; min-height: 0; flex: 0 0 auto; justify-content: flex-start; overflow: visible; padding: 0 10px;">
+                            <div id="s3-manual-page4-action" class="action-block" style="border-bottom: none; width: 100%; height: auto; min-height: 0; flex: 0 0 auto; margin-bottom: 0; position: relative; display: flex; justify-content: center; align-items: flex-start; overflow: visible;">
+                                <!--
+                                    PAGE 4：比例與 v19 完全一致。
+                                    非全螢幕時保留說明書原本的垂直捲軸，畫面從本頁最上方開始；
+                                    全螢幕時依可用空間等比例縮放，完整顯示整張 25:16 畫布。
+                                -->
+                                <div id="s3-manual-page4-diagram" style="position: relative; width: min(100%, 820px); aspect-ratio: 25 / 16; height: auto; min-height: 0; margin: 0 auto; overflow: hidden; flex: 0 0 auto;">
+                                    <div id="s3-manual-page4-stage" style="position: absolute; inset: 0; width: 100%; height: 100%; transform: none; transform-origin: center;">
+                                        <svg class="svg-glow" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" fill="none" stroke="#fff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden;">
+                                            <defs>
+                                                <!-- 手稿中的導通固定點：只有叉叉，沒有額外橫線或圓點。 -->
+                                                <g id="s3-manual-page4-anchor-v17" stroke="#fff" stroke-width="5.5" fill="none">
+                                                    <path d="M -21 -21 L 21 21 M 21 -21 L -21 21" />
+                                                </g>
+
+                                                <!-- 四個人物共用相同頭身比例；帽尖固定在局部座標 (0,-72)。 -->
+                                                <g id="s3-manual-page4-ground-player-v17" stroke="#fff" stroke-width="4.8" fill="none">
+                                                    <polygon points="-25,-48 25,-48 0,-72" fill="#000" />
+                                                    <circle cx="0" cy="-27" r="21" fill="#000" />
+                                                    <line x1="0" y1="-6" x2="0" y2="56" />
+                                                    <path d="M 0 12 C -10 39 -37 42 -51 15" />
+                                                    <path d="M 0 12 C 10 39 37 42 51 15" />
+                                                    <path d="M 0 56 C -11 88 -38 93 -52 61" />
+                                                    <path d="M 0 56 C 11 88 38 93 52 61" />
+                                                </g>
+
+                                                <!-- 中央最高點人物：雙手與雙腳向上收成手稿中的 U 形。 -->
+                                                <g id="s3-manual-page4-apex-player-v17" stroke="#fff" stroke-width="4.8" fill="none">
+                                                    <polygon points="-25,-48 25,-48 0,-72" fill="#000" />
+                                                    <circle cx="0" cy="-27" r="21" fill="#000" />
+                                                    <line x1="0" y1="-6" x2="0" y2="56" />
+                                                    <path d="M 0 12 C -12 45 -40 47 -53 5" />
+                                                    <path d="M 0 12 C 12 45 40 47 53 5" />
+                                                    <path d="M 0 56 C -13 89 -42 92 -55 48" />
+                                                    <path d="M 0 56 C 13 89 42 92 55 48" />
+                                                </g>
+
+                                                <!-- 擺盪人物：與站立人物同尺寸，旋轉後形成第二與第四個姿勢。 -->
+                                                <g id="s3-manual-page4-swing-player-v17" stroke="#fff" stroke-width="4.8" fill="none">
+                                                    <polygon points="-25,-48 25,-48 0,-72" fill="#000" />
+                                                    <circle cx="0" cy="-27" r="21" fill="#000" />
+                                                    <line x1="0" y1="-6" x2="0" y2="56" />
+                                                    <path d="M 0 12 C -10 38 -36 42 -50 16" />
+                                                    <path d="M 0 12 C 10 38 36 42 50 16" />
+                                                    <path d="M 0 56 C -11 87 -38 92 -52 61" />
+                                                    <path d="M 0 56 C 11 87 38 92 52 61" />
+                                                </g>
+                                            </defs>
+
+                                            <!-- 手稿中的兩條純白分隔線，完整穿過裁切畫布。 -->
+                                            <g stroke="#fff" stroke-width="5" opacity="1">
+                                                <line x1="285" y1="0" x2="285" y2="640" />
+                                                <line x1="620" y1="0" x2="620" y2="640" />
+                                            </g>
+
+                                            <!-- 左欄：第一人與三條上升線。 -->
+                                            <use href="#s3-manual-page4-ground-player-v17" transform="translate(190 360) scale(1.15)" />
+                                            <g stroke="#fff" stroke-width="6" opacity="1">
+                                                <line x1="164" y1="462" x2="164" y2="640" />
+                                                <line x1="190" y1="475" x2="190" y2="640" />
+                                                <line x1="216" y1="462" x2="216" y2="640" />
+                                            </g>
+
+                                            <!-- 第一個固定點與第二人：導線沿帽子中軸垂直接入帽尖。 -->
+                                            <use href="#s3-manual-page4-anchor-v17" transform="translate(285 214)" />
+                                            <line x1="285" y1="214" x2="320" y2="289" stroke="#fff" stroke-width="4.8" />
+                                            <g transform="translate(355 364) rotate(-25) scale(1.15)">
+                                                <use href="#s3-manual-page4-swing-player-v17" />
+                                            </g>
+
+                                            <!-- 第二與第三人之間的三條順時針擺動軌跡。 -->
+                                            <g stroke="#fff" stroke-width="4" opacity="0.94">
+                                                <path d="M 390 315 C 409 263 438 215 470 180" />
+                                                <path d="M 410 320 C 427 273 451 230 480 201" />
+                                                <path d="M 432 312 C 445 279 465 248 488 224" />
+                                            </g>
+
+                                            <!-- 中欄：C 再跳一次，到達最高點。 -->
+                                            <use href="#s3-manual-page4-apex-player-v17" transform="translate(550 190) scale(1.15)" />
+
+                                            <!-- A／D 與箭頭稍微分開，仍維持同一組操作提示。 -->
+                                            <g stroke="#fff" stroke-width="5" opacity="1">
+                                                <line x1="540" y1="325" x2="500" y2="325" />
+                                                <polyline points="515,313 500,325 515,337" />
+                                                <line x1="560" y1="325" x2="600" y2="325" />
+                                                <polyline points="585,313 600,325 585,337" />
+                                            </g>
+
+                                            <!-- 第二固定點與最右側水平擺盪姿勢。 -->
+                                            <use href="#s3-manual-page4-anchor-v17" transform="translate(620 100)" />
+                                            <line x1="620" y1="100" x2="727" y2="125.7" stroke="#fff" stroke-width="4.8" />
+                                            <g transform="translate(807.5 145) rotate(-76.5) scale(1.15)">
+                                                <use href="#s3-manual-page4-swing-player-v17" />
+                                            </g>
+                                        </svg>
+
+                                        <!-- 按鍵沿用 PAGE 1～3 的 .key-btn 字型、字重、邊框與陰影。 -->
+                                        <!-- 左 C 位於三條垂直躍升線的正左方。 -->
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 11.5%; top: 77%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">C</div>
+                                        <!-- 左 Q 位於第一個固定叉叉左上方約 45°。 -->
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 23%; top: 24.8%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">Q</div>
+                                        <!-- 中 C 向左、向下，落在三條擺動軌跡中段的正上方，且不碰觸線條。 -->
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 40.5%; top: 29%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">C</div>
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 51.5%; top: 58%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">A</div>
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 58.5%; top: 58%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">D</div>
+                                        <!-- 右 Q 靠近縮短後的導通線，位於線段下方。 -->
+                                        <div class="key-btn" aria-hidden="true" style="position: absolute; left: 69%; top: 24.2%; transform: translate(-50%, -50%); margin: 0; z-index: 4; border-color: var(--brand-blue); color: var(--brand-blue); box-shadow: 0 4px 0 #042a53, 0 0 10px rgba(0,242,254,0.4);">Q</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="pagination-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; border-top: 1px dashed rgba(0, 242, 254, 0.3); background: rgba(0, 0, 0, 0.4); border-radius: 0 0 12px 12px;">
                     <button id="prev-page-btn-s3" class="page-btn disabled" title="Previous Page">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="15,18 9,12 15,6" fill="currentColor"/></svg>
                     </button>
-                    <div id="page-indicator-s3" style="font-family: 'Orbitron', sans-serif; color: var(--brand-blue); letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px rgba(0,242,254,0.5);">PAGE 1 / 2</div>
+                    <div id="page-indicator-s3" style="font-family: 'Orbitron', sans-serif; color: var(--brand-blue); letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px rgba(0,242,254,0.5);">PAGE 1 / ${hasThirdManual ? 4 : (bookPickedUp ? 2 : 1)}</div>
                     <button id="next-page-btn-s3" class="page-btn" title="Next Page">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="9,18 15,12 9,6" fill="currentColor"/></svg>
                     </button>
@@ -1945,6 +2252,12 @@ export function initScene3(playerState, switchScene) {
     const manualContent = document.getElementById('manual-content-s3');
     const page1 = document.getElementById('manual-page-1-s3'); 
     const page2 = document.getElementById('manual-page-2-s3'); 
+    const page3 = document.getElementById('manual-page-3-s3'); 
+    const page4 = document.getElementById('manual-page-4-s3'); 
+    const page4Panel = document.getElementById('s3-manual-page4-panel');
+    const page4Action = document.getElementById('s3-manual-page4-action');
+    const page4Diagram = document.getElementById('s3-manual-page4-diagram');
+    const page4Stage = document.getElementById('s3-manual-page4-stage');
     const btnPrev = document.getElementById('prev-page-btn-s3');
     const btnNext = document.getElementById('next-page-btn-s3');
     const pageIndicator = document.getElementById('page-indicator-s3');
@@ -2067,6 +2380,102 @@ export function initScene3(playerState, switchScene) {
         updateMainStickmanEquipment();
     }
 
+    function getManualPageCount() {
+        if (hasThirdManual) return 4;
+        return bookPickedUp ? 2 : 1;
+    }
+
+    // PAGE 4 使用同一張 25:16 畫布：
+    // - 非全螢幕：維持原比例與完整高度，交由 manualContent 的原生捲軸瀏覽。
+    // - 全螢幕：依內容區可用寬高等比例縮放，整張一次顯示完成。
+    function syncManualPage4Layout(resetScroll = false) {
+        if (!page4 || !page4Panel || !page4Action || !page4Diagram || !page4Stage || !manualContent) return;
+
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+        const isFullscreen = Boolean(fullscreenElement);
+        const aspectWidth = 25;
+        const aspectHeight = 16;
+        const maxDiagramWidth = 820;
+
+        // 先恢復可量測的共同基準，避免前一次全螢幕／視窗模式留下尺寸。
+        page4Stage.style.inset = '0';
+        page4Stage.style.top = '0';
+        page4Stage.style.left = '0';
+        page4Stage.style.transform = 'none';
+        page4Stage.style.width = '100%';
+        page4Stage.style.height = '100%';
+
+        if (isFullscreen) {
+            page4.style.height = '100%';
+            page4.style.minHeight = '0';
+            page4.style.flex = '1 1 auto';
+            page4.style.overflow = 'hidden';
+
+            page4Panel.style.height = '100%';
+            page4Panel.style.minHeight = '0';
+            page4Panel.style.flex = '1 1 auto';
+            page4Panel.style.justifyContent = 'center';
+            page4Panel.style.overflow = 'hidden';
+
+            page4Action.style.height = '100%';
+            page4Action.style.minHeight = '0';
+            page4Action.style.flex = '1 1 auto';
+            page4Action.style.alignItems = 'center';
+            page4Action.style.overflow = 'hidden';
+
+            // 先讓容器吃滿可用空間，再以 25:16 計算不變形的最大尺寸。
+            page4Diagram.style.width = '1px';
+            page4Diagram.style.height = '1px';
+            page4Diagram.style.aspectRatio = 'auto';
+            const availableWidth = Math.max(1, page4Action.clientWidth);
+            const availableHeight = Math.max(1, page4Action.clientHeight);
+            const fittedWidth = Math.max(1, Math.min(maxDiagramWidth, availableWidth, availableHeight * aspectWidth / aspectHeight));
+            const fittedHeight = fittedWidth * aspectHeight / aspectWidth;
+            page4Diagram.style.width = `${fittedWidth}px`;
+            page4Diagram.style.height = `${fittedHeight}px`;
+            manualContent.style.overflowY = 'hidden';
+        } else {
+            page4.style.height = 'auto';
+            page4.style.minHeight = '0';
+            page4.style.flex = '0 0 auto';
+            page4.style.overflow = 'visible';
+
+            page4Panel.style.height = 'auto';
+            page4Panel.style.minHeight = '0';
+            page4Panel.style.flex = '0 0 auto';
+            page4Panel.style.justifyContent = 'flex-start';
+            page4Panel.style.overflow = 'visible';
+
+            page4Action.style.height = 'auto';
+            page4Action.style.minHeight = '0';
+            page4Action.style.flex = '0 0 auto';
+            page4Action.style.alignItems = 'flex-start';
+            page4Action.style.overflow = 'visible';
+
+            // 完整保留目前的比例與最大寬度；高度由 25:16 精確計算，超出內容區時自然出現捲軸。
+            page4Diagram.style.width = 'min(100%, 820px)';
+            page4Diagram.style.height = 'auto';
+            page4Diagram.style.aspectRatio = '25 / 16';
+            manualContent.style.overflowY = 'auto';
+        }
+
+        if (resetScroll) manualContent.scrollTop = 0;
+    }
+
+    // 全螢幕切換或視窗尺寸改變時，自動維持 PAGE 4 的完整比例。
+    if (typeof ResizeObserver === 'function') {
+        const page4LayoutObserver = new ResizeObserver(() => {
+            if (!isCurrentScene3Instance()) {
+                page4LayoutObserver.disconnect();
+                return;
+            }
+            if (currentManualPage === 4 && manualModal.classList.contains('manual-active')) {
+                syncManualPage4Layout(false);
+            }
+        });
+        page4LayoutObserver.observe(manualContent);
+    }
+
     function updateManualPage(targetPage, useFlash = true) {
         if (useFlash) {
             manualContent.classList.remove('scan-transition');
@@ -2075,26 +2484,82 @@ export function initScene3(playerState, switchScene) {
         }
 
         setTimeout(() => {
-            currentManualPage = targetPage;
-            if (currentManualPage === 1) {
-                page1.classList.add('active-page'); page2.classList.remove('active-page');
-                btnPrev.classList.add('disabled');
-                if (bookPickedUp) btnNext.classList.remove('disabled'); else btnNext.classList.add('disabled');
+            const totalPages = getManualPageCount();
+            const numericTarget = Number(targetPage);
+            const safeTarget = Number.isFinite(numericTarget)
+                ? Math.max(1, Math.min(totalPages, Math.round(numericTarget)))
+                : 1;
+
+            currentManualPage = safeTarget;
+            [page1, page2, page3, page4].forEach((page, index) => {
+                if (!page) return;
+                page.classList.toggle('active-page', index + 1 === currentManualPage);
+            });
+
+            btnPrev.classList.toggle('disabled', currentManualPage <= 1);
+            btnNext.classList.toggle('disabled', currentManualPage >= totalPages);
+            pageIndicator.innerText = `PAGE ${currentManualPage} / ${totalPages}`;
+
+            // 每次進入 PAGE 4 都從畫面最上方開始；非全螢幕可向下捲動，
+            // 全螢幕則將整張圖等比例縮放於可視區內。
+            if (currentManualPage === 4) {
+                manualContent.scrollTop = 0;
+                requestAnimationFrame(() => {
+                    syncManualPage4Layout(true);
+                });
             } else {
-                page1.classList.remove('active-page'); page2.classList.add('active-page');
-                btnPrev.classList.remove('disabled'); btnNext.classList.add('disabled');
+                manualContent.style.overflowY = 'auto';
+                manualContent.scrollTop = 0;
             }
-            pageIndicator.innerText = `PAGE ${currentManualPage} / ${bookPickedUp ? 2 : 1}`;
         }, useFlash ? 100 : 0); 
     }
 
-    btnPrev.addEventListener('click', () => { if (currentManualPage > 1) { playActionSfx(sfxPageTurn); updateManualPage(currentManualPage - 1); } });
-    btnNext.addEventListener('click', () => { if (currentManualPage < 2 && bookPickedUp) { playActionSfx(sfxPageTurn); updateManualPage(currentManualPage + 1); } });
+    let page3AutoTurnTimer = null;
 
-    function openManual() {
-        if (bossTimelineRunning) return;
+    function clearPage3AutoTurnTimer() {
+        if (page3AutoTurnTimer !== null) {
+            clearTimeout(page3AutoTurnTimer);
+            page3AutoTurnTimer = null;
+        }
+    }
+
+    function schedulePage4AutoTurn() {
+        clearPage3AutoTurnTimer();
+        page3AutoTurnTimer = window.setTimeout(() => {
+            page3AutoTurnTimer = null;
+            if (
+                !isCurrentScene3Instance() ||
+                !hasThirdManual ||
+                !manualModal.classList.contains('manual-active') ||
+                currentManualPage !== 3
+            ) return;
+
+            playActionSfx(sfxPageTurn);
+            updateManualPage(4);
+        }, 5000);
+    }
+
+    btnPrev.addEventListener('click', () => {
+        if (currentManualPage <= 1) return;
+        clearPage3AutoTurnTimer();
+        playActionSfx(sfxPageTurn);
+        updateManualPage(currentManualPage - 1);
+    });
+
+    btnNext.addEventListener('click', () => {
+        const totalPages = getManualPageCount();
+        if (currentManualPage >= totalPages) return;
+        clearPage3AutoTurnTimer();
+        playActionSfx(sfxPageTurn);
+        updateManualPage(currentManualPage + 1);
+    });
+
+    function openManual(targetPage = 1, autoTurnPage4 = false) {
+        if (bossTimelineRunning || isPlayerJumping || postBossBookSequenceRunning) return;
+        const requestedPage = Number.isInteger(targetPage) ? targetPage : 1;
+        clearPage3AutoTurnTimer();
         playActionSfx(sfxOpenBook);
-        updateManualPage(1, false); 
+        updateManualPage(requestedPage, false); 
         manualModal.classList.add('manual-active');
         isPlayerControllable = false; stickman.classList.add('stand-still');
         
@@ -2104,9 +2569,14 @@ export function initScene3(playerState, switchScene) {
         if (gameScreen) gameScreen.style.zIndex = 'auto'; 
         if (sceneManager) sceneManager.style.zIndex = '20'; 
         if (gameControls) gameControls.style.pointerEvents = 'none'; 
+
+        if (autoTurnPage4 && requestedPage === 3 && hasThirdManual) {
+            schedulePage4AutoTurn();
+        }
     }
 
     closeManual.addEventListener('click', () => {
+        clearPage3AutoTurnTimer();
         manualModal.classList.remove('manual-active');
         if(!playerDead) isPlayerControllable = true;
 
@@ -2162,6 +2632,81 @@ export function initScene3(playerState, switchScene) {
     let isPlayerAttacking = false; 
     let hasHitInCurrentAttack = false; // 🌟 新增：用來記錄本次揮擊是否已經打中過目標
     let playerDead = false;
+    let isPlayerJumping = false;
+    let playerJumpOffsetPx = 0;
+    let playerJumpFrameId = null;
+    let playerJumpHorizontalVelocity = 0;
+    let playerJumpLandingWorldX = 20;
+    let playerJumpProgress = 0;
+    let playerJumpHeightPx = 120;
+    let playerJumpVerticalVelocityPx = 0;
+
+    // ==============================================================
+    // 🌟 PAGE 3 解鎖後：三角帽 × PLA 導通 X／圓點物理擺盪系統
+    // playerWorldElevationPx 是角色離開 BOSS 後地面的永久世界高度；
+    // playerJumpOffsetPx 仍只負責原本 420ms 的短跳，兩者相加才是實際高度。
+    // ==============================================================
+    let playerWorldElevationPx = 0;
+    let verticalCameraOffsetPx = 0;
+    let verticalCameraTargetPx = 0;
+    // 只計算 PLA 導通／平台離開後的拋體滯空時間；一般地面短跳完全不參與。
+    // 下降越久，垂直鏡頭的向下追蹤速度才會逐步提高，短距離落下仍維持柔和。
+    let plaBallisticAirTimeSeconds = 0;
+    // 在 PLA 最上方實體橫線進行普通 C 跳躍時，垂直鏡頭固定在起跳瞬間的位置。
+    let plaTopPlatformJumpCameraLocked = false;
+    let plaTopPlatformJumpCameraOffsetPx = 0;
+    // 水平鏡頭永遠沿用最初的「角色位於畫面左側約 20%」構圖。
+    // 只有真正進入 PLA 帽子導通／放線拋體時，才在同一構圖上加入死區與阻尼；
+    // 普通跳躍、地面與最上方平台絕不再依 worldX 邊界切換鏡頭模式。
+    let horizontalCameraTargetX = 0;
+    let horizontalCameraInitialized = false;
+    let horizontalCameraWasBuffered = false;
+    // 從 PLA 緩衝模式落回地板／平台時，只衰減「舊鏡頭與原始鏡頭」的殘差，
+    // 同時仍逐幀套用 worldX - 20，因此不會在相同 X 軸位置突然順移。
+    let horizontalCameraHandoffOffsetX = 0;
+    // 抓到新導通點或落上高層平台時，暫時降低鏡頭追蹤速度，完整平移到新構圖。
+    let cameraFocusTransitionUntil = 0;
+
+    let isPlaHatQHeld = false;
+    // C 會消耗目前的 Q 狀態；實體 Q 鍵未放開前，重複 keydown 不得重新導通。
+    let plaHatQBlockedUntilRelease = false;
+    let isPlaHatTethered = false;
+    let isPlaHatBallistic = false;
+    let plaHatAnchor = null;
+    let plaHatRopeLengthPx = 0;
+    let plaHatAngleRad = 0;
+    let plaHatAngularVelocity = 0;
+    let plaHatHatOffsetY = -70;
+    let plaHatVelocityXPx = 0;
+    let plaHatVelocityUpPx = 0;
+    let plaHatLastAnchorKey = null;
+    let plaHatSameAnchorBlockUntil = 0;
+    let plaHatCurrentPose = null;
+    let plaHatTetherLayer = null;
+    let plaHatTetherLine = null;
+    let plaHatTetherAnchorGlow = null;
+
+    // BOSS 吹飛動畫的最終座標會被固定保存，避免恢復控制的第一幀產生飄移。
+    let postBossGroundY = null;
+    let postBossLandingAnchor = null;
+
+    // BOSS 離場後，玩家向右走到 PLA 前方一段距離時觸發風吹落書本事件。
+    // PLA 主圖起點為 115%，觸發點 72% 會保留約 43% 的世界距離。
+    const POST_BOSS_BOOK_TRIGGER_WORLD_X = 72;
+    // 水平緩衝不再使用任何 worldX 分界；是否啟用只由真實導通／拋體狀態決定。
+    let postBossBookSequenceStarted = hasThirdManual;
+    let postBossBookSequenceRunning = false;
+    let postBossBookReadyToPick = false;
+    let postBossBookPickedUp = hasThirdManual;
+    let isNearPostBossBook = false;
+    let postBossBookElement = null;
+    let postBossBookPromptElement = null;
+
+    // PLA 最上方 H 橫線：角色曾經跳到線上方後，永久啟用為可站立的平台。
+    let plaTopPlatformSolid = false;
+    let isOnPlaTopPlatform = false;
+    let plaTopPlatformElevationPx = 0;
+    let plaTopPlatformPreviousFootWorldY = null;
 
     // 🌟 新增：小三角怪擊殺計數器 (總共9隻)
     let smallEnemyKills = 0; 
@@ -2174,7 +2719,7 @@ export function initScene3(playerState, switchScene) {
     let py = 50; 
     let cameraX = 0; 
     let facing = 1;  
-    const keys = { w: false, a: false, s: false, d: false };
+    const keys = { w: false, a: false, s: false, d: false, q: false };
 
     let enemySpawnCounter = 0;
 
@@ -2219,6 +2764,2014 @@ export function initScene3(playerState, switchScene) {
 
     function clearMovementKeys() {
         Object.keys(keys).forEach(key => { keys[key] = false; });
+        isPlaHatQHeld = false;
+        plaHatQBlockedUntilRelease = false;
+        if (isPlaHatTethered) forceClearPlaHatTether();
+    }
+
+    function commitPostBossLandingAnchor() {
+        if (!postBossLandingAnchor || !isCurrentScene3Instance()) return;
+
+        if (playerJumpFrameId !== null) {
+            cancelAnimationFrame(playerJumpFrameId);
+            playerJumpFrameId = null;
+        }
+
+        worldX = postBossLandingAnchor.worldX;
+        py = postBossLandingAnchor.py;
+        cameraX = postBossLandingAnchor.cameraX;
+        horizontalCameraTargetX = cameraX;
+        horizontalCameraInitialized = true;
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        cameraFocusTransitionUntil = 0;
+        facing = postBossLandingAnchor.facing;
+        postBossGroundY = postBossLandingAnchor.py;
+
+        playerJumpOffsetPx = 0;
+        playerJumpHorizontalVelocity = 0;
+        playerJumpLandingWorldX = worldX;
+        playerJumpProgress = 0;
+        playerJumpVerticalVelocityPx = 0;
+        playerWorldElevationPx = 0;
+        verticalCameraOffsetPx = 0;
+        verticalCameraTargetPx = 0;
+        plaBallisticAirTimeSeconds = 0;
+        plaTopPlatformJumpCameraLocked = false;
+        plaTopPlatformJumpCameraOffsetPx = 0;
+        plaTopPlatformSolid = false;
+        isOnPlaTopPlatform = false;
+        plaTopPlatformElevationPx = 0;
+        plaTopPlatformPreviousFootWorldY = null;
+        forceClearPlaHatTether();
+        isPlaHatBallistic = false;
+        plaHatVelocityXPx = 0;
+        plaHatVelocityUpPx = 0;
+        isPlayerJumping = false;
+        resetPlayerJumpPose();
+        stickman.classList.remove('player-jumping', 'player-tumble', 'boss-wind-pushed');
+        stickman.classList.add('stand-still');
+
+        const anchoredScreenX = worldX - cameraX;
+        stickman.style.left = `${anchoredScreenX}%`;
+        stickman.style.top = `${py}%`;
+        stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
+        stickman.style.filter = '';
+        environmentLayer.style.transform = `translate(${-cameraX}%, 0px)`;
+        hidePlaHatTetherVisual();
+    }
+
+    // ==============================================================
+    // 🌟 取得 PAGE 3 後解鎖的 C 鍵垂直跳躍：五個正式序列幀
+    // 狀態 2 / 6、狀態 3 / 5 成對對稱，狀態 4 對準最高點。
+    // ==============================================================
+    const PLAYER_JUMP_DURATION_MS = 420;
+    const PLAYER_JUMP_LANDING_BLEND_MS = 60;
+    // 以世界百分比／秒表示的空中水平物理；60 FPS 下接近原本 0.4%／幀的地面速度。
+    const PLAYER_JUMP_AIR_MAX_SPEED = 24;
+    const PLAYER_JUMP_AIR_ACCELERATION = 140;
+    const PLAYER_JUMP_AIR_DRAG = 9;
+
+    // 每一點都精準對應 PLA 圖上可導通的 X 中心或頂部圓點中心（SVG viewBox 座標）。
+    // 圓點與 X 共用完全相同的搜尋半徑、固定點、單擺、放線與防重抓邏輯。
+    const PLA_HAT_CONDUCTION_POINTS = Object.freeze([
+        { key: 'dot-h-x130', x: 130, y: 75, kind: 'dot' },
+        { key: 'dot-i-x155', x: 155, y: 125, kind: 'dot' },
+        { key: 'dot-c-x180', x: 180, y: 175, kind: 'dot' },
+        { key: 'dot-cbar-x205', x: 205, y: 190, kind: 'dot' },
+        { key: 'dot-e-x230', x: 230, y: 225, kind: 'dot' },
+        { key: 'dot-ebar-x255', x: 255, y: 240, kind: 'dot' },
+        { key: 'dot-n-x280', x: 280, y: 275, kind: 'dot' },
+        { key: 'dot-s-x305', x: 305, y: 325, kind: 'dot' },
+        { key: 'r1-x155', x: 155, y: 350 },
+        { key: 'r1-x180', x: 180, y: 350 },
+        { key: 'r1-x230', x: 230, y: 350 },
+        { key: 'r2-x130', x: 130, y: 400 },
+        { key: 'r2-x155', x: 155, y: 400 },
+        { key: 'r3-x155', x: 155, y: 450 },
+        { key: 'r3-x305', x: 305, y: 450 },
+        { key: 'r4-x155', x: 155, y: 500 },
+        { key: 'r4-x205', x: 205, y: 500 },
+        { key: 'r4-x305', x: 305, y: 500 },
+        { key: 'r5-x155', x: 155, y: 550 },
+        { key: 'r5-x180', x: 180, y: 550 },
+        { key: 'r5-x255', x: 255, y: 550 },
+        { key: 'r5-x280', x: 280, y: 550 },
+        { key: 'r5-x305', x: 305, y: 550 },
+        { key: 'r6-x155', x: 155, y: 600 },
+        { key: 'r6-x180', x: 180, y: 600 },
+        { key: 'r6-x230', x: 230, y: 600 },
+        { key: 'r6-x305', x: 305, y: 600 },
+        { key: 'r7-x130', x: 130, y: 650 },
+        { key: 'r7-x155', x: 155, y: 650 },
+        { key: 'r8-x180', x: 180, y: 700 },
+        { key: 'r8-x230', x: 230, y: 700 },
+        { key: 'r9-x130', x: 130, y: 750 },
+        { key: 'r9-x155', x: 155, y: 750 }
+    ]);
+
+    // 約半個角色身高內才可導通；其他數值使用 px / s 的實際物理單位。
+    const PLA_HAT_LATCH_BODY_RATIO = 0.52;
+    const PLA_HAT_MIN_ROPE_LENGTH_PX = 18;
+    const PLA_HAT_PENDULUM_GRAVITY = 1550;
+    const PLA_HAT_PENDULUM_DAMPING = 0.72;
+    const PLA_HAT_CONTROL_ACCELERATION = 10.5;
+    const PLA_HAT_MAX_ANGULAR_SPEED = 5.5;
+    const PLA_HAT_MAX_SWING_ANGLE = 1.48;
+    const PLA_HAT_BALLISTIC_GRAVITY = 1800;
+    const PLA_HAT_LAUNCH_UP_SPEED = 800;
+    const PLA_HAT_REATTACH_BLOCK_MS = 280;
+
+    const PLAYER_JUMP_NORMAL_POSE = Object.freeze({
+        // Scene 1 / 2 原始幾何基準。
+        headY: 32,
+        torsoTopY: 48,
+        torsoBottomY: 75,
+        shoulderY: 56,
+        handY: 85,
+        hipY: 75,
+        footY: 105,
+        armAngle: 35,
+        armBow1: 0, armC1Y: 65,
+        armBow2: 0, armC2Y: 76,
+        legAngle: 15,
+        legBow1: 0, legC1Y: 85,
+        legBow2: 0, legC2Y: 95
+    });
+
+    const PLAYER_JUMP_SEQUENCE = Object.freeze([
+        // 狀態 2：開始彎曲，整體高度只增加約 1%。
+        Object.freeze({
+            headY: 31.8,
+            torsoTopY: 47.8,
+            torsoBottomY: 75.4,
+            shoulderY: 55.9,
+            handY: 85.3,
+            hipY: 75.4,
+            footY: 105.7,
+            armAngle: 56,
+            armBow1: 2, armC1Y: 65,
+            armBow2: 3, armC2Y: 76,
+            legAngle: 42,
+            legBow1: 2, legC1Y: 84,
+            legBow2: 4, legC2Y: 97
+        }),
+        // 狀態 3：手臂接近水平，腳形成較寬的淺弧。
+        Object.freeze({
+            headY: 31.2,
+            torsoTopY: 47.2,
+            torsoBottomY: 76.0,
+            shoulderY: 55.7,
+            handY: 85.8,
+            hipY: 76.0,
+            footY: 106.5,
+            armAngle: 88,
+            armBow1: 6, armC1Y: 64,
+            armBow2: 6, armC2Y: 78,
+            legAngle: 58,
+            legBow1: 4, legC1Y: 85,
+            legBow2: 8, legC2Y: 100
+        }),
+        // 狀態 4：最高點；整體幾何約拉長 4.5%，但線寬仍固定 8px。
+        Object.freeze({
+            headY: 30.5,
+            torsoTopY: 46.5,
+            torsoBottomY: 76.8,
+            shoulderY: 55.5,
+            handY: 86.2,
+            hipY: 76.8,
+            footY: 107.5,
+            armAngle: 108,
+            armBow1: 8, armC1Y: 65,
+            armBow2: 8, armC2Y: 79,
+            legAngle: 72,
+            legBow1: 6, legC1Y: 85,
+            legBow2: 10, legC2Y: 100
+        }),
+        // 狀態 5：與狀態 3 對稱，開始下降。
+        Object.freeze({
+            headY: 31.2,
+            torsoTopY: 47.2,
+            torsoBottomY: 76.0,
+            shoulderY: 55.7,
+            handY: 85.8,
+            hipY: 76.0,
+            footY: 106.5,
+            armAngle: 88,
+            armBow1: 6, armC1Y: 64,
+            armBow2: 6, armC2Y: 78,
+            legAngle: 58,
+            legBow1: 4, legC1Y: 85,
+            legBow2: 8, legC2Y: 100
+        }),
+        // 狀態 6：與狀態 2 對稱，準備落地回到狀態 7。
+        Object.freeze({
+            headY: 31.8,
+            torsoTopY: 47.8,
+            torsoBottomY: 75.4,
+            shoulderY: 55.9,
+            handY: 85.3,
+            hipY: 75.4,
+            footY: 105.7,
+            armAngle: 56,
+            armBow1: 2, armC1Y: 65,
+            armBow2: 3, armC2Y: 76,
+            legAngle: 42,
+            legBow1: 2, legC1Y: 84,
+            legBow2: 4, legC2Y: 97
+        })
+    ]);
+
+    function playerJumpClamp01(value) {
+        return Math.max(0, Math.min(1, value));
+    }
+
+    function playerJumpSmoothstep(value) {
+        const t = playerJumpClamp01(value);
+        return t * t * (3 - 2 * t);
+    }
+
+    function interpolatePlayerJumpPose(fromPose, toPose, progress) {
+        const t = playerJumpSmoothstep(progress);
+        const result = {};
+        Object.keys(PLAYER_JUMP_NORMAL_POSE).forEach(key => {
+            result[key] = fromPose[key] + (toPose[key] - fromPose[key]) * t;
+        });
+        return result;
+    }
+
+    function getPlayerJumpSequencePose(progress) {
+        const clamped = playerJumpClamp01(progress);
+        const scaled = clamped * (PLAYER_JUMP_SEQUENCE.length - 1);
+        const index = Math.min(PLAYER_JUMP_SEQUENCE.length - 2, Math.floor(scaled));
+        const localProgress = scaled - index;
+        return interpolatePlayerJumpPose(
+            PLAYER_JUMP_SEQUENCE[index],
+            PLAYER_JUMP_SEQUENCE[index + 1],
+            localProgress
+        );
+    }
+
+    function formatPlayerJumpNumber(value) {
+        return Number(value.toFixed(3));
+    }
+
+    function applyPlayerJumpPose(pose) {
+        const head = document.getElementById('stickman-head-s3');
+        const torso = document.getElementById('stickman-torso-s3');
+        const armLPath = document.getElementById('armL-path-s3');
+        const armRPath = document.getElementById('armR-path-s3');
+        const legLPath = document.getElementById('legL-path-s3');
+        const legRPath = document.getElementById('legR-path-s3');
+        if (!head || !torso || !armLPath || !armRPath || !legLPath || !legRPath) return;
+
+        const headY = formatPlayerJumpNumber(pose.headY);
+        const torsoTopY = formatPlayerJumpNumber(pose.torsoTopY);
+        const torsoBottomY = formatPlayerJumpNumber(pose.torsoBottomY);
+        const shoulderY = formatPlayerJumpNumber(pose.shoulderY);
+        const handY = formatPlayerJumpNumber(pose.handY);
+        const hipY = formatPlayerJumpNumber(pose.hipY);
+        const footY = formatPlayerJumpNumber(pose.footY);
+
+        const armL1X = formatPlayerJumpNumber(40 - pose.armBow1);
+        const armL2X = formatPlayerJumpNumber(40 - pose.armBow2);
+        const armR1X = formatPlayerJumpNumber(40 + pose.armBow1);
+        const armR2X = formatPlayerJumpNumber(40 + pose.armBow2);
+        const legL1X = formatPlayerJumpNumber(40 - pose.legBow1);
+        const legL2X = formatPlayerJumpNumber(40 - pose.legBow2);
+        const legR1X = formatPlayerJumpNumber(40 + pose.legBow1);
+        const legR2X = formatPlayerJumpNumber(40 + pose.legBow2);
+
+        // 身體伸長使用座標改寫，不使用 scale；8px 線寬因此保持完全固定。
+        head.setAttribute('cy', String(headY));
+        torso.setAttribute('y1', String(torsoTopY));
+        torso.setAttribute('y2', String(torsoBottomY));
+
+        armLPath.setAttribute('d', `M 40 ${shoulderY} C ${armL1X} ${formatPlayerJumpNumber(pose.armC1Y)} ${armL2X} ${formatPlayerJumpNumber(pose.armC2Y)} 40 ${handY}`);
+        armRPath.setAttribute('d', `M 40 ${shoulderY} C ${armR1X} ${formatPlayerJumpNumber(pose.armC1Y)} ${armR2X} ${formatPlayerJumpNumber(pose.armC2Y)} 40 ${handY}`);
+        legLPath.setAttribute('d', `M 40 ${hipY} C ${legL1X} ${formatPlayerJumpNumber(pose.legC1Y)} ${legL2X} ${formatPlayerJumpNumber(pose.legC2Y)} 40 ${footY}`);
+        legRPath.setAttribute('d', `M 40 ${hipY} C ${legR1X} ${formatPlayerJumpNumber(pose.legC1Y)} ${legR2X} ${formatPlayerJumpNumber(pose.legC2Y)} 40 ${footY}`);
+
+        stickman.style.setProperty('--jump-shoulder-y', `${shoulderY}px`);
+        stickman.style.setProperty('--jump-hand-y', `${handY}px`);
+        stickman.style.setProperty('--jump-hip-y', `${hipY}px`);
+        stickman.style.setProperty('--jump-arm-l-rotation', `${formatPlayerJumpNumber(-pose.armAngle)}deg`);
+        stickman.style.setProperty('--jump-arm-r-rotation', `${formatPlayerJumpNumber(pose.armAngle)}deg`);
+        stickman.style.setProperty('--jump-leg-l-rotation', `${formatPlayerJumpNumber(-pose.legAngle)}deg`);
+        stickman.style.setProperty('--jump-leg-r-rotation', `${formatPlayerJumpNumber(pose.legAngle)}deg`);
+        // 讓槌頭始終朝角色外側上方，不會在手臂抬起時穿過頭部。
+        stickman.style.setProperty('--jump-hammer-rotation', `${formatPlayerJumpNumber(pose.armAngle + 24)}deg`);
+
+        const hammerShaft = document.getElementById('held-hammer-shaft-s3');
+        if (hammerShaft) hammerShaft.setAttribute('y1', String(handY));
+
+        // 頭部裝備跟著頭部的幾何伸展同步位移。
+        const headDisplay = document.getElementById('held-item-head');
+        if (headDisplay) {
+            const headDeltaY = formatPlayerJumpNumber(headY - 32);
+            headDisplay.setAttribute('transform', `translate(17, ${formatPlayerJumpNumber(-15 + headDeltaY)}) scale(0.35)`);
+        }
+    }
+
+    function resetPlayerJumpPose() {
+        const head = document.getElementById('stickman-head-s3');
+        const torso = document.getElementById('stickman-torso-s3');
+        const armLPath = document.getElementById('armL-path-s3');
+        const armRPath = document.getElementById('armR-path-s3');
+        const legLPath = document.getElementById('legL-path-s3');
+        const legRPath = document.getElementById('legR-path-s3');
+
+        if (head) head.setAttribute('cy', '32');
+        if (torso) {
+            torso.setAttribute('y1', '48');
+            torso.setAttribute('y2', '75');
+        }
+        if (armLPath) armLPath.setAttribute('d', 'M 40 56 L 40 85');
+        if (armRPath) armRPath.setAttribute('d', 'M 40 56 L 40 85');
+        if (legLPath) legLPath.setAttribute('d', 'M 40 75 L 40 105');
+        if (legRPath) legRPath.setAttribute('d', 'M 40 75 L 40 105');
+
+        const hammerShaft = document.getElementById('held-hammer-shaft-s3');
+        if (hammerShaft) hammerShaft.setAttribute('y1', '85');
+
+        const headDisplay = document.getElementById('held-item-head');
+        if (headDisplay) headDisplay.setAttribute('transform', 'translate(17, -15) scale(0.35)');
+
+        stickman.style.removeProperty('--jump-shoulder-y');
+        stickman.style.removeProperty('--jump-hand-y');
+        stickman.style.removeProperty('--jump-hip-y');
+        stickman.style.removeProperty('--jump-arm-l-rotation');
+        stickman.style.removeProperty('--jump-arm-r-rotation');
+        stickman.style.removeProperty('--jump-leg-l-rotation');
+        stickman.style.removeProperty('--jump-leg-r-rotation');
+        stickman.style.removeProperty('--jump-hammer-rotation');
+    }
+
+    function finishPlayerVerticalJump(lastPose) {
+        const blendStart = performance.now();
+
+        const blendFrame = now => {
+            if (!isCurrentScene3Instance()) return;
+            const progress = playerJumpClamp01((now - blendStart) / PLAYER_JUMP_LANDING_BLEND_MS);
+            applyPlayerJumpPose(interpolatePlayerJumpPose(lastPose, PLAYER_JUMP_NORMAL_POSE, progress));
+
+            if (progress < 1) {
+                playerJumpFrameId = requestAnimationFrame(blendFrame);
+                return;
+            }
+
+            playerJumpOffsetPx = 0;
+            playerJumpProgress = 0;
+            playerJumpVerticalVelocityPx = 0;
+            // 以逐幀積分出的世界座標作為真正落地點，避免左右移動後落地瞬移。
+            worldX = Math.max(5, playerJumpLandingWorldX);
+            playerJumpHorizontalVelocity = 0;
+            resetPlayerJumpPose();
+            stickman.classList.remove('player-jumping');
+            stickman.classList.add('stand-still');
+            isPlayerJumping = false;
+            playerJumpFrameId = null;
+            plaTopPlatformJumpCameraLocked = false;
+            if (!playerDead && !bossTimelineRunning) canAttack = true;
+        };
+
+        playerJumpFrameId = requestAnimationFrame(blendFrame);
+    }
+
+    function startPlayerVerticalJump() {
+        if (
+            !bossTimelineCompleted ||
+            !jumpManualUnlocked ||
+            bossTimelineRunning ||
+            isPlayerJumping ||
+            isPlaHatTethered ||
+            isPlaHatBallistic ||
+            (playerWorldElevationPx > 0.5 && !isOnPlaTopPlatform) ||
+            !isPlayerControllable ||
+            isPlayerAttacking ||
+            !canAttack ||
+            playerDead ||
+            isGamePaused ||
+            backpackIsOpen ||
+            manualModal.classList.contains('manual-active')
+        ) return;
+
+        // PLA 最上方橫線已經是實體路地；從這裡進行普通跳躍時，垂直鏡頭全程固定。
+        if (isOnPlaTopPlatform) {
+            plaTopPlatformJumpCameraLocked = true;
+            plaTopPlatformJumpCameraOffsetPx = verticalCameraOffsetPx;
+            verticalCameraTargetPx = plaTopPlatformJumpCameraOffsetPx;
+        } else {
+            plaTopPlatformJumpCameraLocked = false;
+        }
+
+        // 必須在套用伸展姿勢前量測，確保最高點仍精準等於原本角色的一個身高。
+        const jumpHeightPx = Math.max(1, stickman.getBoundingClientRect().height || 120);
+        const initialDirection = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+        playerJumpHeightPx = jumpHeightPx;
+        playerJumpProgress = 0;
+        playerJumpVerticalVelocityPx = (4 * jumpHeightPx) / (PLAYER_JUMP_DURATION_MS / 1000);
+
+        isPlayerJumping = true;
+        canAttack = false;
+        playerJumpOffsetPx = 0;
+        playerJumpLandingWorldX = worldX;
+        playerJumpHorizontalVelocity = initialDirection * 10;
+        keys.w = false;
+        keys.s = false;
+        stickman.classList.remove('anim-attack', 'boss-wind-landed');
+        stickman.classList.add('stand-still', 'player-jumping');
+
+        // 按下 C 後立即進入狀態 2；五個正式姿勢在最高點前後對稱。
+        applyPlayerJumpPose(PLAYER_JUMP_SEQUENCE[0]);
+
+        const jumpStart = performance.now();
+        let previousJumpFrameTime = jumpStart;
+
+        const jumpFrame = now => {
+            if (!isCurrentScene3Instance()) return;
+
+            const progress = playerJumpClamp01((now - jumpStart) / PLAYER_JUMP_DURATION_MS);
+            playerJumpProgress = progress;
+            playerJumpVerticalVelocityPx =
+                (4 * playerJumpHeightPx * (1 - 2 * progress)) / (PLAYER_JUMP_DURATION_MS / 1000);
+            const pose = getPlayerJumpSequencePose(progress);
+            applyPlayerJumpPose(pose);
+
+            // 拋物線最高點恰好等於角色原本本體高度。
+            playerJumpOffsetPx = jumpHeightPx * 4 * progress * (1 - progress);
+
+            /*
+               空中左右移動採用速度、加速度與阻力積分。落地點就是每幀累積後的
+               playerJumpLandingWorldX，因此途中換向或放開按鍵都會形成連續弧線，
+               不會在落地時突然跳回起跳位置。
+            */
+            const deltaSeconds = Math.min(0.034, Math.max(0, (now - previousJumpFrameTime) / 1000));
+            previousJumpFrameTime = now;
+            const horizontalInput = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+
+            if (horizontalInput !== 0) {
+                const targetVelocity = horizontalInput * PLAYER_JUMP_AIR_MAX_SPEED;
+                const velocityDifference = targetVelocity - playerJumpHorizontalVelocity;
+                const maxVelocityChange = PLAYER_JUMP_AIR_ACCELERATION * deltaSeconds;
+                playerJumpHorizontalVelocity += Math.max(
+                    -maxVelocityChange,
+                    Math.min(maxVelocityChange, velocityDifference)
+                );
+                facing = horizontalInput < 0 ? -1 : 1;
+            } else {
+                playerJumpHorizontalVelocity *= Math.exp(-PLAYER_JUMP_AIR_DRAG * deltaSeconds);
+            }
+
+            playerJumpLandingWorldX = Math.max(
+                5,
+                playerJumpLandingWorldX + playerJumpHorizontalVelocity * deltaSeconds
+            );
+            worldX = playerJumpLandingWorldX;
+
+            if (progress < 1) {
+                playerJumpFrameId = requestAnimationFrame(jumpFrame);
+                return;
+            }
+
+            playerJumpOffsetPx = 0;
+            finishPlayerVerticalJump(PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1]);
+        };
+
+        playerJumpFrameId = requestAnimationFrame(jumpFrame);
+    }
+
+
+
+    // ==============================================================
+    // 🌟 三角帽連接 PLA X／圓點：固定點導通、單擺、放線與連續向上攀升
+    // ==============================================================
+    function getScene3StageMetrics() {
+        const stage = document.getElementById('scene3-stage');
+        if (!stage) return null;
+        const rect = stage.getBoundingClientRect();
+        const width = Math.max(1, rect.width || stage.clientWidth || scene3.clientWidth || 1000);
+        const height = Math.max(1, rect.height || stage.clientHeight || scene3.clientHeight || 600);
+        const groundPercent = postBossGroundY ?? py ?? getPlayerBottomYPercent();
+        return {
+            stage,
+            rect,
+            width,
+            height,
+            groundY: height * Number(groundPercent) / 100
+        };
+    }
+
+    function getTotalPlayerElevationPx() {
+        return Math.max(0, playerWorldElevationPx + playerJumpOffsetPx);
+    }
+
+    function getCurrentVerticalVelocityUpPx() {
+        if (isPlaHatTethered) {
+            return plaHatRopeLengthPx * Math.sin(plaHatAngleRad) * plaHatAngularVelocity;
+        }
+        if (isPlaHatBallistic) return plaHatVelocityUpPx;
+        if (isPlayerJumping) return playerJumpVerticalVelocityPx;
+        return 0;
+    }
+
+    function getPlayerCenterWorldPoint(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+        return {
+            x: worldX * metrics.width / 100,
+            y: metrics.groundY - getTotalPlayerElevationPx()
+        };
+    }
+
+    function getHatTopScreenPoint() {
+        const headDisplay = document.getElementById('held-item-head');
+        if (headItem === 'hat' && headDisplay && typeof headDisplay.getScreenCTM === 'function') {
+            try {
+                const ownerSvg = headDisplay.ownerSVGElement;
+                const matrix = headDisplay.getScreenCTM();
+                if (ownerSvg && matrix && typeof ownerSvg.createSVGPoint === 'function') {
+                    const point = ownerSvg.createSVGPoint();
+                    // getItemSVG('hat') 的三角形最高頂點就是 (65, 30)。
+                    point.x = 65;
+                    point.y = 30;
+                    const screenPoint = point.matrixTransform(matrix);
+                    if (Number.isFinite(screenPoint.x) && Number.isFinite(screenPoint.y)) {
+                        return { x: screenPoint.x, y: screenPoint.y };
+                    }
+                }
+            } catch (error) {
+                // SVG CTM 在場景切換的一瞬間可能尚未建立，以下方 fallback 保持穩定。
+            }
+        }
+
+        const rect = stickman.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top - 4
+        };
+    }
+
+    function getHatTopWorldPoint(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+        const screenPoint = getHatTopScreenPoint();
+        return {
+            x: screenPoint.x - metrics.rect.left + cameraX * metrics.width / 100,
+            y: screenPoint.y - metrics.rect.top - verticalCameraOffsetPx
+        };
+    }
+
+    function getPlaCircuitElement() {
+        return scene3.querySelector('#environment-layer-s3 .pla-circuit');
+    }
+
+    function getPlaConductionScreenPoint(definition) {
+        const pla = getPlaCircuitElement();
+        if (!pla || typeof pla.getScreenCTM !== 'function' || typeof pla.createSVGPoint !== 'function') return null;
+        try {
+            const matrix = pla.getScreenCTM();
+            if (!matrix) return null;
+            const point = pla.createSVGPoint();
+            point.x = definition.x;
+            point.y = definition.y;
+            const screenPoint = point.matrixTransform(matrix);
+            if (!Number.isFinite(screenPoint.x) || !Number.isFinite(screenPoint.y)) return null;
+            return { x: screenPoint.x, y: screenPoint.y };
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function screenPointToScene3World(screenPoint, metrics = getScene3StageMetrics()) {
+        if (!metrics || !screenPoint) return null;
+        return {
+            x: screenPoint.x - metrics.rect.left + cameraX * metrics.width / 100,
+            y: screenPoint.y - metrics.rect.top - verticalCameraOffsetPx
+        };
+    }
+
+    function getPlaTopPlatformWorldGeometry(metrics = getScene3StageMetrics()) {
+        const line = document.getElementById('pla-top-platform-line-s3');
+        if (
+            !metrics ||
+            !line ||
+            !line.ownerSVGElement ||
+            typeof line.getScreenCTM !== 'function' ||
+            typeof line.ownerSVGElement.createSVGPoint !== 'function'
+        ) return null;
+
+        try {
+            const matrix = line.getScreenCTM();
+            if (!matrix) return null;
+            const svg = line.ownerSVGElement;
+            const y = Number(line.getAttribute('y1')) || 75;
+            const makeScreenPoint = x => {
+                const point = svg.createSVGPoint();
+                point.x = x;
+                point.y = y;
+                return point.matrixTransform(matrix);
+            };
+            const screenStart = makeScreenPoint(Number(line.getAttribute('x1')) || 55);
+            const screenEnd = makeScreenPoint(Number(line.getAttribute('x2')) || 305);
+            const worldStart = screenPointToScene3World(screenStart, metrics);
+            const worldEnd = screenPointToScene3World(screenEnd, metrics);
+            if (!worldStart || !worldEnd) return null;
+
+            return {
+                line,
+                leftX: Math.min(worldStart.x, worldEnd.x),
+                rightX: Math.max(worldStart.x, worldEnd.x),
+                y: (worldStart.y + worldEnd.y) / 2
+            };
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function getPlayerFootOffsetPx() {
+        const playerHeight = Math.max(1, stickman.getBoundingClientRect().height || 120);
+        // 與 Scene 1 / 2 相同：腳底 y=105、角色中心 y=60，中心到腳底為 45/120 身高。
+        return playerHeight * (45 / 120);
+    }
+
+    function getPlayerFootWorldY(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+        return metrics.groundY - getTotalPlayerElevationPx() + getPlayerFootOffsetPx();
+    }
+
+    function getPlaTopPlatformSupportElevation(metrics, geometry) {
+        if (!metrics || !geometry) return 0;
+        return Math.max(0, metrics.groundY - (geometry.y - getPlayerFootOffsetPx()));
+    }
+
+    function beginScene3CameraFocusTransition(durationMs = 950) {
+        const duration = Math.max(260, Number(durationMs) || 950);
+        cameraFocusTransitionUntil = Math.max(
+            cameraFocusTransitionUntil,
+            performance.now() + duration
+        );
+        if (!horizontalCameraInitialized) {
+            horizontalCameraTargetX = Math.max(0, cameraX);
+            horizontalCameraInitialized = true;
+        }
+    }
+
+    function setPlaTopPlatformSolid(geometry) {
+        if (plaTopPlatformSolid) return;
+        plaTopPlatformSolid = true;
+        if (geometry?.line) {
+            geometry.line.dataset.solid = 'true';
+            // 不改變原本電路外觀，只增加極輕微的線體光暈，表示它已成為可踩踏實體。
+            geometry.line.style.filter = 'drop-shadow(0 0 3px rgba(255,255,255,0.72))';
+        }
+    }
+
+    function leavePlaTopPlatformAsBallistic(metrics) {
+        if (!metrics || !isOnPlaTopPlatform) return;
+
+        const inheritedUpVelocity = getCurrentVerticalVelocityUpPx();
+        const inheritedElevation = getTotalPlayerElevationPx();
+        let inheritedHorizontalVelocity = playerJumpHorizontalVelocity * metrics.width / 100;
+        if (Math.abs(inheritedHorizontalVelocity) < 1) {
+            const direction = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+            inheritedHorizontalVelocity = direction * metrics.width * 0.24;
+        }
+
+        if (playerJumpFrameId !== null) {
+            cancelAnimationFrame(playerJumpFrameId);
+            playerJumpFrameId = null;
+        }
+
+        isOnPlaTopPlatform = false;
+        plaTopPlatformJumpCameraLocked = false;
+        plaBallisticAirTimeSeconds = 0;
+        playerWorldElevationPx = inheritedElevation;
+        playerJumpOffsetPx = 0;
+        isPlaHatBallistic = true;
+        isPlayerJumping = true;
+        canAttack = false;
+        plaHatVelocityXPx = inheritedHorizontalVelocity;
+        plaHatVelocityUpPx = inheritedUpVelocity;
+        playerJumpHorizontalVelocity = inheritedHorizontalVelocity * 100 / metrics.width;
+        playerJumpVerticalVelocityPx = inheritedUpVelocity;
+        playerJumpLandingWorldX = worldX;
+        stickman.classList.add('stand-still', 'player-jumping');
+    }
+
+    function landPlayerOnPlaTopPlatform(metrics, geometry) {
+        if (!metrics || !geometry) return false;
+
+        if (playerJumpFrameId !== null) {
+            cancelAnimationFrame(playerJumpFrameId);
+            playerJumpFrameId = null;
+        }
+
+        if (isPlaHatTethered) forceClearPlaHatTether();
+        isPlaHatTethered = false;
+        isPlaHatBallistic = false;
+        plaHatAnchor = null;
+        plaHatRopeLengthPx = 0;
+        plaHatVelocityXPx = 0;
+        plaHatVelocityUpPx = 0;
+        plaHatAngularVelocity = 0;
+
+        setPlaTopPlatformSolid(geometry);
+        isOnPlaTopPlatform = true;
+        plaTopPlatformJumpCameraLocked = false;
+        plaBallisticAirTimeSeconds = 0;
+        plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry);
+        playerWorldElevationPx = plaTopPlatformElevationPx;
+        playerJumpOffsetPx = 0;
+        playerJumpProgress = 0;
+        playerJumpVerticalVelocityPx = 0;
+        playerJumpHorizontalVelocity = 0;
+        playerJumpLandingWorldX = worldX;
+        isPlayerJumping = false;
+        canAttack = !playerDead && !bossTimelineRunning;
+        resetPlayerJumpPose();
+        stickman.classList.remove('player-jumping', 'boss-wind-landed');
+        stickman.classList.add('stand-still');
+        hidePlaHatTetherVisual();
+        plaTopPlatformPreviousFootWorldY = geometry.y;
+        beginScene3CameraFocusTransition(900);
+        return true;
+    }
+
+    function updatePlaTopPlatformPhysics() {
+        if (!bossTimelineCompleted) return;
+        const metrics = getScene3StageMetrics();
+        const geometry = getPlaTopPlatformWorldGeometry(metrics);
+        if (!metrics || !geometry) return;
+
+        const playerCenterX = worldX * metrics.width / 100;
+        const horizontalMargin = Math.max(10, (stickman.getBoundingClientRect().width || 80) * 0.28);
+        const withinPlatform =
+            playerCenterX >= geometry.leftX - horizontalMargin &&
+            playerCenterX <= geometry.rightX + horizontalMargin;
+        let currentFootY = getPlayerFootWorldY(metrics);
+        if (!Number.isFinite(currentFootY)) return;
+
+        const airborne =
+            isPlayerJumping ||
+            isPlaHatTethered ||
+            isPlaHatBallistic ||
+            Math.abs(getCurrentVerticalVelocityUpPx()) > 2;
+
+        // 只有角色真的曾從下方跳到橫線上方，這條線才會永久成為實體平台。
+        if (!plaTopPlatformSolid && airborne && currentFootY < geometry.y - 6) {
+            setPlaTopPlatformSolid(geometry);
+        }
+
+        if (isOnPlaTopPlatform) {
+            if (!withinPlatform) {
+                leavePlaTopPlatformAsBallistic(metrics);
+                currentFootY = getPlayerFootWorldY(metrics);
+            } else {
+                plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry);
+                playerWorldElevationPx = plaTopPlatformElevationPx;
+                // 普通 C 跳躍期間只疊加 playerJumpOffsetPx；非跳躍時腳底精準貼住線面。
+                if (!isPlayerJumping && !isPlaHatBallistic && !isPlaHatTethered) {
+                    playerJumpOffsetPx = 0;
+                    playerJumpVerticalVelocityPx = 0;
+                }
+            }
+        }
+
+        if (
+            plaTopPlatformSolid &&
+            !isOnPlaTopPlatform &&
+            !isPlaHatTethered &&
+            withinPlatform
+        ) {
+            const descending = getCurrentVerticalVelocityUpPx() < -4;
+            const previousFootY = plaTopPlatformPreviousFootWorldY;
+            const crossedFromAbove =
+                Number.isFinite(previousFootY) &&
+                previousFootY <= geometry.y + 3 &&
+                currentFootY >= geometry.y - 4;
+
+            if (descending && crossedFromAbove) {
+                landPlayerOnPlaTopPlatform(metrics, geometry);
+                currentFootY = geometry.y;
+            }
+        }
+
+        plaTopPlatformPreviousFootWorldY = currentFootY;
+    }
+
+    function ensurePlaHatTetherVisual() {
+        if (plaHatTetherLayer && plaHatTetherLayer.isConnected) return plaHatTetherLayer;
+        const stage = document.getElementById('scene3-stage');
+        if (!stage) return null;
+
+        const svgNs = 'http://www.w3.org/2000/svg';
+        const layer = document.createElementNS(svgNs, 'svg');
+        layer.id = 'pla-hat-tether-layer-s3';
+        layer.setAttribute('aria-hidden', 'true');
+        layer.style.cssText = [
+            'position:absolute',
+            'inset:0',
+            'width:100%',
+            'height:100%',
+            'z-index:8',
+            'overflow:visible',
+            'pointer-events:none',
+            'opacity:0',
+            'transition:opacity 0.06s linear'
+        ].join(';');
+
+        const line = document.createElementNS(svgNs, 'line');
+        line.id = 'pla-hat-tether-line-s3';
+        line.setAttribute('stroke', '#ffffff');
+        line.setAttribute('stroke-width', '3.8'); // 與頭戴三角帽邊框的視覺粗細一致
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('vector-effect', 'non-scaling-stroke');
+        line.style.filter = 'drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px rgba(0,242,254,0.9))';
+
+        const anchorGlow = document.createElementNS(svgNs, 'circle');
+        anchorGlow.id = 'pla-hat-tether-anchor-s3';
+        anchorGlow.setAttribute('r', '5.2');
+        anchorGlow.setAttribute('fill', '#ffffff');
+        anchorGlow.setAttribute('stroke', 'var(--brand-blue, #00f2fe)');
+        anchorGlow.setAttribute('stroke-width', '2');
+        anchorGlow.setAttribute('vector-effect', 'non-scaling-stroke');
+        anchorGlow.style.filter = 'drop-shadow(0 0 7px #fff) drop-shadow(0 0 12px var(--brand-blue, #00f2fe))';
+
+        layer.appendChild(line);
+        layer.appendChild(anchorGlow);
+        stage.appendChild(layer);
+
+        plaHatTetherLayer = layer;
+        plaHatTetherLine = line;
+        plaHatTetherAnchorGlow = anchorGlow;
+        return layer;
+    }
+
+    function hidePlaHatTetherVisual() {
+        if (plaHatTetherLayer) plaHatTetherLayer.style.opacity = '0';
+    }
+
+    function updatePlaHatTetherVisual() {
+        if (!isPlaHatTethered || !plaHatAnchor) {
+            hidePlaHatTetherVisual();
+            return;
+        }
+
+        const metrics = getScene3StageMetrics();
+        const layer = ensurePlaHatTetherVisual();
+        if (!metrics || !layer || !plaHatTetherLine || !plaHatTetherAnchorGlow) return;
+
+        layer.setAttribute('viewBox', `0 0 ${metrics.width} ${metrics.height}`);
+        const anchorX = plaHatAnchor.worldX - cameraX * metrics.width / 100;
+        const anchorY = plaHatAnchor.worldY + verticalCameraOffsetPx;
+        const hatScreen = getHatTopScreenPoint();
+        const hatX = hatScreen.x - metrics.rect.left;
+        const hatY = hatScreen.y - metrics.rect.top;
+
+        plaHatTetherLine.setAttribute('x1', anchorX.toFixed(3));
+        plaHatTetherLine.setAttribute('y1', anchorY.toFixed(3));
+        plaHatTetherLine.setAttribute('x2', hatX.toFixed(3));
+        plaHatTetherLine.setAttribute('y2', hatY.toFixed(3));
+        plaHatTetherAnchorGlow.setAttribute('cx', anchorX.toFixed(3));
+        plaHatTetherAnchorGlow.setAttribute('cy', anchorY.toFixed(3));
+        layer.style.opacity = '1';
+    }
+
+    function forceClearPlaHatTether() {
+        isPlaHatQHeld = false;
+        keys.q = false;
+        isPlaHatTethered = false;
+        plaHatAnchor = null;
+        plaHatRopeLengthPx = 0;
+        plaHatAngleRad = 0;
+        plaHatAngularVelocity = 0;
+        hidePlaHatTetherVisual();
+    }
+
+    // 按住 Q 時再按 C，Q 必須立刻失效；只有收到真正的 keyup 後，下一次 Q 才可重新導通。
+    function consumePlaHatQUntilRelease() {
+        isPlaHatQHeld = false;
+        keys.q = false;
+        plaHatQBlockedUntilRelease = true;
+        hidePlaHatTetherVisual();
+    }
+
+    function getCurrentPlayerLinearVelocityPx(metrics) {
+        if (!metrics) return { x: 0, up: 0 };
+        if (isPlaHatBallistic) {
+            return { x: plaHatVelocityXPx, up: plaHatVelocityUpPx };
+        }
+        if (isPlayerJumping) {
+            return {
+                x: playerJumpHorizontalVelocity * metrics.width / 100,
+                up: playerJumpVerticalVelocityPx
+            };
+        }
+        return { x: 0, up: 0 };
+    }
+
+    function canUsePlaHatTraversal() {
+        return (
+            bossTimelineCompleted &&
+            jumpManualUnlocked &&
+            headItem === 'hat' &&
+            isPlayerControllable &&
+            !playerDead &&
+            !isGamePaused &&
+            !backpackIsOpen &&
+            !isPlayerAttacking &&
+            !postBossBookSequenceRunning &&
+            !manualModal.classList.contains('manual-active')
+        );
+    }
+
+    function attachPlaHatToConductionPoint(candidate, metrics) {
+        if (!candidate || !metrics) return false;
+
+        const currentCenter = getPlayerCenterWorldPoint(metrics);
+        const currentHat = getHatTopWorldPoint(metrics);
+        if (!currentCenter || !currentHat) return false;
+        const inheritedVelocity = getCurrentPlayerLinearVelocityPx(metrics);
+        const totalElevation = getTotalPlayerElevationPx();
+
+        if (playerJumpFrameId !== null) {
+            cancelAnimationFrame(playerJumpFrameId);
+            playerJumpFrameId = null;
+        }
+
+        playerWorldElevationPx = totalElevation;
+        playerJumpOffsetPx = 0;
+        playerJumpProgress = 0.5;
+        playerJumpVerticalVelocityPx = inheritedVelocity.up;
+        playerJumpLandingWorldX = worldX;
+
+        isPlaHatBallistic = false;
+        plaBallisticAirTimeSeconds = 0;
+        plaTopPlatformJumpCameraLocked = false;
+        isPlaHatTethered = true;
+        isPlayerJumping = true;
+        canAttack = false;
+
+        plaHatAnchor = {
+            key: candidate.definition.key,
+            worldX: candidate.world.x,
+            worldY: candidate.world.y
+        };
+        plaHatHatOffsetY = currentHat.y - currentCenter.y;
+
+        const dx = currentHat.x - plaHatAnchor.worldX;
+        const dy = currentHat.y - plaHatAnchor.worldY;
+        plaHatRopeLengthPx = Math.max(PLA_HAT_MIN_ROPE_LENGTH_PX, Math.hypot(dx, dy));
+        plaHatAngleRad = Math.atan2(dx, dy);
+        plaHatAngularVelocity = (
+            inheritedVelocity.x * Math.cos(plaHatAngleRad) +
+            inheritedVelocity.up * Math.sin(plaHatAngleRad)
+        ) / plaHatRopeLengthPx;
+        plaHatAngularVelocity = Math.max(
+            -PLA_HAT_MAX_ANGULAR_SPEED,
+            Math.min(PLA_HAT_MAX_ANGULAR_SPEED, plaHatAngularVelocity)
+        );
+
+        plaHatCurrentPose = PLAYER_JUMP_SEQUENCE[2];
+        applyPlayerJumpPose(plaHatCurrentPose);
+        stickman.classList.remove('anim-attack', 'boss-wind-landed');
+        stickman.classList.add('stand-still', 'player-jumping');
+        ensurePlaHatTetherVisual();
+        updatePlaHatTetherVisual();
+        // 新固定點可能與上一個固定點相距很遠；鏡頭由舊構圖平滑移向新位置，禁止瞬移。
+        beginScene3CameraFocusTransition(1050);
+        return true;
+    }
+
+    function attemptPlaHatConnection() {
+        if (
+            isPlaHatTethered ||
+            !isPlaHatQHeld ||
+            !canUsePlaHatTraversal() ||
+            !(isPlayerJumping || isPlaHatBallistic || playerWorldElevationPx > 0.5)
+        ) return false;
+
+        const metrics = getScene3StageMetrics();
+        const hatScreen = getHatTopScreenPoint();
+        if (!metrics || !hatScreen) return false;
+
+        const latchRadius = Math.max(
+            44,
+            (stickman.getBoundingClientRect().height || 120) * PLA_HAT_LATCH_BODY_RATIO
+        );
+        const now = performance.now();
+        let nearest = null;
+
+        for (const definition of PLA_HAT_CONDUCTION_POINTS) {
+            if (
+                definition.key === plaHatLastAnchorKey &&
+                now < plaHatSameAnchorBlockUntil
+            ) continue;
+
+            const screen = getPlaConductionScreenPoint(definition);
+            if (!screen) continue;
+            const distance = Math.hypot(screen.x - hatScreen.x, screen.y - hatScreen.y);
+            if (distance > latchRadius || (nearest && distance >= nearest.distance)) continue;
+            const world = screenPointToScene3World(screen, metrics);
+            if (!world) continue;
+            nearest = { definition, screen, world, distance };
+        }
+
+        return nearest ? attachPlaHatToConductionPoint(nearest, metrics) : false;
+    }
+
+    function releasePlaHatTether(withUpwardBoost = false) {
+        if (!isPlaHatTethered || !plaHatAnchor) return false;
+        const metrics = getScene3StageMetrics();
+        if (!metrics) return false;
+
+        let velocityX = plaHatRopeLengthPx * Math.cos(plaHatAngleRad) * plaHatAngularVelocity;
+        let velocityUp = plaHatRopeLengthPx * Math.sin(plaHatAngleRad) * plaHatAngularVelocity;
+        const horizontalInput = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+
+        if (withUpwardBoost) {
+            velocityX += horizontalInput * Math.min(150, metrics.width * 0.15);
+            velocityUp = Math.max(PLA_HAT_LAUNCH_UP_SPEED, velocityUp + 170);
+            playerWorldElevationPx += 3;
+        }
+
+        plaHatLastAnchorKey = plaHatAnchor.key;
+        plaHatSameAnchorBlockUntil = performance.now() + PLA_HAT_REATTACH_BLOCK_MS;
+        isPlaHatTethered = false;
+        plaHatAnchor = null;
+        plaHatRopeLengthPx = 0;
+        plaHatAngularVelocity = 0;
+        hidePlaHatTetherVisual();
+
+        isPlaHatBallistic = true;
+        plaBallisticAirTimeSeconds = 0;
+        plaTopPlatformJumpCameraLocked = false;
+        isPlayerJumping = true;
+        canAttack = false;
+        plaHatVelocityXPx = velocityX;
+        plaHatVelocityUpPx = velocityUp;
+        playerJumpHorizontalVelocity = velocityX * 100 / metrics.width;
+        playerJumpVerticalVelocityPx = velocityUp;
+        playerJumpOffsetPx = 0;
+        playerJumpLandingWorldX = worldX;
+        stickman.classList.add('stand-still', 'player-jumping');
+        return true;
+    }
+
+    function launchUpwardFromPlaHatTether() {
+        if (!isPlaHatQHeld || !isPlaHatTethered) return false;
+        return releasePlaHatTether(true);
+    }
+
+    function landPlaHatTraversal() {
+        const lastPose = plaHatCurrentPose || PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1];
+        isPlaHatTethered = false;
+        isPlaHatBallistic = false;
+        plaBallisticAirTimeSeconds = 0;
+        plaTopPlatformJumpCameraLocked = false;
+        plaHatAnchor = null;
+        playerWorldElevationPx = 0;
+        playerJumpOffsetPx = 0;
+        playerJumpVerticalVelocityPx = 0;
+        plaHatVelocityXPx = 0;
+        plaHatVelocityUpPx = 0;
+        playerJumpLandingWorldX = Math.max(5, worldX);
+        hidePlaHatTetherVisual();
+        finishPlayerVerticalJump(lastPose);
+    }
+
+    function updatePlaHatTraversalPhysics(deltaSeconds) {
+        if (isPlaHatTethered) {
+            if (!isPlaHatQHeld || headItem !== 'hat' || !canUsePlaHatTraversal()) {
+                releasePlaHatTether(false);
+                return;
+            }
+
+            const metrics = getScene3StageMetrics();
+            if (!metrics || !plaHatAnchor) return;
+            const horizontalInput = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+            if (horizontalInput !== 0) facing = horizontalInput < 0 ? -1 : 1;
+
+            const acceleration =
+                -(PLA_HAT_PENDULUM_GRAVITY / Math.max(1, plaHatRopeLengthPx)) * Math.sin(plaHatAngleRad) +
+                horizontalInput * PLA_HAT_CONTROL_ACCELERATION -
+                PLA_HAT_PENDULUM_DAMPING * plaHatAngularVelocity;
+
+            plaHatAngularVelocity += acceleration * deltaSeconds;
+            plaHatAngularVelocity = Math.max(
+                -PLA_HAT_MAX_ANGULAR_SPEED,
+                Math.min(PLA_HAT_MAX_ANGULAR_SPEED, plaHatAngularVelocity)
+            );
+            plaHatAngleRad += plaHatAngularVelocity * deltaSeconds;
+
+            if (plaHatAngleRad > PLA_HAT_MAX_SWING_ANGLE) {
+                plaHatAngleRad = PLA_HAT_MAX_SWING_ANGLE;
+                if (plaHatAngularVelocity > 0) plaHatAngularVelocity *= -0.18;
+            } else if (plaHatAngleRad < -PLA_HAT_MAX_SWING_ANGLE) {
+                plaHatAngleRad = -PLA_HAT_MAX_SWING_ANGLE;
+                if (plaHatAngularVelocity < 0) plaHatAngularVelocity *= -0.18;
+            }
+
+            const hatWorldX = plaHatAnchor.worldX + Math.sin(plaHatAngleRad) * plaHatRopeLengthPx;
+            const hatWorldY = plaHatAnchor.worldY + Math.cos(plaHatAngleRad) * plaHatRopeLengthPx;
+            const centerWorldX = hatWorldX;
+            const centerWorldY = hatWorldY - plaHatHatOffsetY;
+
+            worldX = Math.max(5, centerWorldX * 100 / metrics.width);
+            playerWorldElevationPx = metrics.groundY - centerWorldY;
+            playerJumpLandingWorldX = worldX;
+            playerJumpHorizontalVelocity =
+                plaHatRopeLengthPx * Math.cos(plaHatAngleRad) * plaHatAngularVelocity * 100 / metrics.width;
+            playerJumpVerticalVelocityPx =
+                plaHatRopeLengthPx * Math.sin(plaHatAngleRad) * plaHatAngularVelocity;
+
+            if (playerWorldElevationPx <= 0 && playerJumpVerticalVelocityPx <= 0) {
+                landPlaHatTraversal();
+                return;
+            }
+
+            playerWorldElevationPx = Math.max(0, playerWorldElevationPx);
+            plaHatCurrentPose = PLAYER_JUMP_SEQUENCE[2];
+            applyPlayerJumpPose(plaHatCurrentPose);
+            return;
+        }
+
+        if (!isPlaHatBallistic) return;
+        const metrics = getScene3StageMetrics();
+        if (!metrics) return;
+
+        // 只累積真正的 PLA 拋體時間；此值用於下降鏡頭的漸進加速。
+        plaBallisticAirTimeSeconds = Math.min(4, plaBallisticAirTimeSeconds + Math.max(0, deltaSeconds));
+
+        const horizontalInput = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+        const maxHorizontalSpeed = metrics.width * 0.24;
+        const horizontalAcceleration = metrics.width * 1.4;
+
+        if (horizontalInput !== 0) {
+            const targetVelocity = horizontalInput * maxHorizontalSpeed;
+            const maxChange = horizontalAcceleration * deltaSeconds;
+            const difference = targetVelocity - plaHatVelocityXPx;
+            plaHatVelocityXPx += Math.max(-maxChange, Math.min(maxChange, difference));
+            facing = horizontalInput < 0 ? -1 : 1;
+        } else {
+            plaHatVelocityXPx *= Math.exp(-2.2 * deltaSeconds);
+        }
+
+        worldX = Math.max(5, worldX + plaHatVelocityXPx * 100 / metrics.width * deltaSeconds);
+        playerWorldElevationPx += plaHatVelocityUpPx * deltaSeconds;
+        plaHatVelocityUpPx -= PLA_HAT_BALLISTIC_GRAVITY * deltaSeconds;
+        playerJumpLandingWorldX = worldX;
+        playerJumpHorizontalVelocity = plaHatVelocityXPx * 100 / metrics.width;
+        playerJumpVerticalVelocityPx = plaHatVelocityUpPx;
+
+        if (playerWorldElevationPx <= 0 && plaHatVelocityUpPx <= 0) {
+            landPlaHatTraversal();
+            return;
+        }
+
+        playerWorldElevationPx = Math.max(0, playerWorldElevationPx);
+        const flightProgress = playerJumpClamp01(
+            (PLA_HAT_LAUNCH_UP_SPEED - plaHatVelocityUpPx) / (PLA_HAT_LAUNCH_UP_SPEED * 2)
+        );
+        plaHatCurrentPose = getPlayerJumpSequencePose(flightProgress);
+        applyPlayerJumpPose(plaHatCurrentPose);
+    }
+
+    function updateScene3VerticalCamera(deltaSeconds) {
+        if (!bossTimelineCompleted) {
+            verticalCameraOffsetPx = 0;
+            verticalCameraTargetPx = 0;
+            plaBallisticAirTimeSeconds = 0;
+            plaTopPlatformJumpCameraLocked = false;
+            return;
+        }
+
+        const metrics = getScene3StageMetrics();
+        if (!metrics) return;
+
+        const safeDelta = Math.max(0, deltaSeconds);
+
+        /*
+           PLA 最上方橫線已經是實體路地。只要仍是從該平台開始的普通 C 跳躍，
+           垂直鏡頭就固定在起跳瞬間的位置；只有離開平台變成 PLA 拋體或重新導通時才解除。
+        */
+        const lockTopPlatformJumpCamera =
+            plaTopPlatformJumpCameraLocked &&
+            isOnPlaTopPlatform &&
+            isPlayerJumping &&
+            !isPlaHatTethered &&
+            !isPlaHatBallistic;
+
+        if (lockTopPlatformJumpCamera) {
+            verticalCameraTargetPx = plaTopPlatformJumpCameraOffsetPx;
+            verticalCameraOffsetPx = plaTopPlatformJumpCameraOffsetPx;
+            plaBallisticAirTimeSeconds = 0;
+            return;
+        }
+
+        if (
+            plaTopPlatformJumpCameraLocked &&
+            (!isOnPlaTopPlatform || !isPlayerJumping || isPlaHatTethered || isPlaHatBallistic)
+        ) {
+            plaTopPlatformJumpCameraLocked = false;
+        }
+
+        const elevation = getTotalPlayerElevationPx();
+        const verticalVelocityUp = getCurrentVerticalVelocityUpPx();
+        const plaDescending = isPlaHatBallistic && verticalVelocityUp < -4;
+
+        /*
+           垂直鏡頭使用「雙邊死區」而不是每幀直接追蹤角色：
+           - 角色在畫面約 45.5%～62.5% 高度之間輕微上下擺動時，鏡頭完全保持不動。
+           - 只有超出死區才移動目標，下降時必須越過另一側邊界才會回拉，形成遲滯緩衝。
+           - PLA 拋體下降時才依滯空時間與實際下墜速度提高追蹤能力；上升與普通跳躍不變。
+        */
+        const deadZoneCenterY = metrics.height * 0.54;
+        const deadZoneHalfHeight = Math.max(42, Math.min(68, metrics.height * 0.085));
+        const deadZoneTopY = deadZoneCenterY - deadZoneHalfHeight;
+        const deadZoneBottomY = deadZoneCenterY + deadZoneHalfHeight;
+
+        let velocityLookAhead = 0;
+        const traversalActive =
+            isPlaHatTethered ||
+            isPlaHatBallistic ||
+            playerWorldElevationPx > Math.max(120, metrics.height * 0.2);
+        const lookAheadStartSpeed = 210;
+
+        if (traversalActive && Math.abs(verticalVelocityUp) > lookAheadStartSpeed) {
+            const excessSpeed = Math.abs(verticalVelocityUp) - lookAheadStartSpeed;
+            velocityLookAhead = Math.sign(verticalVelocityUp) * Math.min(52, excessSpeed * 0.055);
+        }
+
+        let plaFallUrgency = 0;
+        let plaDownwardSpeed = 0;
+        if (plaDescending) {
+            plaDownwardSpeed = Math.max(0, -verticalVelocityUp);
+            // 短落差的前段仍維持原速度；滯空約 0.12～1.07 秒後才逐步進入快速追蹤。
+            const timeFactor = playerJumpSmoothstep(
+                playerJumpClamp01((plaBallisticAirTimeSeconds - 0.12) / 0.95)
+            );
+            const speedFactor = playerJumpClamp01((plaDownwardSpeed - 240) / 1150);
+            plaFallUrgency = Math.max(timeFactor, speedFactor * 0.85);
+
+            // 長距離下墜時增加有限的向下前視，避免角色先衝出畫面鏡頭才開始追。
+            const dynamicDownLookAhead = Math.min(
+                112,
+                18 + plaDownwardSpeed * (0.035 + plaFallUrgency * 0.035)
+            );
+            velocityLookAhead = -Math.max(Math.abs(velocityLookAhead), dynamicDownLookAhead);
+        }
+
+        const trackedElevation = Math.max(0, elevation + velocityLookAhead);
+        let target = Math.max(0, verticalCameraTargetPx);
+        const projectedPlayerYAtTarget = metrics.groundY - trackedElevation + target;
+
+        if (projectedPlayerYAtTarget < deadZoneTopY) {
+            target += deadZoneCenterY - projectedPlayerYAtTarget;
+        } else if (projectedPlayerYAtTarget > deadZoneBottomY) {
+            target += deadZoneCenterY - projectedPlayerYAtTarget;
+        }
+
+        if (
+            elevation <= 2 &&
+            !isPlayerJumping &&
+            !isPlaHatTethered &&
+            !isPlaHatBallistic
+        ) {
+            target = 0;
+        }
+
+        target = Math.max(0, Math.min(target, trackedElevation));
+        verticalCameraTargetPx = target;
+
+        // 新固定點的慢速運鏡只影響一般移動；真正高速下墜時必須立即讓追蹤速度接管。
+        const focusTransitionActive =
+            performance.now() < cameraFocusTransitionUntil &&
+            !plaDescending;
+        let followRate = target > verticalCameraOffsetPx ? 5.8 : 7.2;
+        if (elevation <= 2 && !isPlayerJumping) followRate = 10.5;
+        if (focusTransitionActive) followRate = Math.min(followRate, 3.35);
+
+        let maxVerticalSpeed = focusTransitionActive ? 420 : 640;
+        if (plaDescending) {
+            // 滯空越久、下降越快，鏡頭的阻尼響應與最高速度越高；短落差仍接近原本 640px/s。
+            followRate = 7.2 + 11.5 * plaFallUrgency;
+            const velocityMatchingSpeed =
+                plaDownwardSpeed * (1.08 + 0.22 * plaFallUrgency) + 100;
+            maxVerticalSpeed = 640 +
+                (Math.max(640, velocityMatchingSpeed) - 640) * plaFallUrgency;
+        }
+
+        const blend = 1 - Math.exp(-followRate * safeDelta);
+        const desiredStep = (verticalCameraTargetPx - verticalCameraOffsetPx) * blend;
+        const maxStep = maxVerticalSpeed * safeDelta;
+        verticalCameraOffsetPx += Math.max(-maxStep, Math.min(maxStep, desiredStep));
+
+        if (Math.abs(verticalCameraOffsetPx - verticalCameraTargetPx) < 0.04) {
+            verticalCameraOffsetPx = verticalCameraTargetPx;
+        }
+        verticalCameraOffsetPx = Math.max(0, verticalCameraOffsetPx);
+    }
+
+    function shouldUsePlaBufferedHorizontalCamera() {
+        if (!bossTimelineCompleted) return false;
+
+        /*
+           只在「實際已連接 X／圓點」或「由導通／平台離開後的 PLA 拋體」使用緩衝。
+           普通 C 跳躍不論位於哪一個 worldX、地面或最上方橫線，都不會切換模式。
+        */
+        return isPlaHatTethered || isPlaHatBallistic;
+    }
+
+    function updateScene3HorizontalCamera(deltaSeconds) {
+        const safeDelta = Math.max(0, deltaSeconds);
+        const originalCameraX = Math.max(0, worldX - 20);
+        const useBufferedCamera = shouldUsePlaBufferedHorizontalCamera();
+
+        if (!useBufferedCamera) {
+            /*
+               一般地面、普通跳躍與最上方平台一律使用最初構圖：角色在畫面左側 20%。
+               若上一幀剛從 PLA 緩衝模式落地，先記錄兩個鏡頭之間的殘差；之後把殘差
+               逐幀衰減，同時 originalCameraX 仍完全跟著 worldX，因而沒有模式切換順移。
+            */
+            if (horizontalCameraWasBuffered) {
+                horizontalCameraHandoffOffsetX = cameraX - originalCameraX;
+                horizontalCameraWasBuffered = false;
+            }
+
+            if (Math.abs(horizontalCameraHandoffOffsetX) > 0.001) {
+                const focusTransitionActive = performance.now() < cameraFocusTransitionUntil;
+                const handoffRate = focusTransitionActive ? 4.2 : 6.8;
+                const desiredStep =
+                    -horizontalCameraHandoffOffsetX *
+                    (1 - Math.exp(-handoffRate * safeDelta));
+                const maxHandoffSpeed = focusTransitionActive ? 32 : 48;
+                const maxStep = maxHandoffSpeed * safeDelta;
+                horizontalCameraHandoffOffsetX += Math.max(
+                    -maxStep,
+                    Math.min(maxStep, desiredStep)
+                );
+                if (Math.abs(horizontalCameraHandoffOffsetX) < 0.012) {
+                    horizontalCameraHandoffOffsetX = 0;
+                }
+            } else {
+                horizontalCameraHandoffOffsetX = 0;
+            }
+
+            cameraX = Math.max(0, originalCameraX + horizontalCameraHandoffOffsetX);
+            horizontalCameraTargetX = originalCameraX;
+            horizontalCameraInitialized = true;
+            return;
+        }
+
+        // 進入導通／拋體的第一幀直接承接目前畫面，不改變構圖、不跳到另一個鏡頭。
+        if (!horizontalCameraWasBuffered) {
+            horizontalCameraWasBuffered = true;
+            horizontalCameraHandoffOffsetX = 0;
+            horizontalCameraTargetX = Math.max(0, cameraX);
+            horizontalCameraInitialized = true;
+        } else if (!horizontalCameraInitialized) {
+            horizontalCameraTargetX = Math.max(0, cameraX);
+            horizontalCameraInitialized = true;
+        }
+
+        /*
+           PLA 導通／拋體的死區也沿用地板構圖，不再把角色置中：
+           - 目標中心固定在畫面左側 20%；
+           - 約 12%～28% 之間的小幅擺盪完全不推動鏡頭；
+           - 超出後才平滑回到 20%，跨固定點仍會完整運鏡而非順移。
+        */
+        const deadZoneCenterX = 20;
+        const deadZoneHalfWidth = 8;
+        const deadZoneLeftX = deadZoneCenterX - deadZoneHalfWidth;
+        const deadZoneRightX = deadZoneCenterX + deadZoneHalfWidth;
+        const actualScreenX = worldX - cameraX;
+
+        if (actualScreenX < deadZoneLeftX || actualScreenX > deadZoneRightX) {
+            horizontalCameraTargetX = originalCameraX;
+        }
+
+        const focusTransitionActive = performance.now() < cameraFocusTransitionUntil;
+        const followRate = focusTransitionActive ? 3.15 : 5.15;
+        const desiredStep =
+            (horizontalCameraTargetX - cameraX) *
+            (1 - Math.exp(-followRate * safeDelta));
+        // 百分比／秒上限確保跨固定點時從舊畫面完整平移到新畫面，而非直接順移。
+        const maxHorizontalSpeed = focusTransitionActive ? 46 : 72;
+        const maxStep = maxHorizontalSpeed * safeDelta;
+        cameraX += Math.max(-maxStep, Math.min(maxStep, desiredStep));
+        cameraX = Math.max(0, cameraX);
+
+        if (Math.abs(cameraX - horizontalCameraTargetX) < 0.002) {
+            cameraX = horizontalCameraTargetX;
+        }
+    }
+
+    function renderScene3PlayerAndCamera() {
+        const totalElevation = getTotalPlayerElevationPx();
+        const px = worldX - cameraX;
+        const screenElevation = totalElevation - verticalCameraOffsetPx;
+
+        stickman.style.left = `${px}%`;
+        stickman.style.top = Math.abs(screenElevation) > 0.001
+            ? `calc(${py}% - ${screenElevation.toFixed(3)}px)`
+            : `${py}%`;
+        stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
+        environmentLayer.style.transform =
+            `translate(${-cameraX}%, ${verticalCameraOffsetPx.toFixed(3)}px)`;
+        updatePlaHatTetherVisual();
+    }
+
+
+    // ==============================================================
+    // 🌬️ BOSS 離場後的風吹落書本事件
+    // - 完全移除舊版細長 SVG 風線，改用寬幅透明霧流、柔和氣壓帶與霧團。
+    // - 整股風由右上往左下 45° 掠過，書本沿連續三次貝茲拋物線被帶到角色頭上。
+    // - 書本外觀、撞頭、角色壓縮與落地節奏仍沿用 Scene 1 開場。
+    // - 書本落地後必須靠近才顯示 E；拾取後新增 PAGE 3 並解鎖 C 跳躍。
+    // ==============================================================
+    function createPostBossBookWindLayer() {
+        const stage = document.getElementById('scene3-stage');
+        if (!stage) return null;
+
+        const oldLayer = document.getElementById('post-boss-book-wind-layer-s3');
+        if (oldLayer) oldLayer.remove();
+
+        const stageWidth = Math.max(1, stage.clientWidth || scene3.clientWidth || 1000);
+        const stageHeight = Math.max(1, stage.clientHeight || scene3.clientHeight || 600);
+        const windDuration = 1880;
+        const diagonalTravel = Math.max(260, Math.min(520, Math.min(stageWidth, stageHeight) * 0.58));
+
+        const windLayer = document.createElement('div');
+        windLayer.id = 'post-boss-book-wind-layer-s3';
+        windLayer.setAttribute('aria-hidden', 'true');
+        windLayer.style.cssText = [
+            'position:absolute',
+            'inset:-24%',
+            'z-index:7',
+            'pointer-events:none',
+            'overflow:visible',
+            'opacity:0',
+            'mix-blend-mode:screen',
+            'transform-origin:center center',
+            'will-change:transform,opacity'
+        ].join(';');
+        stage.appendChild(windLayer);
+
+        // 最外層的大片霧幕：形成真正有體積的空氣，而不是一根根線條。
+        const pressureWash = document.createElement('div');
+        pressureWash.style.cssText = [
+            'position:absolute',
+            'left:-8%',
+            'top:-4%',
+            'width:122%',
+            'height:108%',
+            'border-radius:50%',
+            'background:radial-gradient(ellipse at 63% 35%, rgba(236,254,255,0.31) 0%, rgba(177,242,252,0.19) 27%, rgba(255,255,255,0.085) 49%, rgba(113,218,239,0.026) 66%, transparent 80%)',
+            'filter:blur(28px)',
+            'opacity:0.66',
+            'transform:rotate(-34deg) scale(1.06,0.82)',
+            'will-change:transform,opacity'
+        ].join(';');
+        windLayer.appendChild(pressureWash);
+
+        // 寬幅氣流帶：每一層都是柔霧面，不使用描邊，所以不會像頭髮。
+        const bandSpecs = [
+            { left: -2, top: 12, width: 116, height: 27, blur: 13, opacity: 0.88, rotate: -34, delay: 0 },
+            { left: 10, top: 29, width: 108, height: 20, blur: 18, opacity: 0.68, rotate: -36, delay: 55 },
+            { left: -12, top: 48, width: 126, height: 25, blur: 22, opacity: 0.57, rotate: -32, delay: 100 },
+            { left: 21, top: 4, width: 92, height: 17, blur: 16, opacity: 0.48, rotate: -38, delay: 135 },
+            { left: 4, top: 67, width: 106, height: 19, blur: 25, opacity: 0.38, rotate: -33, delay: 165 }
+        ];
+
+        const bands = bandSpecs.map((spec, index) => {
+            const band = document.createElement('div');
+            band.style.cssText = [
+                'position:absolute',
+                `left:${spec.left}%`,
+                `top:${spec.top}%`,
+                `width:${spec.width}%`,
+                `height:${spec.height}%`,
+                'border-radius:50%',
+                `opacity:${spec.opacity}`,
+                `filter:blur(${spec.blur}px)`,
+                `transform:rotate(${spec.rotate}deg) scaleX(${0.9 + index * 0.025})`,
+                'background:linear-gradient(90deg, transparent 0%, rgba(211,249,255,0.026) 8%, rgba(176,240,251,0.13) 25%, rgba(246,254,255,0.34) 49%, rgba(155,231,245,0.14) 72%, rgba(255,255,255,0.034) 86%, transparent 100%)',
+                'will-change:transform,opacity'
+            ].join(';');
+            windLayer.appendChild(band);
+            return { band, spec, index };
+        });
+
+        // 分散霧團讓風具有亂流與厚度；全部仍是柔和面狀元素。
+        const puffSpecs = [
+            [69, -5, 28, 15, 24, 0.42], [83, 12, 22, 12, 20, 0.36],
+            [58, 19, 34, 18, 29, 0.32], [74, 34, 30, 16, 26, 0.38],
+            [45, 42, 38, 20, 32, 0.27], [62, 58, 32, 17, 28, 0.31],
+            [31, 64, 36, 20, 34, 0.23], [88, 51, 24, 13, 23, 0.29],
+            [52, 3, 27, 14, 24, 0.30], [20, 48, 31, 17, 30, 0.20]
+        ];
+
+        const puffs = puffSpecs.map((spec, index) => {
+            const [left, top, width, height, blur, opacity] = spec;
+            const puff = document.createElement('div');
+            puff.style.cssText = [
+                'position:absolute',
+                `left:${left}%`,
+                `top:${top}%`,
+                `width:${width}%`,
+                `height:${height}%`,
+                'border-radius:50%',
+                `opacity:${opacity}`,
+                `filter:blur(${blur}px)`,
+                'background:radial-gradient(ellipse at center, rgba(248,255,255,0.42) 0%, rgba(175,239,250,0.18) 38%, rgba(112,213,233,0.045) 63%, transparent 79%)',
+                `transform:rotate(${-38 + (index % 4) * 3}deg) scale(${0.88 + (index % 3) * 0.08})`,
+                'will-change:transform,opacity'
+            ].join(';');
+            windLayer.appendChild(puff);
+            return puff;
+        });
+
+        // 寬厚的霧狀彎流：利用柔邊橢圓環形成風的捲曲感，沒有任何細描邊。
+        const curlSpecs = [
+            { left: 53, top: 1, width: 42, height: 24, blur: 5, opacity: 0.64, rotate: -35, delay: 10 },
+            { left: 68, top: 24, width: 36, height: 21, blur: 7, opacity: 0.54, rotate: -39, delay: 70 },
+            { left: 43, top: 42, width: 48, height: 27, blur: 9, opacity: 0.47, rotate: -32, delay: 115 },
+            { left: 72, top: 57, width: 31, height: 19, blur: 8, opacity: 0.40, rotate: -37, delay: 155 }
+        ];
+        const curls = curlSpecs.map((spec, index) => {
+            const curl = document.createElement('div');
+            curl.style.cssText = [
+                'position:absolute',
+                `left:${spec.left}%`,
+                `top:${spec.top}%`,
+                `width:${spec.width}%`,
+                `height:${spec.height}%`,
+                'border-radius:50%',
+                `opacity:${spec.opacity}`,
+                `filter:blur(${spec.blur}px)`,
+                'background:radial-gradient(ellipse at 50% 61%, transparent 0%, transparent 41%, rgba(244,255,255,0.44) 49%, rgba(171,240,251,0.25) 58%, rgba(116,221,239,0.075) 66%, transparent 76%)',
+                '-webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%)',
+                'mask-image:linear-gradient(90deg, transparent 0%, #000 18%, #000 82%, transparent 100%)',
+                `transform:rotate(${spec.rotate}deg) scale(0.9,0.82)`,
+                'will-change:transform,opacity'
+            ].join(';');
+            windLayer.appendChild(curl);
+            return { curl, spec, index };
+        });
+
+        // 各霧層有微小的不同呼吸與錯位，避免整片像一張靜態貼圖。
+        bands.forEach(({ band, spec, index }) => {
+            if (typeof band.animate !== 'function') return;
+            band.animate([
+                { transform: `rotate(${spec.rotate}deg) translate3d(18px, ${-7 + index * 2}px, 0) scaleX(0.92) scaleY(0.88)`, opacity: spec.opacity * 0.42 },
+                { offset: 0.45, transform: `rotate(${spec.rotate + 1.5}deg) translate3d(-8px, ${6 - index}px, 0) scaleX(1.05) scaleY(1.06)`, opacity: spec.opacity },
+                { transform: `rotate(${spec.rotate - 1}deg) translate3d(-28px, ${12 - index * 2}px, 0) scaleX(1.13) scaleY(0.95)`, opacity: spec.opacity * 0.56 }
+            ], {
+                duration: windDuration - 150,
+                delay: spec.delay,
+                easing: 'cubic-bezier(0.2, 0.68, 0.22, 1)',
+                fill: 'forwards'
+            });
+        });
+
+        puffs.forEach((puff, index) => {
+            if (typeof puff.animate !== 'function') return;
+            puff.animate([
+                { transform: `translate3d(${18 + index * 2}px, ${-14 - index}px, 0) rotate(-37deg) scale(0.72)`, opacity: 0 },
+                { offset: 0.24, transform: `translate3d(${4 - index}px, ${-2 + index * 0.6}px, 0) rotate(-35deg) scale(1.02)`, opacity: Number(puff.style.opacity) },
+                { offset: 0.72, transform: `translate3d(${-18 - index * 2}px, ${12 + index}px, 0) rotate(-32deg) scale(1.14)`, opacity: Number(puff.style.opacity) * 0.86 },
+                { transform: `translate3d(${-42 - index * 3}px, ${28 + index * 1.4}px, 0) rotate(-30deg) scale(1.28)`, opacity: 0 }
+            ], {
+                duration: windDuration - 80 + (index % 3) * 60,
+                delay: index * 24,
+                easing: 'cubic-bezier(0.16, 0.66, 0.2, 1)',
+                fill: 'forwards'
+            });
+        });
+
+        curls.forEach(({ curl, spec, index }) => {
+            if (typeof curl.animate !== 'function') return;
+            curl.animate([
+                { transform: `translate3d(${28 + index * 8}px, ${-18 - index * 3}px, 0) rotate(${spec.rotate}deg) scale(0.72,0.66)`, opacity: 0 },
+                { offset: 0.26, transform: `translate3d(${6 - index * 3}px, ${-2 + index}px, 0) rotate(${spec.rotate + 1}deg) scale(1.02,0.92)`, opacity: spec.opacity },
+                { offset: 0.7, transform: `translate3d(${-26 - index * 7}px, ${18 + index * 4}px, 0) rotate(${spec.rotate + 3}deg) scale(1.17,1.02)`, opacity: spec.opacity * 0.82 },
+                { transform: `translate3d(${-58 - index * 9}px, ${42 + index * 5}px, 0) rotate(${spec.rotate + 5}deg) scale(1.34,1.1)`, opacity: 0 }
+            ], {
+                duration: windDuration - 70 + index * 45,
+                delay: spec.delay,
+                easing: 'cubic-bezier(0.16, 0.66, 0.2, 1)',
+                fill: 'forwards'
+            });
+        });
+
+        if (typeof pressureWash.animate === 'function') {
+            pressureWash.animate([
+                { transform: 'rotate(-35deg) translate3d(30px,-24px,0) scale(0.86,0.72)', opacity: 0 },
+                { offset: 0.28, transform: 'rotate(-34deg) translate3d(4px,-4px,0) scale(1.03,0.9)', opacity: 0.82 },
+                { offset: 0.7, transform: 'rotate(-32deg) translate3d(-18px,16px,0) scale(1.14,0.98)', opacity: 0.68 },
+                { transform: 'rotate(-31deg) translate3d(-46px,38px,0) scale(1.28,1.04)', opacity: 0 }
+            ], {
+                duration: windDuration,
+                easing: 'cubic-bezier(0.18, 0.7, 0.2, 1)',
+                fill: 'forwards'
+            });
+        }
+
+        const sweepFrames = [
+            { offset: 0, opacity: 0, transform: `translate3d(${diagonalTravel}px, ${-diagonalTravel}px, 0) rotate(-1.5deg) scale(0.92)` },
+            { offset: 0.12, opacity: 0.2, transform: `translate3d(${diagonalTravel * 0.78}px, ${-diagonalTravel * 0.78}px, 0) rotate(-1deg) scale(0.96)` },
+            { offset: 0.31, opacity: 0.94, transform: `translate3d(${diagonalTravel * 0.39}px, ${-diagonalTravel * 0.39}px, 0) rotate(-0.4deg) scale(1)` },
+            { offset: 0.6, opacity: 1, transform: 'translate3d(0,0,0) rotate(0deg) scale(1.03)' },
+            { offset: 0.82, opacity: 0.66, transform: `translate3d(${-diagonalTravel * 0.48}px, ${diagonalTravel * 0.48}px, 0) rotate(0.8deg) scale(1.06)` },
+            { offset: 1, opacity: 0, transform: `translate3d(${-diagonalTravel}px, ${diagonalTravel}px, 0) rotate(1.4deg) scale(1.1)` }
+        ];
+
+        const removeWind = () => {
+            if (windLayer.isConnected) windLayer.remove();
+        };
+
+        if (typeof windLayer.animate === 'function') {
+            const sweep = windLayer.animate(sweepFrames, {
+                duration: windDuration,
+                easing: 'cubic-bezier(0.18, 0.68, 0.18, 1)',
+                fill: 'forwards'
+            });
+            sweep.finished.catch(() => {}).finally(removeWind);
+        } else {
+            windLayer.style.transition = `transform ${windDuration}ms cubic-bezier(0.18,0.68,0.18,1), opacity ${windDuration}ms ease`;
+            windLayer.style.transform = sweepFrames[0].transform;
+            windLayer.style.opacity = '0';
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                windLayer.style.transform = sweepFrames[sweepFrames.length - 1].transform;
+                windLayer.style.opacity = '0';
+            }));
+            setTimeout(removeWind, windDuration + 80);
+        }
+
+        return windLayer;
+    }
+
+    function postBossBookCubicPoint(p0, p1, p2, p3, t) {
+        const u = 1 - t;
+        const uu = u * u;
+        const tt = t * t;
+        return {
+            x: uu * u * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + tt * t * p3.x,
+            y: uu * u * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + tt * t * p3.y
+        };
+    }
+
+    function postBossBookCubicDerivative(p0, p1, p2, p3, t) {
+        const u = 1 - t;
+        return {
+            x: 3 * u * u * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x),
+            y: 3 * u * u * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y)
+        };
+    }
+
+    function postBossBookSmoothstep(edge0, edge1, value) {
+        if (edge0 === edge1) return value >= edge1 ? 1 : 0;
+        const t = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+    }
+
+    async function animatePostBossBookWindArc(book, geometry) {
+        const {
+            startLeft,
+            startTop,
+            impactLeft,
+            impactTop,
+            stageWidth,
+            stageHeight
+        } = geometry;
+
+        // 以實際時間積分的重力拋物線取代過慢的 1.12 秒漂浮；整段約 0.82 秒自然落到頭上。
+        const duration = 820;
+        const durationSeconds = duration / 1000;
+        const deltaX = impactLeft - startLeft;
+        const deltaY = impactTop - startTop;
+        const initialDownVelocity = Math.max(38, Math.min(92, stageHeight * 0.11));
+        const gravity = Math.max(
+            520,
+            (2 * (deltaY - initialDownVelocity * durationSeconds)) /
+                (durationSeconds * durationSeconds)
+        );
+        const startedAt = performance.now();
+
+        await new Promise(resolve => {
+            const frame = now => {
+                if (!isCurrentScene3Instance() || !book.isConnected) {
+                    resolve();
+                    return;
+                }
+
+                const progress = Math.max(0, Math.min(1, (now - startedAt) / duration));
+                const elapsedSeconds = progress * durationSeconds;
+                // 水平風力前段較強、接近角色時自然收束；Y 軸完全依重力加速。
+                const horizontalEase = 1 - Math.pow(1 - progress, 2.08);
+                const x = startLeft + deltaX * horizontalEase;
+                const y = startTop +
+                    initialDownVelocity * elapsedSeconds +
+                    0.5 * gravity * elapsedSeconds * elapsedSeconds;
+
+                // 只保留非常小的風壓漂移，避免原本像逐格停頓的左右晃動。
+                const microSway = Math.sin(Math.PI * progress) * Math.sin(progress * Math.PI * 2.2) * 2.2;
+                const drawX = x + microSway;
+                const drawY = y - Math.abs(microSway) * 0.2;
+
+                const velocityX =
+                    deltaX * 2.08 * Math.pow(Math.max(0, 1 - progress), 1.08) /
+                    durationSeconds;
+                const velocityY = initialDownVelocity + gravity * elapsedSeconds;
+                const tangentRotation = Math.atan2(velocityY, velocityX) * 180 / Math.PI - 90;
+                const flutter = Math.sin(progress * Math.PI * 3.2) * (1 - progress) * 3.2;
+                const settle = postBossBookSmoothstep(0.82, 1, progress);
+                const rotation = (tangentRotation + flutter) * (1 - settle) + 10 * settle;
+                const scale = 0.91 + postBossBookSmoothstep(0, 0.52, progress) * 0.09;
+                const opacity = postBossBookSmoothstep(0, 0.075, progress);
+
+                book.style.left = `${drawX}px`;
+                book.style.top = `${drawY}px`;
+                book.style.opacity = String(opacity);
+                book.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(frame);
+                    return;
+                }
+
+                book.style.left = `${impactLeft}px`;
+                book.style.top = `${impactTop}px`;
+                book.style.opacity = '1';
+                book.style.transform = 'rotate(10deg) scale(1)';
+                resolve();
+            };
+
+            requestAnimationFrame(frame);
+        });
+    }
+
+    async function triggerPostBossBookFallSequence() {
+        if (
+            postBossBookSequenceStarted ||
+            !bossTimelineCompleted ||
+            bossTimelineRunning ||
+            !isPlayerControllable ||
+            isPlayerJumping ||
+            isPlayerAttacking ||
+            playerDead ||
+            isGamePaused ||
+            backpackIsOpen ||
+            manualModal.classList.contains('manual-active') ||
+            !isCurrentScene3Instance()
+        ) return;
+
+        postBossBookSequenceStarted = true;
+        postBossBookSequenceRunning = true;
+        postBossBookReadyToPick = false;
+        isPlayerControllable = false;
+        canAttack = false;
+        isPlayerAttacking = false;
+        clearMovementKeys();
+        stickman.classList.remove('anim-attack');
+        stickman.classList.add('stand-still');
+        setBossUiLocked(true);
+
+        try {
+            const stage = document.getElementById('scene3-stage');
+            const head = document.getElementById('stickman-head-s3');
+            if (!stage || !head || !environmentLayer) {
+                throw new Error('Post-BOSS book sequence DOM is incomplete.');
+            }
+
+            const stageRect = stage.getBoundingClientRect();
+            const environmentRect = environmentLayer.getBoundingClientRect();
+            const headRect = head.getBoundingClientRect();
+            const stageWidth = Math.max(1, stageRect.width || stage.clientWidth || 1000);
+            const stageHeight = Math.max(1, stageRect.height || stage.clientHeight || 600);
+
+            // Scene 1 的撞頭幾何：書本左緣在頭部中心左 22px；書底壓入頭頂約 9px。
+            const impactLeft = headRect.left + headRect.width / 2 - environmentRect.left - 22;
+            const impactTop = Math.max(-20, headRect.top - environmentRect.top - 51);
+            const startLeft = impactLeft + Math.max(150, Math.min(270, stageWidth * 0.27));
+            const startTop = Math.min(-72, impactTop - Math.max(250, Math.min(390, stageHeight * 0.62)));
+
+            // Scene 1 撞頭後向角色右側偏移 67px；此處只調整 Y 以精準貼住畫面地面。
+            const landingLeft = impactLeft + 67;
+            const landingTop = Math.max(impactTop + 82, stageRect.bottom - environmentRect.top - 58);
+
+            const book = document.createElement('div');
+            book.id = 'post-boss-falling-book-s3';
+            book.style.cssText = [
+                'position:absolute',
+                `top:${startTop}px`,
+                `left:${startLeft}px`,
+                'width:45px',
+                'height:60px',
+                'background-color:#094b8e',
+                'border:2px solid #fff',
+                'border-left:8px solid #042a53',
+                'border-radius:2px 6px 6px 2px',
+                'box-shadow:inset -4px 0 0 #ddd, 0 0 15px rgba(0,242,254,0.5)',
+                'display:flex',
+                'justify-content:center',
+                'align-items:center',
+                'opacity:0',
+                'z-index:9',
+                'pointer-events:auto',
+                'transform:rotate(84deg) scale(0.88)',
+                'transform-origin:center center',
+                'will-change:left,top,transform,opacity'
+            ].join(';');
+            book.innerHTML = `<span style="color:#fff; font-family:'Orbitron', sans-serif; font-size:14px; font-weight:900; transform:rotate(-90deg); letter-spacing:2px;">C++</span>`;
+
+            const prompt = document.createElement('div');
+            prompt.id = 'post-boss-book-e-prompt-s3';
+            prompt.textContent = 'E';
+            prompt.style.cssText = [
+                'position:absolute',
+                `left:${landingLeft - 10}px`,
+                `top:${landingTop - 45}px`,
+                'width:30px',
+                'height:30px',
+                'background:rgba(0,242,254,0.15)',
+                'border:2px solid var(--brand-blue)',
+                'border-radius:6px',
+                'color:#fff',
+                "font-family:'Orbitron', sans-serif",
+                'font-weight:bold',
+                'font-size:14px',
+                'display:flex',
+                'justify-content:center',
+                'align-items:center',
+                'opacity:0',
+                'transition:opacity 0.3s',
+                'z-index:20',
+                'box-shadow:0 0 10px var(--brand-blue)',
+                'pointer-events:none',
+                'will-change:transform,opacity'
+            ].join(';');
+
+            environmentLayer.appendChild(book);
+            environmentLayer.appendChild(prompt);
+            postBossBookElement = book;
+            postBossBookPromptElement = prompt;
+
+            createPostBossBookWindLayer();
+
+            // 先讓霧狀陣風進入畫面，再讓書本沿受風拋物線飛向角色頭部。
+            await waitBossTimeline(60);
+            if (!isCurrentScene3Instance()) return;
+
+            await animatePostBossBookWindArc(book, {
+                startLeft,
+                startTop,
+                impactLeft,
+                impactTop,
+                stageWidth,
+                stageHeight
+            });
+            if (!isCurrentScene3Instance()) return;
+
+            // Scene 1 的撞頭壓縮：保留角色當下朝向，避免 scaleX 被覆蓋。
+            const frozenFacing = facing < 0 ? -1 : 1;
+            stickman.style.transition = 'transform 0.1s ease-out';
+            stickman.style.transform = `translate(-50%, -50%) scaleX(${frozenFacing}) scaleY(0.7) translateY(20px)`;
+
+            await waitBossTimeline(180);
+            if (!isCurrentScene3Instance()) return;
+
+            // 第二段與 Scene 1 相同：角色回彈，書本 0.4 秒旋轉並滑落到地面。
+            stickman.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            stickman.style.transform = `translate(-50%, -50%) scaleX(${frozenFacing})`;
+
+            book.style.transition = 'top 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53), transform 0.4s linear, left 0.4s linear';
+            book.style.top = `${landingTop}px`;
+            book.style.left = `${landingLeft}px`;
+            book.style.transform = 'rotate(85deg)';
+
+            await waitBossTimeline(400);
+            if (!isCurrentScene3Instance()) return;
+
+            // Scene 1 在書本落地後保留 0.2 秒，再顯示可按 E 的提示。
+            await waitBossTimeline(200);
+            if (!isCurrentScene3Instance()) return;
+
+            prompt.style.opacity = '0';
+            if (typeof prompt.animate === 'function') {
+                prompt.animate([
+                    { transform: 'translateY(0)' },
+                    { transform: 'translateY(-5px)' },
+                    { transform: 'translateY(0)' }
+                ], {
+                    duration: 1500,
+                    iterations: Infinity,
+                    easing: 'ease-in-out'
+                });
+            }
+
+            postBossBookReadyToPick = true;
+            updatePostBossBookProximity();
+        } catch (error) {
+            console.error('Scene 3 post-BOSS book sequence failed:', error);
+        } finally {
+            if (!isCurrentScene3Instance()) return;
+
+            postBossBookSequenceRunning = false;
+            isPlayerControllable = true;
+            canAttack = true;
+            clearMovementKeys();
+            setBossUiLocked(false);
+            stickman.classList.add('stand-still');
+            stickman.style.left = `${worldX - cameraX}%`;
+            stickman.style.top = `${py}%`;
+            stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
+            stickman.style.transition = 'none';
+            environmentLayer.style.transform = `translate(${-cameraX}%, ${verticalCameraOffsetPx.toFixed(3)}px)`;
+        }
+    }
+
+    function updatePostBossBookProximity() {
+        const canEvaluate =
+            postBossBookReadyToPick &&
+            !postBossBookPickedUp &&
+            postBossBookElement &&
+            postBossBookElement.isConnected;
+
+        if (!canEvaluate) {
+            isNearPostBossBook = false;
+            if (postBossBookPromptElement) postBossBookPromptElement.style.opacity = '0';
+            return;
+        }
+
+        const playerRect = stickman.getBoundingClientRect();
+        const bookRect = postBossBookElement.getBoundingClientRect();
+        const playerCenterX = playerRect.left + playerRect.width / 2;
+        const playerCenterY = playerRect.top + playerRect.height / 2;
+        const bookCenterX = bookRect.left + bookRect.width / 2;
+        const bookCenterY = bookRect.top + bookRect.height / 2;
+        const horizontalDistance = Math.abs(playerCenterX - bookCenterX);
+        const verticalDistance = Math.abs(playerCenterY - bookCenterY);
+
+        // 以角色實際像素尺寸建立拾取範圍，縮放或全螢幕時仍維持相同體感距離。
+        const horizontalRange = Math.max(105, playerRect.width * 1.35);
+        const verticalRange = Math.max(90, playerRect.height * 0.85);
+        isNearPostBossBook = horizontalDistance <= horizontalRange && verticalDistance <= verticalRange;
+
+        if (postBossBookPromptElement) {
+            postBossBookPromptElement.style.opacity = isNearPostBossBook ? '1' : '0';
+        }
+    }
+
+    function collectPostBossJumpManual() {
+        if (
+            !postBossBookReadyToPick ||
+            postBossBookPickedUp ||
+            !isNearPostBossBook ||
+            !postBossBookElement ||
+            !postBossBookElement.isConnected ||
+            !isPlayerControllable ||
+            isPlayerJumping ||
+            isPlayerAttacking ||
+            playerDead ||
+            isGamePaused ||
+            backpackIsOpen ||
+            manualModal.classList.contains('manual-active')
+        ) return false;
+
+        postBossBookPickedUp = true;
+        postBossBookReadyToPick = false;
+        isNearPostBossBook = false;
+        isPlayerControllable = false;
+        clearMovementKeys();
+        stickman.classList.add('stand-still');
+
+        const book = postBossBookElement;
+        const prompt = postBossBookPromptElement;
+        if (prompt) prompt.style.opacity = '0';
+
+        book.style.transition = 'transform 0.3s ease-in, opacity 0.3s ease-in';
+        book.style.transform = 'rotate(85deg) scale(0)';
+        book.style.opacity = '0';
+        book.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+            if (!isCurrentScene3Instance()) return;
+
+            if (book.isConnected) book.remove();
+            if (prompt && prompt.isConnected) prompt.remove();
+            postBossBookElement = null;
+            postBossBookPromptElement = null;
+
+            hasThirdManual = true;
+            jumpManualUnlocked = true;
+            playerState.hasThirdManual = true;
+
+            // 拾取後先顯示 PAGE 3；停留 5 秒再自動翻至新取得的 PAGE 4。
+            openManual(3, true);
+        }, 400);
+
+        return true;
     }
 
     function getPlayerBottomYPercent() {
@@ -2981,6 +5534,17 @@ export function initScene3(playerState, switchScene) {
             });
         }
 
+        const rollShell = document.getElementById('stickman-roll-shell');
+        const tumbleFacingAtStart = facing < 0 ? -1 : 1;
+        if (rollShell) {
+            // 右向：-360deg；左向外層有 scaleX(-1)，故用 +360deg 抵消鏡像反轉。
+            // 兩種面向在畫面上最後都呈現相同的逆時鐘翻滾。
+            rollShell.style.setProperty(
+                '--tumble-rotation-end',
+                tumbleFacingAtStart < 0 ? '360deg' : '-360deg'
+            );
+        }
+
         stickman.classList.add('boss-wind-pushed', 'stand-still', 'player-tumble');
 
         let playerAnimation = null;
@@ -3019,26 +5583,68 @@ export function initScene3(playerState, switchScene) {
         }
 
         if (!isCurrentScene3Instance()) return;
+
+        // 在取消 fill: forwards 動畫之前，直接讀取畫面上的最後一幀中心點。
+        // 後續世界座標與控制起點完全採用同一個實際像素位置，不再重新估算。
+        let committedFinalX = finalX;
+        let committedFinalY = finalY;
+        if (playerAnimation) {
+            const renderedFinalRect = stickman.getBoundingClientRect();
+            committedFinalX = bossClamp01(
+                (renderedFinalRect.left - sceneRect.left + renderedFinalRect.width / 2) / sceneWidth
+            ) * 100;
+            committedFinalY = bossClamp01(
+                (renderedFinalRect.top - sceneRect.top + renderedFinalRect.height / 2) / sceneHeight
+            ) * 100;
+        }
+
         if (playerAnimation) playerAnimation.cancel();
         if (environmentAnimation) environmentAnimation.cancel();
 
-        worldX = finalX;
+        worldX = committedFinalX;
         cameraX = 0;
-        py = finalY;
+        horizontalCameraTargetX = 0;
+        horizontalCameraInitialized = true;
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        cameraFocusTransitionUntil = 0;
+        py = committedFinalY;
         facing = 1; // 落地後面向仍停在右上方的 BOSS。
-        stickman.style.left = `${finalX}%`;
-        stickman.style.top = `${finalY}%`;
+        postBossGroundY = committedFinalY;
+        postBossLandingAnchor = {
+            worldX: committedFinalX,
+            py: committedFinalY,
+            cameraX: 0,
+            facing: 1
+        };
+
+        stickman.style.left = `${committedFinalX}%`;
+        stickman.style.top = `${committedFinalY}%`;
         stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
         stickman.style.filter = '';
-        environmentLayer.style.transform = 'translate(0%, 0%)';
+        verticalCameraOffsetPx = 0;
+        verticalCameraTargetPx = 0;
+        playerWorldElevationPx = 0;
+        environmentLayer.style.transform = 'translate(0%, 0px)';
 
         stickman.classList.remove('player-tumble', 'boss-wind-pushed');
+        if (rollShell) rollShell.style.removeProperty('--tumble-rotation-end');
         stickman.classList.add('boss-wind-landed', 'stand-still');
         await waitBossTimeline(270);
         if (!isCurrentScene3Instance()) return;
         stickman.classList.remove('boss-wind-landed');
+        commitPostBossLandingAnchor();
     }
 
+
+    function isPlaUnlockedByCollectedLoot() {
+        // 首殺教學不會放入正式道具；PLA 解鎖只計算第 2～9 隻掉落的 7 個 body 與 1 個 hat。
+        // 同時檢查計數與場上未拾取物，避免掉落物尚在生成／地面時提前解除玻璃牆。
+        return (
+            collectedTriangleLoot >= TOTAL_TRIANGLE_LOOT &&
+            scene3.querySelectorAll('.loot-drop-item:not(.picked)').length === 0
+        );
+    }
 
     function checkBossTimelineReady() {
         if (bossTimelineStarted || bossTimelineRunning || bossTimelineCompleted || !isCurrentScene3Instance()) return;
@@ -3191,6 +5797,7 @@ export function initScene3(playerState, switchScene) {
 
         bossTimelineRunning = false;
         bossTimelineCompleted = true;
+        commitPostBossLandingAnchor();
         isPlayerControllable = true;
         canAttack = true;
         clearMovementKeys();
@@ -3204,6 +5811,57 @@ export function initScene3(playerState, switchScene) {
 
         if (bossTimelineRunning) {
             if (keys.hasOwnProperty(key)) keys[key] = false;
+            return;
+        }
+
+        if (postBossBookSequenceRunning) {
+            if (keys.hasOwnProperty(key)) keys[key] = false;
+            e.preventDefault();
+            return;
+        }
+
+        // BOSS 離場後鎖定地面高度；W／↑ 與 S／↓ 都不再直接改變 Y 座標。
+        if (
+            bossTimelineCompleted &&
+            (key === 'w' || key === 'arrowup' || key === 's' || key === 'arrowdown')
+        ) {
+            e.preventDefault();
+            if (key === 'w' || key === 'arrowup') keys.w = false;
+            if (key === 's' || key === 'arrowdown') keys.s = false;
+            return;
+        }
+
+        // 戴著三角帽、處於空中且靠近 PLA 的 X 或圓點中心時，按住 Q 導通固定點。
+        if (bossTimelineCompleted && key === 'q') {
+            e.preventDefault();
+            // C 已消耗 Q 時，實體按鍵未真正放開前，瀏覽器的 repeat 事件全部忽略。
+            if (plaHatQBlockedUntilRelease) {
+                keys.q = false;
+                isPlaHatQHeld = false;
+                return;
+            }
+            keys.q = true;
+            isPlaHatQHeld = true;
+            if (!e.repeat) attemptPlaHatConnection();
+            return;
+        }
+
+        // C：地面執行原本五幀短跳；已導通時保留向上彈射，但同時消耗 Q，必須放開後重按。
+        if (bossTimelineCompleted && key === 'c') {
+            e.preventDefault();
+            if (jumpManualUnlocked && !e.repeat) {
+                const qWasActive = isPlaHatQHeld || keys.q;
+                const launchedFromTether =
+                    isPlaHatTethered && isPlaHatQHeld
+                        ? launchUpwardFromPlaHatTether()
+                        : false;
+
+                if (qWasActive) consumePlaHatQUntilRelease();
+
+                if (!launchedFromTether && !isPlaHatBallistic) {
+                    startPlayerVerticalJump();
+                }
+            }
             return;
         }
 
@@ -3243,7 +5901,7 @@ export function initScene3(playerState, switchScene) {
                         }
                         
                         bpBtn.addEventListener('click', function(event) {
-                            if (bossTimelineRunning) return;
+                            if (bossTimelineRunning || isPlayerJumping) return;
                             // 🌟 核心防呆：強制移除按鈕焦點，防止鍵盤與滑鼠事件衝突卡死！
                             this.blur(); 
                             if (document.getElementById('backpack-overlay')) return;
@@ -3273,6 +5931,12 @@ export function initScene3(playerState, switchScene) {
                 }, 300);
             }
             return;
+        }
+
+        // 🌟 BOSS 後書本：只有靠近並看見 E 提示時才能取得 PAGE 3／PAGE 4。
+        if (key === 'e' && postBossBookReadyToPick && isNearPostBossBook) {
+            e.preventDefault();
+            if (collectPostBossJumpManual()) return;
         }
 
         // 🌟 2. 撿起「首殺」的特殊三角形 (僅觸發獲得背包教學，不放入任何三角怪道具)
@@ -3314,7 +5978,7 @@ export function initScene3(playerState, switchScene) {
             return;
         }
 
-        if (key === 'j' && isHammerEquipped && isPlayerControllable && canAttack && !playerDead) {
+        if (key === 'j' && isHammerEquipped && isPlayerControllable && canAttack && !isPlayerJumping && !playerDead) {
             canAttack = false; 
             isPlayerAttacking = true;
             hasHitInCurrentAttack = false; 
@@ -3333,6 +5997,13 @@ export function initScene3(playerState, switchScene) {
     function handleKeyUp(e) {
         const key = e.key.toLowerCase();
         if (keys.hasOwnProperty(key)) keys[key] = false;
+        if (key === 'q') {
+            isPlaHatQHeld = false;
+            plaHatQBlockedUntilRelease = false;
+            // 放開 Q 的同一幀立刻撤銷導通線，並保留單擺當下的切線速度進入拋體。
+            if (isPlaHatTethered) releasePlaHatTether(false);
+            hidePlaHatTetherVisual();
+        }
     }
 
     window._scene3KeyDown = handleKeyDown;
@@ -3341,11 +6012,17 @@ export function initScene3(playerState, switchScene) {
     window.addEventListener('keyup', handleKeyUp);
 
     let isFirstFrame = true;
+    let previousScene3FrameTime = null;
 
     // 👇 這裡把括號內的參數改為 realTimestamp
     function gameLoopS3(realTimestamp) {
         // 場景被重新初始化後，舊的 requestAnimationFrame 迴圈立即停止。
         if (!isCurrentScene3Instance()) return;
+
+        const frameDeltaSeconds = previousScene3FrameTime === null
+            ? 1 / 60
+            : Math.min(0.034, Math.max(0, (realTimestamp - previousScene3FrameTime) / 1000));
+        previousScene3FrameTime = realTimestamp;
 
         // 🌟 1. 時間暫停攔截器
         if (isGamePaused) {
@@ -3369,32 +6046,65 @@ export function initScene3(playerState, switchScene) {
         }
 
         let moved = false; let speedX = 0.4; let speedY = 0.3; 
+
+        // 單擺與放線後的拋體都由主迴圈積分；原本短跳仍保留原有 420ms 動畫。
+        updatePlaHatTraversalPhysics(frameDeltaSeconds);
         
-        if (!isPlayerAttacking) {
-            if (keys.w) { py -= speedY; moved = true; }
-            if (keys.s) { py += speedY; moved = true; }
+        if (!isPlayerAttacking && !isPlayerJumping) {
+            // BOSS 過場完成前維持原本四方向移動；完成後上下方向永久交由 C 跳躍控制。
+            if (keys.w && !bossTimelineCompleted) { py -= speedY; moved = true; }
+            if (keys.s && !bossTimelineCompleted) { py += speedY; moved = true; }
             if (keys.a) { worldX -= speedX; moved = true; facing = -1; }
             if (keys.d) { worldX += speedX; moved = true; facing = 1; }
         }
 
         // BOSS 過場前維持 Scene 1、2 的 10~90 邊界；吹氣過場結束後才保留精準底線。
-        const maxPlayerY = bossTimelineCompleted ? getPlayerBottomYPercent() : 90;
+        const maxPlayerY = bossTimelineCompleted
+            ? (postBossGroundY ?? getPlayerBottomYPercent())
+            : 90;
         py = Math.max(10, Math.min(maxPlayerY, py)); 
         worldX = Math.max(5, worldX); 
 
-        if (moved) stickman.classList.remove('stand-still'); else stickman.classList.add('stand-still');
+        if (isPlayerJumping) {
+            stickman.classList.add('stand-still');
+        } else if (moved) {
+            stickman.classList.remove('stand-still');
+        } else {
+            stickman.classList.add('stand-still');
+        }
 
-        cameraX = Math.max(0, worldX - 20); 
-        
-        // 🌟 2. 移除動態 Y 軸攝影機，與前兩關保持一致
-        let px = worldX - cameraX;
-        
-        stickman.style.left = `${px}%`; 
-        stickman.style.top = `${py}%`;
-        stickman.style.transform = `translate(-50%, -50%) scaleX(${facing})`;
-        
-        // 🌟 3. 恢復僅 X 軸的場景移動
-        environmentLayer.style.transform = `translate(${-cameraX}%, 0%)`;
+        // 高層橫線的解鎖、落地、站立與離開邊緣碰撞都在運鏡前完成。
+        updatePlaTopPlatformPhysics();
+        updateScene3HorizontalCamera(frameDeltaSeconds);
+        updateScene3VerticalCamera(frameDeltaSeconds);
+        renderScene3PlayerAndCamera();
+
+        // 按住 Q 可在飛行途中自動抓住第一個進入半身距離的 X／圓點；剛放開的同一固定點有短暫防重抓。
+        if (
+            isPlaHatQHeld &&
+            !isPlaHatTethered &&
+            (isPlayerJumping || isPlaHatBallistic || playerWorldElevationPx > 0.5)
+        ) {
+            if (attemptPlaHatConnection()) renderScene3PlayerAndCamera();
+        }
+
+        // 書本落地後，E 提示會依照玩家與書本的實際世界距離即時顯示／隱藏。
+        updatePostBossBookProximity();
+
+        // BOSS 已離場後，玩家實際向右行走到 PLA 前方保留距離的位置才觸發。
+        if (
+            bossTimelineCompleted &&
+            !postBossBookSequenceStarted &&
+            !postBossBookSequenceRunning &&
+            !isPlayerJumping &&
+            !isPlayerAttacking &&
+            isPlayerControllable &&
+            moved &&
+            keys.d &&
+            worldX >= POST_BOSS_BOOK_TRIGGER_WORLD_X
+        ) {
+            void triggerPostBossBookFallSequence();
+        }
 
         let activeEnemies = enemies.filter(e => e.alive);
 
@@ -3403,7 +6113,8 @@ export function initScene3(playerState, switchScene) {
         // ==============================================================
         const glassBarrier = document.getElementById('pla-glass-barrier');
         if (glassBarrier) {
-            const barrierActive = activeEnemies.length > 0;
+            // PLA 不再依照三角怪是否全滅解鎖；必須把 8 件正式掉落物全部撿起來。
+            const barrierActive = !isPlaUnlockedByCollectedLoot();
             const barrierX = 104; 
             
             if (barrierActive) {
@@ -3422,7 +6133,7 @@ export function initScene3(playerState, switchScene) {
                     worldX = 101.5;
                 }
             } else {
-                // 怪物全滅解鎖
+                // 7 個 body 與 1 個 hat 全部拾取後解鎖。
                 glassBarrier.style.opacity = '0';
             }
         }
