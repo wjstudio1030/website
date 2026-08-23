@@ -1800,7 +1800,35 @@ export function initScene3(playerState, switchScene) {
 
                     <!-- ===== 3. 左側精準還原邏輯閘（整組向下 25） ===== -->
                     <!-- H & I 線 -->
-                    <line id="pla-top-platform-line-s3" x1="55" y1="75" x2="305" y2="75" />
+                    <!-- 邏輯物理邊界 (隱藏)，用來確保物理引擎能正確抓取平台的總長度 -->
+                    <line id="pla-top-platform-line-s3" x1="55" y1="75" x2="550" y2="75" opacity="0" />
+                    
+                    <g stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- 實體踩踏線 (發光用)，包含 AND 閘上方的平線 -->
+                        <line class="pla-top-platform-visible" x1="55" y1="75" x2="330" y2="75" />
+                        <line class="pla-top-platform-visible" x1="330" y1="75" x2="390" y2="75" />
+                        <line class="pla-top-platform-visible" x1="440" y1="75" x2="500" y2="75" />
+
+                        <!-- 🌟 圖騰方框 (X: 330~390, Y: 75~135) -->
+                        <!-- 左線垂直，底線水平 -->
+                        <path d="M 330 75 L 330 135 L 390 135" />
+                        <!-- 右線不規則向內彎曲再向外 (純白線) -->
+                        <path d="M 390 135 C 378 115, 378 95, 390 75" />
+
+                        <!-- 🌟 內部圖案 (全部純白線，無任何塗黑) -->
+                        <!-- 左側曲線 -->
+                        <path d="M 342 85 Q 352 105 342 125" />
+                        <!-- 中央懸空 V 型 -->
+                        <path d="M 353 85 Q 357 115 360 120 Q 363 115 367 85" stroke-width="3" />
+                        <!-- 右側倒 Y 形分裂線 -->
+                        <path d="M 378 75 Q 374 95 370 115 L 362 135" />
+                        <path d="M 370 115 L 378 135" />
+
+                        <!-- 🌟 恢復標準比例的 AND 閘 (X: 440~500, Y: 75) -->
+                        <!-- 垂直往下延伸 30px，再接半徑 30 的完美半圓，恢復修長比例 -->
+                        <path d="M 440 75 L 440 105 A 30 30 0 0 0 500 105 L 500 75" />
+                    </g>
+
                     <line x1="55" y1="125" x2="305" y2="125" />
                     
                     <!-- C 輸入 -->
@@ -3420,8 +3448,10 @@ export function initScene3(playerState, switchScene) {
         plaTopPlatformSolid = true;
         if (geometry?.line) {
             geometry.line.dataset.solid = 'true';
-            // 不改變原本電路外觀，只增加極輕微的線體光暈，表示它已成為可踩踏實體。
-            geometry.line.style.filter = 'drop-shadow(0 0 3px rgba(255,255,255,0.72))';
+            // 讓所有具有 pla-top-platform-visible 類別的實體線段發光
+            document.querySelectorAll('.pla-top-platform-visible').forEach(seg => {
+                seg.style.filter = 'drop-shadow(0 0 3px rgba(255,255,255,0.72))';
+            });
         }
     }
 
@@ -3504,9 +3534,35 @@ export function initScene3(playerState, switchScene) {
 
         const playerCenterX = worldX * metrics.width / 100;
         const horizontalMargin = Math.max(10, (stickman.getBoundingClientRect().width || 80) * 0.28);
+        
+        // 🌟 計算 SVG 缺口的世界坐標 (嚴格判定，無任何容錯，確保斷崖無法輕易跨越)
+        let inHole = false;
+        try {
+            const line = geometry.line;
+            const matrix = line.getScreenCTM();
+            const svg = line.ownerSVGElement;
+            const makeWorldX = (svgX) => {
+                const pt = svg.createSVGPoint();
+                pt.x = svgX; pt.y = 75;
+                const screenPt = pt.matrixTransform(matrix);
+                return screenPointToScene3World(screenPt, metrics).x;
+            };
+
+            const hole1L = makeWorldX(390);
+            const hole1R = makeWorldX(440);
+            const hole2L = makeWorldX(500);
+
+            // 嚴格掉落：只要角色中心點一越過 390 或 500，立刻判定在洞口中
+            if (playerCenterX > hole1L && playerCenterX < hole1R) inHole = true;
+            if (playerCenterX > hole2L) inHole = true;
+        } catch (e) { }
+
+        // 如果處於缺口中，則判定為不在平台上，立刻觸發重力下墜
         const withinPlatform =
             playerCenterX >= geometry.leftX - horizontalMargin &&
-            playerCenterX <= geometry.rightX + horizontalMargin;
+            playerCenterX <= geometry.rightX + horizontalMargin &&
+            !inHole; 
+            
         let currentFootY = getPlayerFootWorldY(metrics);
         if (!Number.isFinite(currentFootY)) return;
 
