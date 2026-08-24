@@ -2306,6 +2306,12 @@ export function initScene3(playerState, switchScene) {
     window._hammerSlot = { type: 'handR', x: 555, y: 415 };
     let isHammerEquipped = true;
 
+    // 🌟 放在 initScene3 頂部附近
+    window._easterEggTriggered = false;
+    window._isEasterEggActive = false;
+    window._easterEggAnimationDone = false; // 紀錄出場動畫是否已播完
+    window._easterEggQHeld = false;         // 紀錄 Q 鍵是否正被按住
+
     function updateMainStickmanEquipment() {
         const heldHammer = document.getElementById('held-hammer-s3');
         const held1 = document.getElementById('held-1-s3');
@@ -2313,7 +2319,6 @@ export function initScene3(playerState, switchScene) {
         const hand1Display = document.getElementById('held-item-hand1');
         const hand2Display = document.getElementById('held-item-hand2');
         
-        // 🌟 動態建立頭部裝備圖層 (如果 DOM 中還沒有的話)
         let headDisplay = document.getElementById('held-item-head');
         if (!headDisplay) {
             const stickmanBody = document.getElementById('stickman-body-s3');
@@ -2321,22 +2326,37 @@ export function initScene3(playerState, switchScene) {
                 headDisplay = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 headDisplay.id = 'held-item-head';
                 headDisplay.setAttribute('opacity', '0');
-                // 精準定位於頭頂
                 headDisplay.setAttribute('transform', 'translate(17, -15) scale(0.35)');
                 headDisplay.style.filter = 'drop-shadow(0 0 5px rgba(255,255,255,0.8))';
                 stickmanBody.appendChild(headDisplay);
             }
         }
 
-        // --- 1. 主手 (Hand 1 - 槌子) ---
+        // --- 1. 主手 (Hand 1 - 槌子 或 彩蛋三角怪) ---
         if (isHammerEquipped) {
             if (heldHammer) heldHammer.style.opacity = '1';
             if (held1) held1.style.opacity = '0';
             if (hand1Display) hand1Display.style.opacity = '0';
         } else {
             if (heldHammer) heldHammer.style.opacity = '0';
-            if (hand1Display) hand1Display.style.opacity = '0';
-            if (held1) held1.style.opacity = ammoOnes > 0 ? '1' : '0';
+            
+            if (hand1Item) {
+                if (held1) held1.style.opacity = '0';
+                if (hand1Display) {
+                    hand1Display.innerHTML = getItemSVG(hand1Item);
+                    if (window._isEasterEggActive) {
+                        // 🌟 套用完美的 translate(73, 53) 與翻轉！
+                        hand1Display.setAttribute('transform', 'translate(73, 53) scale(-0.35, 0.35) rotate(-35, 65, 90)');
+                    } else {
+                        hand1Display.setAttribute('transform', 'translate(-8, 32) scale(0.35) rotate(-20, 65, 90)');
+                    }
+                    hand1Display.style.opacity = '1';
+                    hand1Display.parentNode.appendChild(hand1Display);
+                }
+            } else {
+                if (hand1Display) hand1Display.style.opacity = '0';
+                if (held1) held1.style.opacity = ammoOnes > 0 ? '1' : '0';
+            }
         }
 
         // --- 2. 副手 (Hand 2 - 三角怪) ---
@@ -2345,6 +2365,7 @@ export function initScene3(playerState, switchScene) {
             if (hand2Display) {
                 hand2Display.innerHTML = getItemSVG(hand2Item);
                 hand2Display.style.opacity = '1';
+                hand2Display.parentNode.appendChild(hand2Display);
             }
         } else {
             if (hand2Display) hand2Display.style.opacity = '0';
@@ -2359,6 +2380,12 @@ export function initScene3(playerState, switchScene) {
             }
         } else {
             if (headDisplay) headDisplay.style.opacity = '0';
+        }
+
+        // 🌟 防呆：彩蛋模式下絕對隱藏 0 和 1
+        if (window._isEasterEggActive) {
+            if (held1) held1.style.opacity = '0';
+            if (held0) held0.style.opacity = '0';
         }
     }
     
@@ -2606,7 +2633,11 @@ export function initScene3(playerState, switchScene) {
     closeManual.addEventListener('click', () => {
         clearPage3AutoTurnTimer();
         manualModal.classList.remove('manual-active');
-        if(!playerDead) isPlayerControllable = true;
+        
+        // 🌟 嚴格防呆：彩蛋期間絕對不可以恢復移動！
+        if(!playerDead && !window._isEasterEggActive) {
+            isPlayerControllable = true;
+        }
 
         const gameScreen = document.getElementById('gameScreen');
         const sceneManager = document.getElementById('scene-manager');
@@ -5861,9 +5892,108 @@ export function initScene3(playerState, switchScene) {
         stickman.classList.add('stand-still');
     }
 
+    // ==============================================================
+    // 🌟 新增：Q 鍵按住時的「手腳骨架變形」(注入可控天線版)
+    // ==============================================================
+    function toggleEasterEggQPose(isHeld) {
+        window._easterEggQHeld = isHeld;
+        const stickman = document.getElementById('stickman-s3');
+        const armLBase = document.getElementById('armL-base-s3');
+        const armLPath = document.getElementById('armL-path-s3');
+        const armRBase = document.getElementById('armR-base-s3');
+        const armRPath = document.getElementById('armR-path-s3');
+        const legLBase = document.getElementById('legL-base-s3');
+        const legLPath = document.getElementById('legL-path-s3');
+        const legRBase = document.getElementById('legR-base-s3');
+        const legRPath = document.getElementById('legR-path-s3');
+        const hand1Visual = document.getElementById('held-item-hand1');
+        
+        const held1 = document.getElementById('held-1-s3');
+        const held0 = document.getElementById('held-0-s3');
+
+        const limbs = ['armL-s3', 'armR-s3', 'legL-s3', 'legR-s3'].map(id => document.getElementById(id));
+
+        if (isHeld) {
+            if (held1) held1.style.display = 'none';
+            if (held0) held0.style.display = 'none';
+
+            if (armLBase) armLBase.style.display = 'none';
+            if (armLPath) armLPath.style.display = 'inline';
+            if (armRBase) armRBase.style.display = 'none';
+            if (armRPath) armRPath.style.display = 'inline';
+            if (legLBase) legLBase.style.display = 'none';
+            if (legLPath) legLPath.style.display = 'inline';
+            if (legRBase) legRBase.style.display = 'none';
+            if (legRPath) legRPath.style.display = 'inline';
+
+            limbs.forEach(el => {
+                if (el) { 
+                    el.style.setProperty('animation', 'none', 'important'); 
+                    el.style.setProperty('transform', 'none', 'important'); 
+                }
+            });
+
+            if (armLPath) armLPath.setAttribute('d', 'M 40 62 L 15 62 L 15 42');
+            if (armRPath) armRPath.setAttribute('d', 'M 40 62 L 65 62 L 65 42');
+            
+            if (legLPath) legLPath.setAttribute('d', 'M 40 75 Q 5 75 15 105');
+            if (legRPath) legRPath.setAttribute('d', 'M 40 75 Q 75 75 65 105');
+
+            if (hand1Visual) {
+                hand1Visual.style.setProperty('transition', 'none', 'important');
+
+                // 🌟 每次按下 Q 時，重置天線的延伸長度
+                window._easterEggAntennaExtension = 0;
+
+                // 🌟 將三角怪替換為帶有特定 ID 的結構，以便在迴圈中拉長
+                hand1Visual.innerHTML = `
+                    <g style="transform-origin: 65px center; transform: scaleX(-1);">
+                        <line id="ee-antenna-top" x1="65" y1="30" x2="65" y2="15" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+                        <polygon points="65,30 5,90 125,90" fill="#000" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+                        <path id="ee-antenna-bottom" d="M 65 90 L 65 105 Q 65 112 73 112" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+                    </g>`;
+                
+                hand1Visual.setAttribute('transform', 'translate(62, 21) scale(0.35) rotate(0, 65, 90)');
+            }
+        } else {
+            if (held1) held1.style.display = '';
+            if (held0) held0.style.display = '';
+
+            if (armLBase) armLBase.style.display = '';
+            if (armLPath) armLPath.style.display = 'none';
+            if (armRBase) armRBase.style.display = '';
+            if (armRPath) armRPath.style.display = 'none';
+            if (legLBase) legLBase.style.display = '';
+            if (legLPath) legLPath.style.display = 'none';
+            if (legRBase) legRBase.style.display = '';
+            if (legRPath) legRPath.style.display = 'none';
+
+            limbs.forEach(el => {
+                if (el) { 
+                    el.style.removeProperty('animation'); 
+                    el.style.removeProperty('transform'); 
+                }
+            });
+
+            if (hand1Visual) {
+                hand1Visual.style.removeProperty('transition');
+            }
+
+            // 🌟 鬆開 Q 時，updateMainStickmanEquipment 會自動把三角形恢復原狀，完全不需要額外寫重置邏輯
+            updateMainStickmanEquipment();
+        }
+    }
 
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();
+
+        if (window._isEasterEggActive && window._easterEggAnimationDone && key === 'q') {
+            e.preventDefault();
+            if (!e.repeat && !window._easterEggQHeld) {
+                toggleEasterEggQPose(true);
+            }
+            return;
+        }
 
         if (bossTimelineRunning) {
             if (keys.hasOwnProperty(key)) keys[key] = false;
@@ -5934,11 +6064,14 @@ export function initScene3(playerState, switchScene) {
                     
                     stickman.classList.remove('freeze-anim');
                     enemies.forEach(e => {
-                        // 🌟 增加 e.alive 安全判定，防止找不到已死亡怪物的 DOM
                         if (e.alive && e.el) e.el.classList.remove('freeze-anim');
                     });
                     
-                    isPlayerControllable = true;
+                    // 🌟 嚴格防呆：彩蛋期間絕對不可以恢復移動！
+                    if (!window._isEasterEggActive) {
+                        isPlayerControllable = true;
+                    }
+                    
                     isGamePaused = false;
                     totalPausedTime += (performance.now() - pauseStartTime);
                     checkBossTimelineReady();
@@ -6052,6 +6185,14 @@ export function initScene3(playerState, switchScene) {
     
     function handleKeyUp(e) {
         const key = e.key.toLowerCase();
+        // 🌟 新增：放開 Q 鍵恢復原本姿勢
+        if (window._isEasterEggActive && key === 'q') {
+            e.preventDefault();
+            if (window._easterEggQHeld) {
+                toggleEasterEggQPose(false);
+            }
+            // 不要 return，讓原本的 keys.q = false 也能執行確保狀態乾淨
+        }
         if (keys.hasOwnProperty(key)) keys[key] = false;
         if (key === 'q') {
             isPlaHatQHeld = false;
@@ -6134,6 +6275,209 @@ export function initScene3(playerState, switchScene) {
         updateScene3HorizontalCamera(frameDeltaSeconds);
         updateScene3VerticalCamera(frameDeltaSeconds);
         renderScene3PlayerAndCamera();
+
+        // ==============================================================
+        // 🌟 彩蛋：處理 Q 鍵長按的三角形「天線延伸與拉直」動畫
+        // ==============================================================
+        if (window._isEasterEggActive && window._easterEggQHeld) {
+            // 每秒延伸 250 個 SVG 單位 (數字越大長得越快，可自由調整)
+            window._easterEggAntennaExtension += 250 * frameDeltaSeconds;
+            
+            const topAntenna = document.getElementById('ee-antenna-top');
+            const bottomAntenna = document.getElementById('ee-antenna-bottom');
+            
+            if (topAntenna && bottomAntenna) {
+                const ext = window._easterEggAntennaExtension;
+                
+                // 1. 上方天線：毫無極限往上飆升 (Y軸座標持續減少)
+                topAntenna.setAttribute('y2', String(15 - ext));
+                
+                // 2. 下方天線：絲滑變直 -> 延伸到地板
+                // 前 20 單位用來「平滑變直」
+                if (ext <= 20) {
+                    const p = ext / 20; // 變直的進度 (0 ~ 1)
+                    // X 座標從尾巴的 73 慢慢收回主幹線的 65
+                    const endX = 73 - 8 * p; 
+                    bottomAntenna.setAttribute('d', `M 65 90 L 65 105 Q 65 112 ${endX} 112`);
+                } else {
+                    // 變直後，開始往下延伸
+                    const downExt = ext - 20;
+                    // 🌟 物理精算極限：因為手部位移與縮放的緣故，當底端 Y 到達 265 時，
+                    // 剛好會碰觸到腳底 (Y=105) 所在的絕對地板高度！
+                    const currentY = Math.min(265, 112 + downExt);
+                    bottomAntenna.setAttribute('d', `M 65 90 L 65 ${currentY}`);
+                }
+            }
+        }
+
+        // ==============================================================
+        // 🌟 新增：PLA 斷崖邊緣彩蛋觸發判定 (附帶觸發位置微調教學)
+        // ==============================================================
+        if (!window._easterEggTriggered && isOnPlaTopPlatform && isHammerEquipped && hand2Item !== null) {
+            const metrics = getScene3StageMetrics();
+            const geometry = getPlaTopPlatformWorldGeometry(metrics);
+            if (metrics && geometry) {
+                try {
+                    const line = geometry.line;
+                    const matrix = line.getScreenCTM();
+                    const svg = line.ownerSVGElement;
+                    const pt = svg.createSVGPoint();
+                    pt.x = 390; pt.y = 75; // 斷崖邊緣
+                    const screenPt = pt.matrixTransform(matrix);
+                    const hole1L = screenPointToScene3World(screenPt, metrics).x;
+                    const playerCenterX = worldX * metrics.width / 100;
+
+                    // 💡 【觸發位置微調】
+                    // hole1L 是斷崖真正的邊緣。如果想要角色在「更左邊一點」就觸發，
+                    // 只要調整這裡的「- 5」。例如改成「- 15」就會提早觸發！
+                    const triggerZoneX = hole1L - 28; 
+
+                    if (Math.abs(playerCenterX - triggerZoneX) < 15) {
+                        triggerEasterEggSequence();
+                    }
+                } catch(e) {}
+            }
+        }
+
+        // --- 史詩級局部純白粒子產生器 ---
+        function createEpicVFX(targetHandId) {
+            const hand = document.getElementById(targetHandId);
+            if(!hand) return;
+
+            if (!document.getElementById('epic-vfx-style')) {
+                const style = document.createElement('style');
+                style.id = 'epic-vfx-style';
+                style.innerHTML = `
+                    @keyframes epicSpark {
+                        0% { transform: translate(0,0) scale(1.5); opacity: 1; filter: drop-shadow(0 0 10px #fff); }
+                        100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; filter: drop-shadow(0 0 5px #fff); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            const vfxGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            vfxGroup.setAttribute('transform', 'translate(40, 85)'); // 將粒子發射點對準手部
+
+            // 產生 25 顆清晰的純白色星火
+            for(let i = 0; i < 25; i++) {
+                const spark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                spark.setAttribute('cx', '0'); 
+                spark.setAttribute('cy', '0'); 
+                spark.setAttribute('r', `${2 + Math.random() * 2}`); // 稍微放大讓粒子更清楚
+                spark.setAttribute('fill', '#fff'); 
+                
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 40 + Math.random() * 60; // 飄散的距離
+                spark.style.setProperty('--tx', `${Math.cos(angle)*dist}px`);
+                spark.style.setProperty('--ty', `${Math.sin(angle)*dist}px`);
+                spark.style.animation = `epicSpark ${0.5 + Math.random()*0.4}s cubic-bezier(0.1, 0.8, 0.3, 1) forwards`;
+                vfxGroup.appendChild(spark);
+            }
+            hand.appendChild(vfxGroup);
+            setTimeout(() => vfxGroup.remove(), 1000);
+        }
+
+        // --- 內部彩蛋動畫序列函式 ---
+        function triggerEasterEggSequence() {
+            window._easterEggTriggered = true;
+            window._isEasterEggActive = true;
+
+            // 1. 永久鎖定操作，不會有 setTimeout 把他改回 true！
+            isPlayerControllable = false;
+            canAttack = false;
+            stickman.classList.add('stand-still');
+            clearMovementKeys();
+
+            const hammerVisual = document.getElementById('held-hammer-s3');
+            const hand2Visual = document.getElementById('held-item-hand2');
+            const hand1Visual = document.getElementById('held-item-hand1');
+
+            const sfxCharge = new Audio('game_audio/game_attack_enemy2.mp3'); 
+            const sfxFlash = new Audio('game_audio/game_enemy3_explosion1.mp3'); 
+            playActionSfx(sfxCharge);
+
+            // 🚫 已經徹底移除 stage.classList.add('boss-wind-shake') 震動效果
+
+            // 🌟 2. 左右手物品同時發出「純白光芒」 (不改變物品大小)
+            if (hammerVisual) {
+                hammerVisual.style.transition = 'filter 0.6s ease-in';
+                hammerVisual.style.filter = 'brightness(5) drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px #fff)';
+            }
+            if (hand2Visual) {
+                hand2Visual.style.transition = 'filter 0.6s ease-in';
+                hand2Visual.style.filter = 'brightness(5) drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px #fff)';
+            }
+
+            setTimeout(() => {
+                // 🌟 3. 白光消散，物品透明化
+                playActionSfx(sfxFlash);
+                
+                // 雙手同時噴出純白粒子
+                createEpicVFX('armL-s3'); 
+                createEpicVFX('armR-s3');
+                
+                if (hammerVisual) {
+                    hammerVisual.style.transition = 'opacity 0.3s ease-out, filter 0.3s ease-out';
+                    hammerVisual.style.opacity = '0';
+                    hammerVisual.style.filter = 'brightness(1) drop-shadow(0 0 0px transparent)'; 
+                }
+                if (hand2Visual) {
+                    hand2Visual.style.transition = 'opacity 0.3s ease-out, filter 0.3s ease-out';
+                    hand2Visual.style.opacity = '0';
+                    hand2Visual.style.filter = 'brightness(1) drop-shadow(0 0 0px transparent)';
+                }
+
+                setTimeout(() => {
+                    // 計算背包 X/Y，確保 AND Hammer 完美安放
+                    const a = 108, h = 94, dx = 130, dy = 106, row2Bottom = 569;
+                    const rowY = [ row2Bottom - dy, row2Bottom, row2Bottom + dy, row2Bottom + 2 * dy ];
+                    const gridRows = [
+                        { y: rowY[0], centers: [-1, 1] },
+                        { y: rowY[1], centers: [-1.5, -0.5, 0.5, 1.5] },
+                        { y: rowY[2], centers: [-2, -1, 0, 1, 2] },
+                        { y: rowY[3], centers: [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5] }
+                    ];
+                    let flatSlots = [];
+                    gridRows.forEach(row => {
+                        row.centers.forEach(c => { flatSlots.push({ x: 500 + c * dx, y: row.y - 40 }); });
+                    });
+                    
+                    let emptyIdx = backpackGrid.findIndex((s, i) => s === null && (!window._hammerSlot || window._hammerSlot.slotIndex !== i));
+                    if (emptyIdx === -1) emptyIdx = 0; 
+                    
+                    window._hammerSlot = { type: 'triangle', slotIndex: emptyIdx, x: flatSlots[emptyIdx].x, y: flatSlots[emptyIdx].y };
+                    
+                    isHammerEquipped = false;
+                    hand1Item = hand2Item; 
+                    hand2Item = null;
+                    
+                    // 呼叫更新，此時會觸發強制拉到頂層的 appendChild 邏輯
+                    updateMainStickmanEquipment();
+
+                    // 🌟 5. 新三角怪伴隨白光與粒子在左手現身
+                    if (hand1Visual) {
+                        hand1Visual.style.transition = 'none';
+                        hand1Visual.style.opacity = '0';
+                        hand1Visual.style.filter = 'brightness(5) drop-shadow(0 0 30px #fff)';
+                        
+                        void hand1Visual.offsetWidth; 
+
+                        hand1Visual.style.transition = 'opacity 0.4s ease-out, filter 0.8s ease-out';
+                        hand1Visual.style.opacity = '1';
+                        hand1Visual.style.filter = 'drop-shadow(0 0 5px rgba(255,255,255,0.8))';
+                    }
+
+                    createEpicVFX('armL-s3');
+
+                    // 🌟 6. 動畫徹底結束，標記解鎖 Q 鍵變形！
+                    setTimeout(() => {
+                        window._easterEggAnimationDone = true;
+                    }, 800);
+
+                }, 400); 
+            }, 600); 
+        }
 
         // 按住 Q 可在飛行途中自動抓住第一個進入半身距離的 X／圓點；剛放開的同一固定點有短暫防重抓。
         if (
@@ -6605,10 +6949,12 @@ export function initScene3(playerState, switchScene) {
             `;
         }
 
+        // 🌟 背包畫面中的 Hand1 也要支援 Flip-X
         if (!isHammerEquipped && hand1Item) {
+            let flipStyle = window._isEasterEggActive ? 'transform-origin: 65px center; transform: scaleX(-1);' : '';
             equippedItemsHtml += `
                 <g id="bp-equipped-hand1" class="bp-hand-item draggable-bp-item" data-origin-type="hand" data-index="1" opacity="${baseOpacity}" style="transition: ${eqTrans}; filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)); cursor: grab; pointer-events: auto;" transform="translate(532, 398) scale(0.35)">
-                    ${getItemSVG(hand1Item)}
+                    <g style="${flipStyle}">${getItemSVG(hand1Item)}</g>
                 </g>
             `;
         }
@@ -6731,32 +7077,37 @@ export function initScene3(playerState, switchScene) {
                     if (dist < minDist) { minDist = dist; closestSlot = slot; }
                 });
 
-                // 防呆：距離太遠，或目標背包格「已有三角怪」，退回原位
                 if (minDist > 120 || (closestSlot.type === 'triangle' && backpackGrid[closestSlot.slotIndex] !== null)) {
                     closestSlot = window._hammerSlot;
+                }
+
+                // ==========================================
+                // 🌟 終極彩蛋防呆：彩蛋期間，嚴禁將 AND Hammer 裝備回主手！
+                // ==========================================
+                if (window._isEasterEggActive && closestSlot.type === 'handR') {
+                    closestSlot = window._hammerSlot; 
                 }
 
                 window._hammerSlot = closestSlot;
                 isHammerEquipped = (closestSlot.type === 'handR');
                 if (isHammerEquipped) hand1Item = null;
 
-                // 🌟 1. 先觸發回彈動畫 (小小回彈的效果)
                 hammerElem.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                void hammerElem.offsetWidth; // 🌟 魔法指令：強制瀏覽器刷新，確保動畫 100% 觸發
+                void hammerElem.offsetWidth; 
                 
                 if (closestSlot.type === 'handR') {
                     hammerElem.setAttribute('transform', `translate(555, 415) scale(0.3) rotate(25)`);
                 } else {
+                    // 因為上方已精準配發了 x 與 y，這裡再也不會發生瞬移或消失了！
                     hammerElem.setAttribute('transform', `translate(${closestSlot.x}, ${closestSlot.y}) scale(0.48) rotate(0)`);
                 }
                 
-                // 🌟 2. 等待動畫 300 毫秒「完全播完」果凍彈跳後，才無縫更新資料與畫面
                 setTimeout(() => {
                     const oldOverlay = document.getElementById('backpack-overlay');
                     if (oldOverlay) oldOverlay.remove();
                     updateMainStickmanEquipment();
                     triggerBackpackAnimation(false, true);
-                }, 300); // 確保與 transition 的 0.3s 完全一致！
+                }, 300); 
             });
 
             overlay.addEventListener('mouseleave', () => {
@@ -6817,7 +7168,7 @@ export function initScene3(playerState, switchScene) {
             if (!draggedItem) return;
             
             const activeItem = draggedItem;
-            const oType = dragOriginType; // 來源可能是 'grid', 'hand2', 或 'head'
+            const oType = dragOriginType; 
             const oIndex = dragOriginIndex;
             draggedItem = null; 
             
@@ -6851,6 +7202,12 @@ export function initScene3(playerState, switchScene) {
             // 🌟 3. 最嚴格的型別過濾：拒絕跨界裝備！
             if (bestTarget.type === 'head' && itemRealType !== 'hat') bestTarget = { type: oType, index: oIndex };
             if (bestTarget.type === 'hand2' && itemRealType !== 'body') bestTarget = { type: oType, index: oIndex };
+
+            // 🌟 彩蛋防呆：彩蛋期間，主手上的三角怪絕對不可以被卸下
+            if (window._isEasterEggActive && oType === 'hand') {
+                bestTarget = { type: oType, index: oIndex };
+                action = 'revert';
+            }
 
             // 4. 分析拖曳行為
             if (bestTarget.type === 'hand2') {
@@ -6901,10 +7258,12 @@ export function initScene3(playerState, switchScene) {
             
             let tx, ty, scale;
             if (bestTarget.type === 'head') {
-                // 🌟 配合第一步的新尺寸與新座標
                 tx = 538; ty = 355; scale = 0.22;
             } else if (bestTarget.type === 'hand2') {
                 tx = 432; ty = 398; scale = 0.35;
+            } else if (bestTarget.type === 'hand') {
+                // 🌟 終極修復：補上原本遺漏的 hand 目標座標，這就是為什麼原本放回主手會瞬移的原因！
+                tx = 532; ty = 398; scale = 0.35;
             } else {
                 let slot = bpSlotsData.find(s => s.type === 'triangle' && s.slotIndex === bestTarget.index);
                 tx = slot.x - 33; ty = slot.y - 29; scale = 0.5;
