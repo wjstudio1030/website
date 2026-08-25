@@ -5945,12 +5945,14 @@ export function initScene3(playerState, switchScene) {
                 // 🌟 每次按下 Q 時，重置天線的延伸長度
                 window._easterEggAntennaExtension = 0;
 
-                // 🌟 將三角怪替換為帶有特定 ID 的結構，以便在迴圈中拉長
+                // 🌟 將三角怪替換為帶有特定 ID 的結構，並在外層加上傾倒用的群組
                 hand1Visual.innerHTML = `
-                    <g style="transform-origin: 65px center; transform: scaleX(-1);">
-                        <line id="ee-antenna-top" x1="65" y1="30" x2="65" y2="15" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
-                        <polygon points="65,30 5,90 125,90" fill="#000" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
-                        <path id="ee-antenna-bottom" d="M 65 90 L 65 105 Q 65 112 73 112" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+                    <g id="ee-falling-group" style="transition: transform 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53);">
+                        <g style="transform-origin: 65px center; transform: scaleX(-1);">
+                            <line id="ee-antenna-top" x1="65" y1="30" x2="65" y2="15" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+                            <polygon points="65,30 5,90 125,90" fill="#000" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+                            <path id="ee-antenna-bottom" d="M 65 90 L 65 105 Q 65 112 73 112" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+                        </g>
                     </g>`;
                 
                 hand1Visual.setAttribute('transform', 'translate(62, 21) scale(0.35) rotate(0, 65, 90)');
@@ -5984,12 +5986,104 @@ export function initScene3(playerState, switchScene) {
         }
     }
 
+    // ==============================================================
+    // 🌟 彩蛋：火柴人三階段踢擊與天線傾倒動畫序列 (完美落地版)
+    // ==============================================================
+    function playEasterEggKickSequence() {
+        const head = document.getElementById('stickman-head-s3');
+        const torso = document.getElementById('stickman-torso-s3');
+        const legRPath = document.getElementById('legR-path-s3');
+        const armLPath = document.getElementById('armL-path-s3');
+        const armRPath = document.getElementById('armR-path-s3');
+        const legLPath = document.getElementById('legL-path-s3');
+        const fallingGroup = document.getElementById('ee-falling-group');
+        const bottomAntenna = document.getElementById('ee-antenna-bottom');
+        const hat = document.getElementById('held-item-head');
+
+        // 1. 動作一：身起腳、蓄力準備 (0ms)
+        if (head) { head.setAttribute('cx', '30'); head.setAttribute('cy', '32'); }
+        if (torso) { torso.setAttribute('x1', '34'); torso.setAttribute('y1', '48'); }
+        
+        // 🌟 寫入您最理想的帽子座標
+        if (hat) hat.setAttribute('transform', 'translate(2, -17) scale(0.35) rotate(-15, 65, 90)');
+
+        if (armLPath) armLPath.setAttribute('d', 'M 36 56 Q 21 56 21 75');
+        if (armRPath) armRPath.setAttribute('d', 'M 36 56 Q 51 56 51 41');
+        if (legLPath) legLPath.setAttribute('d', 'M 40 75 L 35 105');
+        if (legRPath) legRPath.setAttribute('d', 'M 40 75 L 55 65 L 60 90');
+        
+        // 2. 動作二：向前踢 (200ms)
+        setTimeout(() => {
+            if (head) { head.setAttribute('cx', '22'); head.setAttribute('cy', '33'); }
+            if (torso) { torso.setAttribute('x1', '30'); torso.setAttribute('y1', '52'); }
+            if (hat) hat.setAttribute('transform', 'translate(-8, -16) scale(0.35) rotate(-23, 65, 90)');
+            
+            if (armLPath) armLPath.setAttribute('d', 'M 30 52 Q 15 55 5 70');
+            if (armRPath) armRPath.setAttribute('d', 'M 30 52 Q 47 38 60 46');
+            if (legRPath) legRPath.setAttribute('d', 'M 40 75 L 64 53');
+            
+            // 觸發天線傾倒動畫
+            if (fallingGroup && bottomAntenna) {
+                let currentBottomY = 240; 
+                const d = bottomAntenna.getAttribute('d');
+                const match = d.match(/([0-9.]+)$/);
+                if (match) currentBottomY = parseFloat(match[1]);
+                
+                const body = document.getElementById('stickman-body-s3');
+                if (body) {
+                    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    wrapper.setAttribute('transform', 'translate(62, 21) scale(0.35)');
+                    fallingGroup.parentNode.removeChild(fallingGroup);
+                    wrapper.appendChild(fallingGroup);
+                    body.appendChild(wrapper);
+                }
+
+                // 🌟 終極修復：先設定好旋轉圓心
+                fallingGroup.style.transformOrigin = `65px ${currentBottomY}px`;
+                
+                // 🌟 SVG 專屬強制重繪魔法！
+                // 呼叫 getBoundingClientRect() 會逼迫瀏覽器立刻計算 SVG 的幾何尺寸。
+                // 這樣瀏覽器就會確實把「搬移 DOM」與「設定圓心」結算完畢！
+                void fallingGroup.getBoundingClientRect();
+
+                // 最後再給予旋轉 90 度的指令，保證 100% 觸發 CSS 漸變動畫
+                fallingGroup.style.transform = 'rotate(90deg)';
+                
+                const sfxKick = new Audio('game_audio/game_attack_enemy1.mp3');
+                playActionSfx(sfxKick);
+            }
+        }, 200);
+
+        // 3. 動作三：回到最初的火柴人動作 (450ms)
+        setTimeout(() => {
+            if (head) { head.setAttribute('cx', '40'); head.setAttribute('cy', '32'); }
+            if (torso) { torso.setAttribute('x1', '40'); torso.setAttribute('y1', '48'); }
+            
+            // 帽子恢復原位
+            if (hat) hat.setAttribute('transform', 'translate(17, -15) scale(0.35)');
+            
+            if (armLPath) armLPath.setAttribute('d', 'M 40 56 L 40 85');
+            if (armRPath) armRPath.setAttribute('d', 'M 40 56 L 40 85');
+            if (legLPath) legLPath.setAttribute('d', 'M 40 75 L 40 105');
+            if (legRPath) legRPath.setAttribute('d', 'M 40 75 L 40 105');
+            
+            const limbs = ['armL-s3', 'armR-s3', 'legL-s3', 'legR-s3'].map(id => document.getElementById(id));
+            limbs.forEach(el => {
+                if (el) { 
+                    el.style.removeProperty('animation'); 
+                    el.style.removeProperty('transform'); 
+                }
+            });
+        }, 450);
+    }
+
     function handleKeyDown(e) {
         const key = e.key.toLowerCase();
 
+        // 🌟 修改：加入 !window._easterEggFrozen 判斷，凍結後禁止再按 Q
         if (window._isEasterEggActive && window._easterEggAnimationDone && key === 'q') {
             e.preventDefault();
-            if (!e.repeat && !window._easterEggQHeld) {
+            if (!e.repeat && !window._easterEggQHeld && !window._easterEggFrozen) {
                 toggleEasterEggQPose(true);
             }
             return;
@@ -6185,13 +6279,17 @@ export function initScene3(playerState, switchScene) {
     
     function handleKeyUp(e) {
         const key = e.key.toLowerCase();
-        // 🌟 新增：放開 Q 鍵恢復原本姿勢
+        // 🌟 修改：放開 Q 鍵時觸發踢擊序列，並將標記設為永久凍結
         if (window._isEasterEggActive && key === 'q') {
             e.preventDefault();
             if (window._easterEggQHeld) {
-                toggleEasterEggQPose(false);
+                window._easterEggQHeld = false; // 停止天線繼續生長
+                window._easterEggFrozen = true; // 標記為永久凍結 (不再恢復操作)
+                
+                // 啟動踢倒動畫序列！
+                playEasterEggKickSequence();
             }
-            // 不要 return，讓原本的 keys.q = false 也能執行確保狀態乾淨
+            return; // 確保不會執行到下方的復原邏輯
         }
         if (keys.hasOwnProperty(key)) keys[key] = false;
         if (key === 'q') {
@@ -6213,7 +6311,6 @@ export function initScene3(playerState, switchScene) {
 
     // 👇 這裡把括號內的參數改為 realTimestamp
     function gameLoopS3(realTimestamp) {
-        // 場景被重新初始化後，舊的 requestAnimationFrame 迴圈立即停止。
         if (!isCurrentScene3Instance()) return;
 
         const frameDeltaSeconds = previousScene3FrameTime === null
@@ -6228,9 +6325,46 @@ export function initScene3(playerState, switchScene) {
             return; 
         }
 
-        // 🌟 2. 時間軸平移 (扣除暫停的時間，確保解除暫停時怪物的跳躍週期不會錯亂)
+        // ==============================================================
+        // 🌟 FIX：彩蛋天線動畫
+        // ==============================================================
+        if (window._isEasterEggActive && window._easterEggQHeld) {
+            
+            window._easterEggAntennaExtension += 250 * frameDeltaSeconds;
+            
+            const topAntenna = document.getElementById('ee-antenna-top');
+            const bottomAntenna = document.getElementById('ee-antenna-bottom');
+            
+            if (topAntenna && bottomAntenna) {
+                const ext = window._easterEggAntennaExtension;
+                
+                // 1. 上方天線：毫無極限往上飆升，長度與下方完全脫鉤
+                topAntenna.setAttribute('y2', String(15 - ext));
+                
+                // 2. 下方天線：
+                if (ext <= 20) {
+                    const p = ext / 20; 
+                    const endX = 73 - 8 * p; 
+                    bottomAntenna.setAttribute('d', `M 65 90 L 65 105 Q 65 112 ${endX} 112`);
+                } else {
+                    const downExt = ext - 20;
+                    
+                    // 💡 【修改這裡來調整下方天線的極限長度！】
+                    // 預設是 240 (剛好碰到原本腳底的地面)。
+                    // 數值越「小」，下方的線就越「短」 (例如改為 180 或 150)。
+                    const bottomMaxY = 228; 
+                    
+                    // 取目前生長量與極限值的最小值，確保下方線條不會穿透到底部太多
+                    const currentY = Math.min(bottomMaxY, 112 + downExt); 
+                    bottomAntenna.setAttribute('d', `M 65 90 L 65 ${currentY}`);
+                }
+            }
+        }
+
+        // 🌟 2. 時間軸平移 
         let timestamp = realTimestamp - totalPausedTime;
 
+        // 原本的提早 return 在這裡，現在不會阻擋到上方的天線動畫了！
         if (!isPlayerControllable && !playerDead) { requestAnimationFrame(gameLoopS3); return; }
         if (playerDead) return;
         
@@ -6275,40 +6409,6 @@ export function initScene3(playerState, switchScene) {
         updateScene3HorizontalCamera(frameDeltaSeconds);
         updateScene3VerticalCamera(frameDeltaSeconds);
         renderScene3PlayerAndCamera();
-
-        // ==============================================================
-        // 🌟 彩蛋：處理 Q 鍵長按的三角形「天線延伸與拉直」動畫
-        // ==============================================================
-        if (window._isEasterEggActive && window._easterEggQHeld) {
-            // 每秒延伸 250 個 SVG 單位 (數字越大長得越快，可自由調整)
-            window._easterEggAntennaExtension += 250 * frameDeltaSeconds;
-            
-            const topAntenna = document.getElementById('ee-antenna-top');
-            const bottomAntenna = document.getElementById('ee-antenna-bottom');
-            
-            if (topAntenna && bottomAntenna) {
-                const ext = window._easterEggAntennaExtension;
-                
-                // 1. 上方天線：毫無極限往上飆升 (Y軸座標持續減少)
-                topAntenna.setAttribute('y2', String(15 - ext));
-                
-                // 2. 下方天線：絲滑變直 -> 延伸到地板
-                // 前 20 單位用來「平滑變直」
-                if (ext <= 20) {
-                    const p = ext / 20; // 變直的進度 (0 ~ 1)
-                    // X 座標從尾巴的 73 慢慢收回主幹線的 65
-                    const endX = 73 - 8 * p; 
-                    bottomAntenna.setAttribute('d', `M 65 90 L 65 105 Q 65 112 ${endX} 112`);
-                } else {
-                    // 變直後，開始往下延伸
-                    const downExt = ext - 20;
-                    // 🌟 物理精算極限：因為手部位移與縮放的緣故，當底端 Y 到達 265 時，
-                    // 剛好會碰觸到腳底 (Y=105) 所在的絕對地板高度！
-                    const currentY = Math.min(265, 112 + downExt);
-                    bottomAntenna.setAttribute('d', `M 65 90 L 65 ${currentY}`);
-                }
-            }
-        }
 
         // ==============================================================
         // 🌟 新增：PLA 斷崖邊緣彩蛋觸發判定 (附帶觸發位置微調教學)
