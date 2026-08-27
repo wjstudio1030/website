@@ -3447,9 +3447,141 @@ export function initScene3(playerState, switchScene) {
     }
 
     function getPlayerFootOffsetPx() {
-        const playerHeight = Math.max(1, stickman.getBoundingClientRect().height || 120);
-        // 與 Scene 1 / 2 相同：腳底 y=105、角色中心 y=60，中心到腳底為 45/120 身高。
-        return playerHeight * (45 / 120);
+
+        const playerHeight = Math.max(
+            1,
+            stickman.getBoundingClientRect().height || 120
+        );
+
+        // =============================================
+        // 🌟 使用「肉眼真正看見的腳底」
+        // =============================================
+
+        const VIEWBOX_HEIGHT = 120;
+
+        // 角色 SVG 中心
+        const CENTER_Y = 60;
+
+        // 腳線本身終點
+        const FOOT_LINE_END_Y = 105;
+
+        // 火柴人 stroke-width = 8
+        // round linecap 會再往下延伸一半 = 4
+        const PLAYER_STROKE_HALF = 4;
+
+        const VISUAL_FOOT_BOTTOM_Y =
+            FOOT_LINE_END_Y + PLAYER_STROKE_HALF;
+            // = 109
+
+        return playerHeight *
+            ((VISUAL_FOOT_BOTTOM_Y - CENTER_Y) / VIEWBOX_HEIGHT);
+    }
+
+    // ======================================================
+    // 🌟 PLA 腳底視覺修正後，天線要向下補回多少距離
+    // 目的：角色可以升高，但天線仍維持修改前的世界高度
+    // ======================================================
+    function getPlaAntennaGroundCompensationPx() {
+
+        if (!isOnPlaTopPlatform) return 0;
+
+        const metrics = getScene3StageMetrics();
+        const geometry = getPlaTopPlatformWorldGeometry(metrics);
+
+        if (!metrics || !geometry) return 0;
+
+        const playerHeight = Math.max(
+            1,
+            stickman.getBoundingClientRect().height || 120
+        );
+
+        // 修改前：
+        // 腳線幾何終點 y=105
+        const oldFootOffset =
+            playerHeight * (45 / 120);
+
+        // 修改後：
+        // 包含腳 stroke 圓頭的真正可視腳底
+        const newFootOffset =
+            getPlayerFootOffsetPx();
+
+        // PLA 白線中心 → 真正最上緣
+        const platformTopY =
+            getPlaTopSurfaceWorldY(geometry);
+
+        if (!Number.isFinite(platformTopY)) return 0;
+
+        /*
+        角色比修改前多升高的距離：
+
+        ① 腳底 stroke 修正
+        ② PLA 白線半線寬修正
+        */
+        const playerExtraLift =
+            (newFootOffset - oldFootOffset)
+            +
+            (geometry.y - platformTopY);
+
+        return Math.max(0, playerExtraLift);
+    }
+
+    function scenePxToStickmanSvgY(px) {
+
+        const playerHeight = Math.max(
+            1,
+            stickman.getBoundingClientRect().height || 120
+        );
+
+        return px * (120 / playerHeight);
+    }
+
+    function getPlaTopSurfaceWorldY(geometry) {
+
+        if (!geometry) return null;
+
+        const visibleLine =
+            document.querySelector('.pla-top-platform-visible');
+
+        // 找不到時保底
+        if (
+            !visibleLine ||
+            typeof visibleLine.getScreenCTM !== 'function'
+        ) {
+            return geometry.y - 2;
+        }
+
+        try {
+
+            const matrix = visibleLine.getScreenCTM();
+
+            if (!matrix) {
+                return geometry.y - 2;
+            }
+
+            // PLA 白線原本 stroke-width = 4
+            const PLA_STROKE_WIDTH = 4;
+
+            /*
+                SVG 可能會因螢幕尺寸縮放，
+                所以不能永遠直接減 2px。
+
+                matrix.c / matrix.d 可以取得
+                Y 軸實際縮放比例。
+            */
+            const scaleY =
+                Math.hypot(matrix.c, matrix.d);
+
+            const halfStrokePx =
+                (PLA_STROKE_WIDTH * scaleY) / 2;
+
+            // 🌟 geometry.y 是白線中心
+            // 真正可以踩的是白線最上緣
+            return geometry.y - halfStrokePx;
+
+        } catch (e) {
+
+            return geometry.y - 2;
+        }
     }
 
     function getPlayerFootWorldY(metrics = getScene3StageMetrics()) {
@@ -3458,8 +3590,23 @@ export function initScene3(playerState, switchScene) {
     }
 
     function getPlaTopPlatformSupportElevation(metrics, geometry) {
+
         if (!metrics || !geometry) return 0;
-        return Math.max(0, metrics.groundY - (geometry.y - getPlayerFootOffsetPx()));
+
+        // 🌟 PLA 肉眼真正看到的最上表面
+        const platformTopY =
+            getPlaTopSurfaceWorldY(geometry);
+
+        if (!Number.isFinite(platformTopY)) return 0;
+
+        // 🌟 讓火柴人「可視腳底」
+        // 精準落在 PLA「可視最上緣」
+        return Math.max(
+            0,
+            metrics.groundY
+            + getPlayerFootOffsetPx()
+            - platformTopY
+        );
     }
 
     function beginScene3CameraFocusTransition(durationMs = 950) {
@@ -3552,7 +3699,7 @@ export function initScene3(playerState, switchScene) {
         stickman.classList.remove('player-jumping', 'boss-wind-landed');
         stickman.classList.add('stand-still');
         hidePlaHatTetherVisual();
-        plaTopPlatformPreviousFootWorldY = geometry.y;
+        plaTopPlatformPreviousFootWorldY = getPlaTopSurfaceWorldY(geometry);
         beginScene3CameraFocusTransition(900);
         return true;
     }
@@ -3562,6 +3709,12 @@ export function initScene3(playerState, switchScene) {
         const metrics = getScene3StageMetrics();
         const geometry = getPlaTopPlatformWorldGeometry(metrics);
         if (!metrics || !geometry) return;
+
+         // 🌟 新增
+        const platformTopY =
+            getPlaTopSurfaceWorldY(geometry);
+
+        if (!Number.isFinite(platformTopY)) return;
 
         const playerCenterX = worldX * metrics.width / 100;
         const horizontalMargin = Math.max(10, (stickman.getBoundingClientRect().width || 80) * 0.28);
@@ -3604,7 +3757,7 @@ export function initScene3(playerState, switchScene) {
             Math.abs(getCurrentVerticalVelocityUpPx()) > 2;
 
         // 只有角色真的曾從下方跳到橫線上方，這條線才會永久成為實體平台。
-        if (!plaTopPlatformSolid && airborne && currentFootY < geometry.y - 6) {
+        if (!plaTopPlatformSolid && airborne && currentFootY < platformTopY - 6) {
             setPlaTopPlatformSolid(geometry);
         }
 
@@ -3632,13 +3785,17 @@ export function initScene3(playerState, switchScene) {
             const descending = getCurrentVerticalVelocityUpPx() < -4;
             const previousFootY = plaTopPlatformPreviousFootWorldY;
             const crossedFromAbove =
-                Number.isFinite(previousFootY) &&
-                previousFootY <= geometry.y + 3 &&
-                currentFootY >= geometry.y - 4;
+            Number.isFinite(previousFootY) &&
+            previousFootY <= platformTopY + 3 &&
+            currentFootY >= platformTopY - 4;
 
             if (descending && crossedFromAbove) {
-                landPlayerOnPlaTopPlatform(metrics, geometry);
-                currentFootY = geometry.y;
+                landPlayerOnPlaTopPlatform(
+                    metrics,
+                    geometry
+                );
+
+                currentFootY = platformTopY;
             }
         }
 
@@ -5955,7 +6112,15 @@ export function initScene3(playerState, switchScene) {
                         </g>
                     </g>`;
                 
-                hand1Visual.setAttribute('transform', 'translate(62, 21) scale(0.35) rotate(0, 65, 90)');
+                const antennaGroundCompensationSvg =
+                    scenePxToStickmanSvgY(
+                        getPlaAntennaGroundCompensationPx()
+                    );
+
+                hand1Visual.setAttribute(
+                    'transform',
+                    `translate(62, ${21 + antennaGroundCompensationSvg}) scale(0.35) rotate(0, 65, 90)`
+                );
             }
         } else {
             if (held1) held1.style.display = '';
@@ -6024,29 +6189,41 @@ export function initScene3(playerState, switchScene) {
             
             // 觸發天線傾倒動畫
             if (fallingGroup && bottomAntenna) {
-                let currentBottomY = 240; 
-                const d = bottomAntenna.getAttribute('d');
-                const match = d.match(/([0-9.]+)$/);
-                if (match) currentBottomY = parseFloat(match[1]);
+                
+                // 🌟 修改這裡：我們不再動態抓取天線目前的長度！
+                // 直接將圓心寫死成天線能延長到的「最下方極限點」
+                // (注意：這裡的數值必須與你 gameLoopS3 裡設定的 bottomMaxY 一致，預設是 228)
+                let currentBottomY = 228; 
                 
                 const body = document.getElementById('stickman-body-s3');
                 if (body) {
-                    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                    wrapper.setAttribute('transform', 'translate(62, 21) scale(0.35)');
+                    const wrapper =
+                        document.createElementNS(
+                            'http://www.w3.org/2000/svg',
+                            'g'
+                        );
+
+                    const antennaGroundCompensationSvg =
+                        scenePxToStickmanSvgY(
+                            getPlaAntennaGroundCompensationPx()
+                        );
+
+                    wrapper.setAttribute(
+                        'transform',
+                        `translate(62, ${21 + antennaGroundCompensationSvg}) scale(0.35)`
+                    );
                     fallingGroup.parentNode.removeChild(fallingGroup);
                     wrapper.appendChild(fallingGroup);
                     body.appendChild(wrapper);
                 }
 
-                // 🌟 終極修復：先設定好旋轉圓心
+                // 🌟 設定固定旋轉圓心 (永遠固定在地板)
                 fallingGroup.style.transformOrigin = `65px ${currentBottomY}px`;
                 
-                // 🌟 SVG 專屬強制重繪魔法！
-                // 呼叫 getBoundingClientRect() 會逼迫瀏覽器立刻計算 SVG 的幾何尺寸。
-                // 這樣瀏覽器就會確實把「搬移 DOM」與「設定圓心」結算完畢！
+                // 🌟 SVG 專屬強制重繪魔法
                 void fallingGroup.getBoundingClientRect();
 
-                // 最後再給予旋轉 90 度的指令，保證 100% 觸發 CSS 漸變動畫
+                // 最後給予旋轉 90 度的指令
                 fallingGroup.style.transform = 'rotate(90deg)';
                 
                 const sfxKick = new Audio('game_audio/game_attack_enemy1.mp3');
@@ -6075,6 +6252,706 @@ export function initScene3(playerState, switchScene) {
                 }
             });
         }, 450);
+
+        // =========================================================
+        // 🌟 新增：動作四：史詩級過場衝刺引擎 (天線克隆固定、動態煞車與物理橋樑)
+        // =========================================================
+        setTimeout(() => {
+            worldX += 1.5; 
+            
+            // 強制解除 CSS 旋轉干擾並切換為 Path 顯示
+            const limbs = ['armL-s3', 'armR-s3', 'legL-s3', 'legR-s3'];
+            limbs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.style.setProperty('transform', 'none', 'important'); el.style.setProperty('animation', 'none', 'important'); }
+            });
+            const armLBase = document.getElementById('armL-base-s3'); const armRBase = document.getElementById('armR-base-s3');
+            const legLBase = document.getElementById('legL-base-s3'); const legRBase = document.getElementById('legR-base-s3');
+            if (armLBase) armLBase.style.display = 'none'; if (armLPath) armLPath.style.display = 'inline';
+            if (armRBase) armRBase.style.display = 'none'; if (armRPath) armRPath.style.display = 'inline';
+            if (legLBase) legLBase.style.display = 'none'; if (legLPath) legLPath.style.display = 'inline';
+            if (legRBase) legRBase.style.display = 'none'; if (legRPath) legRPath.style.display = 'inline';
+
+            // 🌟 1. 天線「克隆」剝離與動態距離計算
+            const fallingGroup = document.getElementById('ee-falling-group');
+            const fallingWrapper = fallingGroup ? fallingGroup.parentNode : null;
+            let targetWorldX = worldX + 20;
+
+            // 🌟 是否為 AND 安全長度
+            let isSafeAntennaLength = false;
+
+            // 🌟 保存固定到世界中的天線
+            let fixedAntennaGroup = null;
+
+            // 🌟 防止第二次傾倒重複播放
+            let secondTiltStarted = false;
+
+            // =====================================================
+            // 🌟 天線旋轉固定支點
+            // 第一次、第二次傾倒都共用
+            // =====================================================
+            const ANCHOR_X = 65;
+            const ANCHOR_Y = 228;
+
+            if (fallingGroup && fallingWrapper) {
+                const metrics = getScene3StageMetrics();
+                if (metrics) {
+                    // (A) 取得天線最前端的世界座標
+                    const groupRect = fallingGroup.getBoundingClientRect();
+                    const antennaTipScreenX = groupRect.right;
+                    const worldTip = screenPointToScene3World({x: antennaTipScreenX, y: groupRect.top}, metrics);
+                    const antennaTipPx = worldTip ? worldTip.x : (worldX * metrics.width / 100 + 300);
+
+                    // (B) 取得 PLA 斷崖與 AND 閘的關鍵邊界座標
+                    const line = document.getElementById('pla-top-platform-line-s3');
+                    let hole1L_Px = 0, andGateLeft_Px = 0, andGateRight_Px = 0;
+                    if (line) {
+                        try {
+                            const matrix = line.getScreenCTM();
+                            const svg = line.ownerSVGElement;
+                            const makeWorldX = (svgX) => {
+                                const pt = svg.createSVGPoint(); pt.x = svgX; pt.y = 75;
+                                return screenPointToScene3World(pt.matrixTransform(matrix), metrics).x;
+                            };
+                            hole1L_Px = makeWorldX(390);      
+                            andGateLeft_Px = makeWorldX(440); 
+                            andGateRight_Px = makeWorldX(500);
+                        } catch (e) { console.warn("SVG Math skipped."); }
+                    }
+
+                    // (C) 計算玩家原本與圖騰邊緣之間的留白距離
+                    const playerCenterX_Px = worldX * metrics.width / 100;
+
+                    // hole1L_Px = 原本圖騰 / 斷崖左側邊緣
+                    const triggerDistancePx =
+                        hole1L_Px - playerCenterX_Px;
+
+
+                    // =====================================================
+                    // 🌟 判斷目前天線是否屬於 AND「安全長度」
+                    // =====================================================
+
+                    isSafeAntennaLength =
+                        andGateLeft_Px !== 0 &&
+                        antennaTipPx >= andGateLeft_Px &&
+                        antennaTipPx <= andGateRight_Px;
+
+
+                    let targetPx;
+
+
+                    // =====================================================
+                    // ❌ 太短：不安全長度
+                    // =====================================================
+                    if (
+                        antennaTipPx < andGateLeft_Px ||
+                        andGateLeft_Px === 0
+                    ) {
+
+                        isSafeAntennaLength = false;
+
+                        // 先照原本邏輯走到天線最前端
+                        targetPx = antennaTipPx;
+                    }
+
+
+                    // =====================================================
+                    // ✅ 安全長度
+                    // 天線端點位於 AND 範圍內
+                    // =====================================================
+                    else if (isSafeAntennaLength) {
+
+                        // 玩家停在 AND 右端附近，
+                        // 留白距離與原本圖騰邊緣相同
+                        targetPx =
+                            andGateRight_Px - triggerDistancePx;
+                    }
+
+
+                    // =====================================================
+                    // ❌ 太長：不安全長度
+                    // =====================================================
+                    else {
+
+                        isSafeAntennaLength = false;
+
+                        // 先照原本邏輯走到天線最前端
+                        targetPx = antennaTipPx;
+                    }
+
+
+                    targetWorldX =
+                        (targetPx / metrics.width) * 100;
+
+                    // 🌟 2. 註冊實體物理橋樑 (讓玩家過場後可以在上面走！)
+                    window._easterEggBridge = {
+                        startX: playerCenterX_Px,
+                        endX: antennaTipPx
+                    };
+
+                    if (!window._bridgePhysicsActive) {
+                        window._bridgePhysicsActive = true;
+                        function bridgePhysicsLoop() {
+                            if (window._easterEggBridge && !window._isEasterEggActive) {
+                                const m = getScene3StageMetrics();
+                                if (m) {
+                                    const px = worldX * m.width / 100;
+                                    const b = window._easterEggBridge;
+                                    if (px >= b.startX - 15 && px <= b.endX + 15) {
+                                        if (isPlaHatBallistic && playerJumpVerticalVelocityPx <= 0) {
+                                            isPlaHatBallistic = false;
+                                            isPlayerJumping = false;
+                                            isOnPlaTopPlatform = true; // 將天線視為高層平台
+                                            playerJumpVerticalVelocityPx = 0;
+                                            plaHatVelocityUpPx = 0;
+                                            plaHatVelocityXPx = 0;
+                                            resetPlayerJumpPose();
+                                            stickman.classList.remove('player-jumping');
+                                            stickman.classList.add('stand-still');
+                                        }
+                                    }
+                                }
+                            }
+                            requestAnimationFrame(bridgePhysicsLoop);
+                        }
+                        bridgePhysicsLoop();
+                    }
+
+                    // 🌟 3. 將倒下的天線「像釘子一樣」固定到世界環境
+                    const envLayer = document.getElementById('environment-layer-s3');
+
+                    if (envLayer && fallingGroup && fallingWrapper) {
+
+                        // =====================================================
+                        // ① 先量原本天線旋轉支點的「真實螢幕座標」
+                        // =====================================================
+
+                        let originalAnchorScreen = null;
+
+                        try {
+                            const originalSvg = fallingGroup.ownerSVGElement;
+                            const originalMatrix = fallingGroup.getScreenCTM();
+
+                            if (originalSvg && originalMatrix) {
+                                const point = originalSvg.createSVGPoint();
+
+                                point.x = ANCHOR_X;
+                                point.y = ANCHOR_Y;
+
+                                originalAnchorScreen =
+                                    point.matrixTransform(originalMatrix);
+                            }
+                        } catch (e) {
+                            console.warn('讀取原天線支點失敗:', e);
+                        }
+
+
+                        // =====================================================
+                        // ② 建立固定容器
+                        // =====================================================
+                        const fixedContainer = document.createElement('div');
+
+                        fixedContainer.id = 'ee-fixed-antenna-container';
+                        fixedContainer.style.position = 'absolute';
+
+                        /*
+                        🌟 不再用 worldX / py 猜位置。
+
+                        先放在 environment-layer 的 0,0，
+                        等 Clone 完再用實際座標自動校正。
+                        */
+                        fixedContainer.style.left = '0px';
+                        fixedContainer.style.top = '0px';
+
+                        fixedContainer.style.width = '80px';
+                        fixedContainer.style.height = '120px';
+
+                        fixedContainer.style.transform =
+                            `translate(-50%, -50%) scaleX(${facing})`;
+
+                        fixedContainer.style.zIndex = '4';
+                        fixedContainer.style.pointerEvents = 'none';
+
+
+                        // =====================================================
+                        // ③ 建立 SVG
+                        // =====================================================
+                        const fixedSvg =
+                            document.createElementNS(
+                                'http://www.w3.org/2000/svg',
+                                'svg'
+                            );
+
+                        fixedSvg.setAttribute('viewBox', '0 0 80 120');
+
+                        fixedSvg.style.width = '100%';
+                        fixedSvg.style.height = '100%';
+                        fixedSvg.style.overflow = 'visible';
+
+
+                        // =====================================================
+                        // ④ Clone 已經倒下的天線
+                        // =====================================================
+                        const clonedAntenna =
+                            fallingWrapper.cloneNode(true);
+
+
+                        // 防止重複 ID
+                        const clonedGroup =
+                            clonedAntenna.querySelector('#ee-falling-group');
+
+                        const clonedTop =
+                            clonedAntenna.querySelector('#ee-antenna-top');
+
+                        const clonedBottom =
+                            clonedAntenna.querySelector('#ee-antenna-bottom');
+
+
+                        if (clonedGroup) {
+
+                            clonedGroup.id =
+                                'ee-fixed-falling-group';
+
+
+                            // =====================================================
+                            // 🌟 Clone 接手時先完全固定在第一次傾倒後的 90°
+                            // =====================================================
+
+                            clonedGroup.style.transition = 'none';
+
+                            clonedGroup.style.transformOrigin =
+                                `${ANCHOR_X}px ${ANCHOR_Y}px`;
+
+                            clonedGroup.style.transform =
+                                'rotate(90deg)';
+
+
+                            // =====================================================
+                            // 🌟 關鍵：
+                            // 保存這個 Group，之後第二次傾斜直接操作它
+                            // =====================================================
+
+                            fixedAntennaGroup = clonedGroup;
+                        }
+
+
+                        if (clonedTop) {
+                            clonedTop.id =
+                                'ee-fixed-antenna-top';
+                        }
+
+                        if (clonedBottom) {
+                            clonedBottom.id =
+                                'ee-fixed-antenna-bottom';
+                        }
+
+
+                        fixedSvg.appendChild(clonedAntenna);
+
+                        fixedContainer.appendChild(fixedSvg);
+
+                        envLayer.appendChild(fixedContainer);
+
+
+                        // =====================================================
+                        // ⑤ 強制瀏覽器先完成一次 layout
+                        // =====================================================
+                        void fixedContainer.getBoundingClientRect();
+
+
+                        // =====================================================
+                        // ⑥ 量 Clone 天線同一個 (65,228) 支點
+                        // =====================================================
+                        let clonedAnchorScreen = null;
+
+                        try {
+                            if (clonedGroup) {
+
+                                const cloneMatrix =
+                                    clonedGroup.getScreenCTM();
+
+                                if (cloneMatrix) {
+
+                                    const clonePoint =
+                                        fixedSvg.createSVGPoint();
+
+                                    clonePoint.x = ANCHOR_X;
+                                    clonePoint.y = ANCHOR_Y;
+
+                                    clonedAnchorScreen =
+                                        clonePoint.matrixTransform(cloneMatrix);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('讀取 Clone 天線支點失敗:', e);
+                        }
+
+
+                        // =====================================================
+                        // ⑦ 精準計算兩個支點差多少 px
+                        // =====================================================
+                        if (originalAnchorScreen && clonedAnchorScreen) {
+
+                            const correctionX =
+                                originalAnchorScreen.x -
+                                clonedAnchorScreen.x;
+
+                            const correctionY =
+                                originalAnchorScreen.y -
+                                clonedAnchorScreen.y;
+
+
+                            // 🌟 直接把 Clone 移動相同誤差
+                            fixedContainer.style.left =
+                                `${correctionX}px`;
+
+                            fixedContainer.style.top =
+                                `${correctionY}px`;
+
+
+                            // 強制立即套用，不能有 transition
+                            fixedContainer.style.transition = 'none';
+                        }
+
+
+                        // =====================================================
+                        // ⑧ 最後才隱藏玩家身上的原天線
+                        // =====================================================
+                        fallingWrapper.style.display = 'none';
+                    }
+                }
+            }
+
+            // 🎨 四個完美動畫幀
+            const walkFrames = [
+                { headY: '31', armL: 'M 40 56 L 24 68', armR: 'M 40 56 L 56 68', legL: 'M 40 75 L 26 95', legR: 'M 40 75 L 52 88 L 44 98' },
+                { headY: '30', armL: 'M 40 56 L 24 68', armR: 'M 40 56 L 56 49', legL: 'M 40 75 L 22 102', legR: 'M 40 75 Q 48 66 52 78 L 52 90' },
+                { headY: '31', armL: 'M 40 56 L 24 68', armR: 'M 40 56 L 56 68', legL: 'M 40 75 Q 26 86 24 102', legR: 'M 40 75 Q 56 86 56 102 L 62 102' },
+                { headY: '30', armL: 'M 40 60 L 20 52', armR: 'M 40 60 L 60 52', legL: 'M 40 75 L 40 89 L 26 95', legR: 'M 40 75 Q 56 82 56 102' }
+            ];
+
+            const sequence = [0, 1, 2, 3, 1, 2];
+            let currentSeqIdx = 0;
+            let timeAccumulator = 0;
+            let lastFrameTime = performance.now();
+            
+            const frameDurationMs = 150; 
+            const moveSpeed = 16; 
+            
+            function startUnsafeAntennaGravityFall() {
+
+                // 防止重複觸發
+                if (window._easterEggUnsafeFalling) return;
+
+                const metrics = getScene3StageMetrics();
+                if (!metrics) return;
+
+
+                // =====================================================
+                // 🌟 標記：現在允許主迴圈跑原本 PLA 重力
+                // =====================================================
+
+                window._easterEggUnsafeFalling = true;
+
+
+                // 玩家仍然不能控制
+                isPlayerControllable = false;
+                canAttack = false;
+
+                // 清除任何殘留方向鍵
+                clearMovementKeys();
+
+
+                // =====================================================
+                // 🌟 中斷任何帽子導通 / 單擺
+                // =====================================================
+
+                if (isPlaHatTethered) {
+                    forceClearPlaHatTether();
+                }
+
+                isPlaHatTethered = false;
+
+
+                // =====================================================
+                // 🌟 保留現在所在的實際高度
+                // 不要瞬移到地面
+                // =====================================================
+
+                const currentElevation =
+                    getTotalPlayerElevationPx();
+
+                playerWorldElevationPx =
+                    currentElevation;
+
+                playerJumpOffsetPx = 0;
+
+
+                // =====================================================
+                // 🌟 離開 PLA 平台
+                // =====================================================
+
+                isOnPlaTopPlatform = false;
+
+                plaTopPlatformJumpCameraLocked = false;
+
+                plaBallisticAirTimeSeconds = 0;
+
+
+                // =====================================================
+                // 🌟 啟用你原本的 PLA 拋體物理
+                // =====================================================
+
+                isPlaHatBallistic = true;
+
+                isPlayerJumping = true;
+
+
+                // 這次不是跳出去，所以 X 不要有速度
+                plaHatVelocityXPx = 0;
+
+                playerJumpHorizontalVelocity = 0;
+
+
+                // 🌟 初始垂直速度 = 0
+                // 下一幀就會被原本 gravity 1800 拉下去
+                plaHatVelocityUpPx = 0;
+
+                playerJumpVerticalVelocityPx = 0;
+
+
+                playerJumpLandingWorldX =
+                    worldX;
+
+
+                // =====================================================
+                // 🌟 切進 Scene3 原本的空中姿勢系統
+                // =====================================================
+
+                stickman.classList.add(
+                    'stand-still',
+                    'player-jumping'
+                );
+            }
+            function playUnsafeSecondAntennaTilt() {
+
+                // ✅ 安全長度，不做任何事情
+                if (isSafeAntennaLength) return;
+
+                // 防止播放兩次
+                if (secondTiltStarted) return;
+
+                if (
+                    !fixedAntennaGroup ||
+                    !fixedAntennaGroup.isConnected
+                ) {
+                    return;
+                }
+
+                secondTiltStarted = true;
+
+
+                // =====================================================
+                // 第一次現在停在 90°
+                // =====================================================
+
+                fixedAntennaGroup.style.transition = 'none';
+
+                fixedAntennaGroup.style.transformOrigin =
+                    `${ANCHOR_X}px ${ANCHOR_Y}px`;
+
+                fixedAntennaGroup.style.transform =
+                    'rotate(90deg)';
+
+
+                // 強制瀏覽器確定現在真的在 90°
+                void fixedAntennaGroup.getBoundingClientRect();
+
+
+                // =====================================================
+                // 🌟 第二次順時針傾斜
+                // 90° → 180°
+                // =====================================================
+
+                const SECOND_TILT_DURATION_MS = 550;
+
+                fixedAntennaGroup.style.transition =
+                    `transform ${SECOND_TILT_DURATION_MS}ms cubic-bezier(0.55, 0.085, 0.68, 0.53)`;
+
+
+                requestAnimationFrame(() => {
+
+                    requestAnimationFrame(() => {
+
+                        // =============================================
+                        // 🌟 天線開始第二次傾倒
+                        // 90° → 180°
+                        // =============================================
+
+                        fixedAntennaGroup.style.transform =
+                            'rotate(180deg)';
+
+
+                        // =============================================
+                        // 🌟 動畫播放到一半
+                        // → 玩家失去支撐
+                        // → 啟用原本重力
+                        // =============================================
+
+                        setTimeout(() => {
+
+                            startUnsafeAntennaGravityFall();
+
+                        }, SECOND_TILT_DURATION_MS / 2);
+
+                    });
+
+                });
+            }
+
+            function epicCutsceneLoop(now) {
+                if (!window._isEasterEggActive || !document.getElementById('stickman-s3')) return;
+
+                let deltaTime = (now - lastFrameTime) / 1000;
+                if (deltaTime > 0.1) deltaTime = 0.016; 
+                lastFrameTime = now;
+
+                // 🚀 1. 推進與動態煞車判定
+                const step = moveSpeed * deltaTime;
+                if (worldX + step >= targetWorldX) {
+
+                    worldX = targetWorldX;
+
+                    cameraX = Math.max(0, worldX - 20);
+
+                    stickman.style.left =
+                        `${worldX - cameraX}%`;
+
+                    environmentLayer.style.transform =
+                        `translate(${-cameraX}%, ${verticalCameraOffsetPx || 0}px)`;
+
+
+                    // ======================================================
+                    // 🛑 抵達目標：恢復「彩蛋 Q 前」的原本姿勢
+                    // ======================================================
+
+                    // ① 頭部恢復原始位置
+                    if (head) {
+                        head.setAttribute('cx', '40');
+                        head.setAttribute('cy', '32');
+                    }
+
+                    // ② 身體恢復原始位置
+                    if (torso) {
+                        torso.setAttribute('x1', '40');
+                        torso.setAttribute('y1', '48');
+                        torso.setAttribute('x2', '40');
+                        torso.setAttribute('y2', '75');
+                    }
+
+                    // ③ 帽子恢復彩蛋前的原始位置
+                    if (hat) {
+                        hat.setAttribute(
+                            'transform',
+                            'translate(17, -15) scale(0.35)'
+                        );
+                    }
+
+
+                    // ======================================================
+                    // 🌟 最重要：直接使用你原本已經寫好的 Q 姿勢復原函式
+                    // ======================================================
+
+                    toggleEasterEggQPose(false);
+                    
+                    // =====================================================
+                    // 🌟 新增：只有不安全長度才第二次傾斜
+                    // =====================================================
+                    if (!isSafeAntennaLength) {
+
+                        playUnsafeSecondAntennaTilt();
+                    }
+
+                    // ======================================================
+                    // 🌟 保持彩蛋狀態，不解除鎖定
+                    // ======================================================
+
+                    // 彩蛋仍然進行中
+                    window._isEasterEggActive = true;
+
+                    // Q 已經放開
+                    window._easterEggQHeld = false;
+
+                    // 保持 Frozen，不能再次 Q
+                    window._easterEggFrozen = true;
+
+
+                    // ======================================================
+                    // 🌟 保持玩家鎖定
+                    // ======================================================
+
+                    isPlayerControllable = false;
+                    canAttack = false;
+
+
+                    // 保持原本自然站姿
+                    stickman.classList.remove(
+                        'anim-attack',
+                        'player-jumping',
+                        'player-tumble',
+                        'boss-wind-pushed',
+                        'boss-wind-landed'
+                    );
+
+                    stickman.classList.add('stand-still');
+
+
+                    // 🌟 不要在這裡設定 _isEasterEggActive = false
+                    // 🌟 不要在這裡 isPlayerControllable = true
+                    // 🌟 不要在這裡 canAttack = true
+
+                    return;
+                }
+
+                worldX += step;
+
+                // 🎞️ 2. 處理動畫幀切換
+                timeAccumulator += deltaTime * 1000;
+                if (timeAccumulator >= frameDurationMs) {
+                    timeAccumulator -= frameDurationMs;
+                    
+                    const frameIdx = sequence[currentSeqIdx];
+                    const f = walkFrames[frameIdx];
+
+                    if (head) head.setAttribute('cy', f.headY);
+                    if (armLPath) { armLPath.setAttribute('d', f.armL); armLPath.setAttribute('fill', 'none'); }
+                    if (armRPath) { armRPath.setAttribute('d', f.armR); armRPath.setAttribute('fill', 'none'); }
+                    if (legLPath) { legLPath.setAttribute('d', f.legL); legLPath.setAttribute('fill', 'none'); }
+                    if (legRPath) { legRPath.setAttribute('d', f.legR); legRPath.setAttribute('fill', 'none'); }
+
+                    currentSeqIdx = (currentSeqIdx + 1) % sequence.length;
+                }
+
+                // 🎥 3. 更新攝影機
+                cameraX = Math.max(0, worldX - 20); 
+                stickman.style.left = `${worldX - cameraX}%`; 
+                environmentLayer.style.transform = `translate(${-cameraX}%, ${verticalCameraOffsetPx || 0}px)`;
+
+                requestAnimationFrame(epicCutsceneLoop);
+            }
+
+            // 🎬 初始化：載入第一幀
+            const startF = walkFrames[sequence[0]];
+            if (head) head.setAttribute('cy', startF.headY);
+            if (armLPath) { armLPath.setAttribute('d', startF.armL); armLPath.setAttribute('fill', 'none'); }
+            if (armRPath) { armRPath.setAttribute('d', startF.armR); armRPath.setAttribute('fill', 'none'); }
+            if (legLPath) { legLPath.setAttribute('d', startF.legL); legLPath.setAttribute('fill', 'none'); }
+            if (legRPath) { legRPath.setAttribute('d', startF.legR); legRPath.setAttribute('fill', 'none'); }
+            currentSeqIdx = 1; 
+            
+            requestAnimationFrame(epicCutsceneLoop);
+            
+        }, 800);
     }
 
     function handleKeyDown(e) {
@@ -6286,6 +7163,9 @@ export function initScene3(playerState, switchScene) {
                 window._easterEggQHeld = false; // 停止天線繼續生長
                 window._easterEggFrozen = true; // 標記為永久凍結 (不再恢復操作)
                 
+                // 🌟 新增：不安全天線失敗後的墜落狀態
+                window._easterEggUnsafeFalling = false;
+                
                 // 啟動踢倒動畫序列！
                 playEasterEggKickSequence();
             }
@@ -6326,35 +7206,37 @@ export function initScene3(playerState, switchScene) {
         }
 
         // ==============================================================
-        // 🌟 FIX：彩蛋天線動畫
+        // 🌟 FIX：彩蛋天線動畫 (上方正常蓄力、下方極速插地)
         // ==============================================================
         if (window._isEasterEggActive && window._easterEggQHeld) {
             
+            // 恢復基礎的生長速度 (250) 作為時間基準
             window._easterEggAntennaExtension += 250 * frameDeltaSeconds;
             
             const topAntenna = document.getElementById('ee-antenna-top');
             const bottomAntenna = document.getElementById('ee-antenna-bottom');
             
             if (topAntenna && bottomAntenna) {
-                const ext = window._easterEggAntennaExtension;
+                // 上方天線使用正常速度
+                const topExt = window._easterEggAntennaExtension;
+                // 下方天線給予 40 倍速 (250 * 40 = 10000) 的極速生長
+                const bottomExt = window._easterEggAntennaExtension * 40;
                 
-                // 1. 上方天線：毫無極限往上飆升，長度與下方完全脫鉤
-                topAntenna.setAttribute('y2', String(15 - ext));
+                // 1. 上方天線：維持原本的節奏，慢慢往上飆升
+                topAntenna.setAttribute('y2', String(15 - topExt));
                 
-                // 2. 下方天線：
-                if (ext <= 20) {
-                    const p = ext / 20; 
+                // 2. 下方天線：極速伸長
+                if (bottomExt <= 20) {
+                    const p = bottomExt / 20; 
                     const endX = 73 - 8 * p; 
                     bottomAntenna.setAttribute('d', `M 65 90 L 65 105 Q 65 112 ${endX} 112`);
                 } else {
-                    const downExt = ext - 20;
+                    const downExt = bottomExt - 20;
                     
-                    // 💡 【修改這裡來調整下方天線的極限長度！】
-                    // 預設是 240 (剛好碰到原本腳底的地面)。
-                    // 數值越「小」，下方的線就越「短」 (例如改為 180 或 150)。
+                    // 天線伸長的最底極限
                     const bottomMaxY = 228; 
                     
-                    // 取目前生長量與極限值的最小值，確保下方線條不會穿透到底部太多
+                    // 因為 bottomExt 增加得極快，這裡按下去瞬間就會直接到底部 228
                     const currentY = Math.min(bottomMaxY, 112 + downExt); 
                     bottomAntenna.setAttribute('d', `M 65 90 L 65 ${currentY}`);
                 }
@@ -6365,7 +7247,12 @@ export function initScene3(playerState, switchScene) {
         let timestamp = realTimestamp - totalPausedTime;
 
         // 原本的提早 return 在這裡，現在不會阻擋到上方的天線動畫了！
-        if (!isPlayerControllable && !playerDead) { requestAnimationFrame(gameLoopS3); return; }
+        // 🌟 一般鎖定仍停止遊戲物理
+        // 但如果是不安全天線造成的墜落，必須讓原本重力繼續運算
+        if (!isPlayerControllable && !playerDead && !window._easterEggUnsafeFalling) {
+            requestAnimationFrame(gameLoopS3);
+            return;
+        }
         if (playerDead) return;
         
         if (isFirstFrame) {
