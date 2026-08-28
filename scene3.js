@@ -39,6 +39,7 @@ export function initScene3(playerState, switchScene) {
     let headItem = null;      // 頭部 (專門戴三角形 'hat')
     let backpackGrid = new Array(17).fill(null); 
     let nearbyDropItem = null;
+    let preEasterEquipmentSnapshot = null;
 
     // 🌟 輔助函式：根據物品類型產生對應的 SVG 標籤
     function getItemSVG(itemType) {
@@ -2312,6 +2313,410 @@ export function initScene3(playerState, switchScene) {
     window._easterEggAnimationDone = false; // 紀錄出場動畫是否已播完
     window._easterEggQHeld = false;         // 紀錄 Q 鍵是否正被按住
 
+    function savePreEasterEquipmentState() {
+        preEasterEquipmentSnapshot = {
+
+            // Hammer 本身是否裝備在武器手
+            isHammerEquipped: isHammerEquipped,
+
+            // Hammer 所在欄位
+            hammerSlot: window._hammerSlot
+                ? { ...window._hammerSlot }
+                : { type: 'handR', x: 555, y: 415 },
+
+            /*
+                Hammer 裝備中時，
+                hand1Item 本來就應該視為空。
+                避免把舊的 'hammer' 字串存回去。
+            */
+            hand1Item:
+                isHammerEquipped
+                    ? null
+                    : hand1Item,
+
+            // 左手三角形
+            hand2Item: hand2Item,
+
+            // 頭部裝備
+            headItem: headItem,
+
+            // 整個 17 格背包完整複製
+            backpackGrid:
+                backpackGrid.map(slot => {
+
+                    if (!slot) return null;
+
+                    return {
+                        type: slot.type,
+                        count: slot.count || 1
+                    };
+                })
+        };
+    }
+
+    function restorePreEasterEquipmentState() {
+
+        if (!preEasterEquipmentSnapshot) {
+
+            // 理論上不應進來，但做保底
+            isHammerEquipped = true;
+
+            window._hammerSlot = {
+                type: 'handR',
+                x: 555,
+                y: 415
+            };
+
+            hand1Item = null;
+            hand2Item = 'body';
+
+        } else {
+
+            // =====================================================
+            // ① 恢復資料
+            // =====================================================
+
+            isHammerEquipped =
+                preEasterEquipmentSnapshot.isHammerEquipped;
+
+            window._hammerSlot = {
+                ...preEasterEquipmentSnapshot.hammerSlot
+            };
+
+            hand1Item =
+                preEasterEquipmentSnapshot.hand1Item;
+
+            hand2Item =
+                preEasterEquipmentSnapshot.hand2Item;
+
+            headItem =
+                preEasterEquipmentSnapshot.headItem;
+
+            backpackGrid =
+                preEasterEquipmentSnapshot.backpackGrid.map(
+                    slot => {
+
+                        if (!slot) return null;
+
+                        return {
+                            type: slot.type,
+                            count: slot.count || 1
+                        };
+                    }
+                );
+        }
+
+
+        // =====================================================
+        // ② 失敗落地後已經不是彩蛋裝備模式
+        // =====================================================
+
+        window._isEasterEggActive = false;
+        window._easterEggQHeld = false;
+
+
+        // =====================================================
+        // ③ Hammer 強制恢復正常武器欄
+        //
+        // 因為觸發彩蛋的條件本來就是
+        // isHammerEquipped === true
+        // =====================================================
+
+        isHammerEquipped = true;
+
+        window._hammerSlot = {
+            type: 'handR',
+            x: 555,
+            y: 415
+        };
+
+        hand1Item = null;
+
+
+        // =====================================================
+        // ④ 把被特殊掉落動畫搬過 DOM 的物件放回原父層
+        // =====================================================
+
+        const armL =
+            document.getElementById('armL-s3');
+
+        const armR =
+            document.getElementById('armR-s3');
+
+        const stickmanBody =
+            document.getElementById('stickman-body-s3');
+
+        const hand1Display =
+            document.getElementById('held-item-hand1');
+
+        const hand2Display =
+            document.getElementById('held-item-hand2');
+
+        const headDisplay =
+            document.getElementById('held-item-head');
+
+
+        /*
+        你前面的特殊墜落姿勢曾把 hand1Display
+        搬到另一隻手，因此這裡一定要搬回原來 DOM。
+        */
+        if (
+            hand1Display &&
+            armL &&
+            hand1Display.parentNode !== armL
+        ) {
+            armL.appendChild(hand1Display);
+        }
+
+        if (
+            hand2Display &&
+            armR &&
+            hand2Display.parentNode !== armR
+        ) {
+            armR.appendChild(hand2Display);
+        }
+
+        if (
+            headDisplay &&
+            stickmanBody &&
+            headDisplay.parentNode !== stickmanBody
+        ) {
+            stickmanBody.appendChild(headDisplay);
+        }
+
+
+        // =====================================================
+        // ⑤ 恢復三個裝備原本的正常定位
+        // =====================================================
+
+        if (hand1Display) {
+
+            hand1Display.setAttribute(
+                'transform',
+                'translate(-8, 32) scale(0.35) rotate(-20, 65, 90)'
+            );
+
+            hand1Display.style.transition = '';
+            hand1Display.style.filter =
+                'drop-shadow(0 0 5px rgba(255,255,255,0.8))';
+        }
+
+        if (hand2Display) {
+
+            hand2Display.setAttribute(
+                'transform',
+                'translate(6, 52) scale(0.35) rotate(-35, 65, 90)'
+            );
+
+            hand2Display.style.transition = '';
+            hand2Display.style.filter =
+                'drop-shadow(0 0 5px rgba(255,255,255,0.8))';
+        }
+
+        if (headDisplay) {
+
+            headDisplay.setAttribute(
+                'transform',
+                'translate(17, -15) scale(0.35)'
+            );
+
+            headDisplay.style.transition = '';
+        }
+
+
+        // =====================================================
+        // ⑥ 清除 Hammer 彩蛋消失動畫留下的 inline 樣式
+        // =====================================================
+
+        const hammerVisual =
+            document.getElementById('held-hammer-s3');
+
+        if (hammerVisual) {
+
+            hammerVisual.style.transition = '';
+            hammerVisual.style.filter = '';
+            hammerVisual.style.opacity = '1';
+        }
+
+
+        // =====================================================
+        // ⑦ 最後統一讓原本裝備系統重新渲染
+        // =====================================================
+
+        updateMainStickmanEquipment();
+    }
+
+    // =====================================================
+    // 🌟 彩蛋挑戰失敗後完整重置
+    // 玩家已經掉到地板、看不到上方時才呼叫
+    // =====================================================
+
+    function resetFailedEasterEggChallenge() {
+
+        // =====================================================
+        // ① 重新開放彩蛋觸發
+        // =====================================================
+
+        window._easterEggTriggered = false;
+
+        window._isEasterEggActive = false;
+
+        window._easterEggAnimationDone = false;
+
+        window._easterEggQHeld = false;
+
+        window._easterEggFrozen = false;
+
+        window._easterEggUnsafeFalling = false;
+
+        window._easterEggAntennaExtension = 0;
+
+
+        // =====================================================
+        // ② 清除上一輪天線橋樑
+        // =====================================================
+
+        window._easterEggBridge = null;
+
+
+        // =====================================================
+        // ③ 刪除「固定在世界裡」的倒下天線
+        //
+        // 用 querySelectorAll 是為了防止之後重複挑戰時
+        // 萬一留下多個同 ID 元素，也全部清掉
+        // =====================================================
+
+        document
+            .querySelectorAll('[id="ee-fixed-antenna-container"]')
+            .forEach(el => el.remove());
+
+
+        // =====================================================
+        // ④ 清掉玩家身上被剝離出去的舊天線
+        //
+        // 第一次傾倒時 ee-falling-group 已經被從
+        // held-item-hand1 搬到一個匿名 wrapper 裡。
+        //
+        // 如果不刪掉，下一輪會出現重複
+        // id="ee-falling-group"
+        // =====================================================
+
+        const hand1Display =
+            document.getElementById('held-item-hand1');
+
+        document
+            .querySelectorAll('[id="ee-falling-group"]')
+            .forEach(group => {
+
+                const parent =
+                    group.parentNode;
+
+                // 如果已經被搬到匿名 wrapper
+                // 直接連 wrapper 一起刪掉
+                if (
+                    parent &&
+                    parent !== hand1Display
+                ) {
+
+                    parent.remove();
+
+                } else {
+
+                    // 還在 hand1Display 裡就只刪 group
+                    group.remove();
+                }
+            });
+
+
+        // =====================================================
+        // ⑤ 恢復 hand1Display
+        //
+        // 上一輪的傾倒流程曾經可能留下 display:none
+        // 或舊的天線 SVG
+        // =====================================================
+
+        if (hand1Display) {
+
+            hand1Display.innerHTML = '';
+
+            hand1Display.style.display = '';
+
+            hand1Display.style.removeProperty(
+                'transition'
+            );
+
+            hand1Display.style.removeProperty(
+                'filter'
+            );
+        }
+
+
+        // =====================================================
+        // ⑥ PLA 上層平台恢復「尚未解鎖」
+        // =====================================================
+
+        plaTopPlatformSolid = false;
+
+        isOnPlaTopPlatform = false;
+
+        plaTopPlatformElevationPx = 0;
+
+        plaTopPlatformPreviousFootWorldY = null;
+
+        plaTopPlatformJumpCameraLocked = false;
+
+        plaTopPlatformJumpCameraOffsetPx = 0;
+
+
+        // =====================================================
+        // ⑦ 移除隱藏碰撞線的 solid 標記
+        // =====================================================
+
+        const plaTopLine =
+            document.getElementById(
+                'pla-top-platform-line-s3'
+            );
+
+        if (plaTopLine) {
+
+            plaTopLine.removeAttribute(
+                'data-solid'
+            );
+        }
+
+
+        // =====================================================
+        // ⑧ PLA 白線取消發光
+        // 回到第一次還沒跳上去的狀態
+        // =====================================================
+
+        document
+            .querySelectorAll(
+                '.pla-top-platform-visible'
+            )
+            .forEach(seg => {
+
+                seg.style.filter = '';
+            });
+
+
+        // =====================================================
+        // ⑨ Q 姿勢完全恢復
+        // =====================================================
+
+        toggleEasterEggQPose(false);
+
+
+        // =====================================================
+        // ⑩ 下一輪重新保存新的裝備快照
+        //
+        // 玩家落地後如果有重新整理背包，
+        // 下一次彩蛋應該保存「當下」的狀態
+        // =====================================================
+
+        preEasterEquipmentSnapshot = null;
+    }
+
     function updateMainStickmanEquipment() {
         const heldHammer = document.getElementById('held-hammer-s3');
         const held1 = document.getElementById('held-1-s3');
@@ -3132,38 +3537,379 @@ export function initScene3(playerState, switchScene) {
         }
     }
 
-    function resetPlayerJumpPose() {
-        const head = document.getElementById('stickman-head-s3');
-        const torso = document.getElementById('stickman-torso-s3');
-        const armLPath = document.getElementById('armL-path-s3');
-        const armRPath = document.getElementById('armR-path-s3');
-        const legLPath = document.getElementById('legL-path-s3');
-        const legRPath = document.getElementById('legR-path-s3');
+    function applyUnsafeAntennaFallPose() {
 
-        if (head) head.setAttribute('cy', '32');
+        const head =
+            document.getElementById('stickman-head-s3');
+
+        const torso =
+            document.getElementById('stickman-torso-s3');
+
+        const armLBase =
+            document.getElementById('armL-base-s3');
+
+        const armRBase =
+            document.getElementById('armR-base-s3');
+
+        const legLBase =
+            document.getElementById('legL-base-s3');
+
+        const legRBase =
+            document.getElementById('legR-base-s3');
+
+        const armLPath =
+            document.getElementById('armL-path-s3');
+
+        const armRPath =
+            document.getElementById('armR-path-s3');
+
+        const legLPath =
+            document.getElementById('legL-path-s3');
+
+        const legRPath =
+            document.getElementById('legR-path-s3');
+
+        if (
+            !head ||
+            !torso ||
+            !armLPath ||
+            !armRPath ||
+            !legLPath ||
+            !legRPath
+        ) {
+            return;
+        }
+
+
+        // =====================================================
+        // 🌟 關閉原本直線手腳
+        // =====================================================
+
+        if (armLBase) armLBase.style.display = 'none';
+        if (armRBase) armRBase.style.display = 'none';
+        if (legLBase) legLBase.style.display = 'none';
+        if (legRBase) legRBase.style.display = 'none';
+
+
+        // =====================================================
+        // 🌟 使用 Path 畫出你圖片中的長曲線手腳
+        // =====================================================
+
+        armLPath.style.display = 'inline';
+        armRPath.style.display = 'inline';
+        legLPath.style.display = 'inline';
+        legRPath.style.display = 'inline';
+
+
+        // 頭
+        head.setAttribute('cy', '32');
+
+        // 身體
+        torso.setAttribute('y1', '48');
+        torso.setAttribute('y2', '82');
+
+
+        // =====================================================
+        // 🌟 手：從肩膀向左右上方彎
+        //
+        // 效果接近：
+        //
+        //   \           /
+        //    \_________/
+        //         |
+        // =====================================================
+
+        armLPath.setAttribute(
+            'd',
+            'M 40 62 C 30 62, 21 58, 15 51 C 10 45, 7 38, 7 31'
+        );
+
+        armRPath.setAttribute(
+            'd',
+            'M 40 62 C 51 62, 60 58, 66 50 C 71 43, 73 35, 73 27'
+        );
+
+
+        // =====================================================
+        // 🌟 腳：從胯下開始形成長的下彎曲線
+        //
+        // 不再是短短一小截
+        // =====================================================
+
+        legLPath.setAttribute(
+            'd',
+            'M 40 82 C 45 84, 48 88, 47 93 C 46 98, 41 102, 36 105'
+        );
+
+        legRPath.setAttribute(
+            'd',
+            'M 40 82 C 49 83, 55 87, 57 93 C 59 99, 57 104, 52 108'
+        );
+
+
+
+        // =====================================================
+        // 🌟 非常重要：
+        // 原本 player-jumping CSS 還會旋轉手腳，
+        // 這個特殊姿勢不要再旋轉
+        // =====================================================
+
+        stickman.style.setProperty(
+            '--jump-arm-l-rotation',
+            '0deg'
+        );
+
+        stickman.style.setProperty(
+            '--jump-arm-r-rotation',
+            '0deg'
+        );
+
+        stickman.style.setProperty(
+            '--jump-leg-l-rotation',
+            '0deg'
+        );
+
+        stickman.style.setProperty(
+            '--jump-leg-r-rotation',
+            '0deg'
+        );
+
+        // =====================================================
+        // 🌟 三角形拿到右上手
+        // =====================================================
+
+        const hand1Display =
+            document.getElementById('held-item-hand1');
+
+        const armRGroup =
+            document.getElementById('armR-s3');
+
+        if (hand1Display && armRGroup) {
+
+            if (hand1Display.parentNode !== armRGroup) {
+                armRGroup.appendChild(hand1Display);
+            }
+
+            hand1Display.style.opacity = '1';
+
+            hand1Display.setAttribute(
+                'transform',
+                'translate(50, -10) scale(0.35) rotate(15, 65, 90)'
+            );
+        }
+    }
+    function resetPlayerJumpPose() {
+
+        const head =
+            document.getElementById('stickman-head-s3');
+
+        const torso =
+            document.getElementById('stickman-torso-s3');
+
+
+        const armLBase =
+            document.getElementById('armL-base-s3');
+
+        const armRBase =
+            document.getElementById('armR-base-s3');
+
+        const legLBase =
+            document.getElementById('legL-base-s3');
+
+        const legRBase =
+            document.getElementById('legR-base-s3');
+
+
+        const armLPath =
+            document.getElementById('armL-path-s3');
+
+        const armRPath =
+            document.getElementById('armR-path-s3');
+
+        const legLPath =
+            document.getElementById('legL-path-s3');
+
+        const legRPath =
+            document.getElementById('legR-path-s3');
+
+
+        // =====================================================
+        // 🌟 頭與身體恢復
+        // =====================================================
+
+        if (head) {
+            head.setAttribute('cx', '40');
+            head.setAttribute('cy', '32');
+        }
+
         if (torso) {
+
+            torso.setAttribute('x1', '40');
             torso.setAttribute('y1', '48');
+
+            torso.setAttribute('x2', '40');
             torso.setAttribute('y2', '75');
         }
-        if (armLPath) armLPath.setAttribute('d', 'M 40 56 L 40 85');
-        if (armRPath) armRPath.setAttribute('d', 'M 40 56 L 40 85');
-        if (legLPath) legLPath.setAttribute('d', 'M 40 75 L 40 105');
-        if (legRPath) legRPath.setAttribute('d', 'M 40 75 L 40 105');
 
-        const hammerShaft = document.getElementById('held-hammer-shaft-s3');
-        if (hammerShaft) hammerShaft.setAttribute('y1', '85');
 
-        const headDisplay = document.getElementById('held-item-head');
-        if (headDisplay) headDisplay.setAttribute('transform', 'translate(17, -15) scale(0.35)');
+        // =====================================================
+        // 🌟 四肢 Path 幾何恢復
+        // =====================================================
 
-        stickman.style.removeProperty('--jump-shoulder-y');
-        stickman.style.removeProperty('--jump-hand-y');
-        stickman.style.removeProperty('--jump-hip-y');
-        stickman.style.removeProperty('--jump-arm-l-rotation');
-        stickman.style.removeProperty('--jump-arm-r-rotation');
-        stickman.style.removeProperty('--jump-leg-l-rotation');
-        stickman.style.removeProperty('--jump-leg-r-rotation');
-        stickman.style.removeProperty('--jump-hammer-rotation');
+        if (armLPath) {
+            armLPath.setAttribute(
+                'd',
+                'M 40 56 L 40 85'
+            );
+        }
+
+        if (armRPath) {
+            armRPath.setAttribute(
+                'd',
+                'M 40 56 L 40 85'
+            );
+        }
+
+        if (legLPath) {
+            legLPath.setAttribute(
+                'd',
+                'M 40 75 L 40 105'
+            );
+        }
+
+        if (legRPath) {
+            legRPath.setAttribute(
+                'd',
+                'M 40 75 L 40 105'
+            );
+        }
+
+
+        // =====================================================
+        // 🌟 最重要：
+        // 清除所有特殊動畫寫進去的 inline display
+        //
+        // 之後交給原本 CSS 控制：
+        //
+        // 一般狀態 → base line 顯示 / path 隱藏
+        // 跳躍狀態 → base line 隱藏 / path 顯示
+        // =====================================================
+
+        [
+            armLBase,
+            armRBase,
+            legLBase,
+            legRBase,
+            armLPath,
+            armRPath,
+            legLPath,
+            legRPath
+        ].forEach(el => {
+
+            if (!el) return;
+
+            el.style.removeProperty(
+                'display'
+            );
+        });
+
+
+        // =====================================================
+        // 🌟 四肢群組也清除彩蛋留下的 inline transform
+        // =====================================================
+
+        [
+            'armL-s3',
+            'armR-s3',
+            'legL-s3',
+            'legR-s3'
+        ].forEach(id => {
+
+            const el =
+                document.getElementById(id);
+
+            if (!el) return;
+
+            el.style.removeProperty(
+                'animation'
+            );
+
+            el.style.removeProperty(
+                'transform'
+            );
+        });
+
+
+        // =====================================================
+        // Hammer
+        // =====================================================
+
+        const hammerShaft =
+            document.getElementById(
+                'held-hammer-shaft-s3'
+            );
+
+        if (hammerShaft) {
+            hammerShaft.setAttribute(
+                'y1',
+                '85'
+            );
+        }
+
+
+        // =====================================================
+        // 頭部裝備
+        // =====================================================
+
+        const headDisplay =
+            document.getElementById(
+                'held-item-head'
+            );
+
+        if (headDisplay) {
+
+            headDisplay.setAttribute(
+                'transform',
+                'translate(17, -15) scale(0.35)'
+            );
+        }
+
+
+        // =====================================================
+        // 跳躍 CSS 變數全部清空
+        // =====================================================
+
+        stickman.style.removeProperty(
+            '--jump-shoulder-y'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-hand-y'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-hip-y'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-arm-l-rotation'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-arm-r-rotation'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-leg-l-rotation'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-leg-r-rotation'
+        );
+
+        stickman.style.removeProperty(
+            '--jump-hammer-rotation'
+        );
     }
 
     function finishPlayerVerticalJump(lastPose) {
@@ -3706,6 +4452,9 @@ export function initScene3(playerState, switchScene) {
 
     function updatePlaTopPlatformPhysics() {
         if (!bossTimelineCompleted) return;
+        if (window._easterEggUnsafeFalling) {
+            return;
+        }
         const metrics = getScene3StageMetrics();
         const geometry = getPlaTopPlatformWorldGeometry(metrics);
         if (!metrics || !geometry) return;
@@ -4067,6 +4816,87 @@ export function initScene3(playerState, switchScene) {
     }
 
     function landPlaHatTraversal() {
+        if (window._easterEggUnsafeFalling) {
+
+        // =====================================================
+        // 🌟 物理落地
+        // =====================================================
+
+        window._easterEggUnsafeFalling = false;
+
+        isPlaHatTethered = false;
+        isPlaHatBallistic = false;
+
+        plaBallisticAirTimeSeconds = 0;
+
+        plaTopPlatformJumpCameraLocked = false;
+
+        plaHatAnchor = null;
+
+        playerWorldElevationPx = 0;
+
+        playerJumpOffsetPx = 0;
+
+        playerJumpVerticalVelocityPx = 0;
+
+        plaHatVelocityXPx = 0;
+
+        plaHatVelocityUpPx = 0;
+
+        playerJumpHorizontalVelocity = 0;
+
+        playerJumpLandingWorldX =
+            Math.max(5, worldX);
+
+
+        // =====================================================
+        // 🌟 火柴人恢復普通站姿
+        // =====================================================
+
+        resetPlayerJumpPose();
+
+        stickman.classList.remove(
+            'player-jumping'
+        );
+
+        stickman.classList.add(
+            'stand-still'
+        );
+
+
+        // =====================================================
+        // 🌟 已經真正落地
+        // =====================================================
+
+        isPlayerJumping = false;
+
+        isPlayerControllable = true;
+
+        canAttack = true;
+
+
+        // =====================================================
+        // 🌟 先恢復彩蛋前裝備
+        //
+        // Hammer → 右手
+        // 三角形 → 左手
+        // 背包 → 原本資料
+        // =====================================================
+
+        restorePreEasterEquipmentState();
+
+
+        // =====================================================
+        // 🌟 再把整個失敗關卡重置
+        // =====================================================
+
+        resetFailedEasterEggChallenge();
+
+
+        hidePlaHatTetherVisual();
+
+        return;
+        }
         const lastPose = plaHatCurrentPose || PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1];
         isPlaHatTethered = false;
         isPlaHatBallistic = false;
@@ -4173,11 +5003,27 @@ export function initScene3(playerState, switchScene) {
         }
 
         playerWorldElevationPx = Math.max(0, playerWorldElevationPx);
-        const flightProgress = playerJumpClamp01(
-            (PLA_HAT_LAUNCH_UP_SPEED - plaHatVelocityUpPx) / (PLA_HAT_LAUNCH_UP_SPEED * 2)
-        );
-        plaHatCurrentPose = getPlayerJumpSequencePose(flightProgress);
-        applyPlayerJumpPose(plaHatCurrentPose);
+        // =====================================================
+        // 🌟 不安全天線墜落使用專屬姿勢
+        // =====================================================
+
+        if (window._easterEggUnsafeFalling) {
+
+            applyUnsafeAntennaFallPose();
+
+        } else {
+
+            // 原本正常 C 跳躍 / 帽子拋體動作
+            const flightProgress = playerJumpClamp01(
+                (PLA_HAT_LAUNCH_UP_SPEED - plaHatVelocityUpPx) /
+                (PLA_HAT_LAUNCH_UP_SPEED * 2)
+            );
+
+            plaHatCurrentPose =
+                getPlayerJumpSequencePose(flightProgress);
+
+            applyPlayerJumpPose(plaHatCurrentPose);
+        }
     }
 
     function updateScene3VerticalCamera(deltaSeconds) {
@@ -6123,17 +6969,31 @@ export function initScene3(playerState, switchScene) {
                 );
             }
         } else {
-            if (held1) held1.style.display = '';
-            if (held0) held0.style.display = '';
 
-            if (armLBase) armLBase.style.display = '';
-            if (armLPath) armLPath.style.display = 'none';
-            if (armRBase) armRBase.style.display = '';
-            if (armRPath) armRPath.style.display = 'none';
-            if (legLBase) legLBase.style.display = '';
-            if (legLPath) legLPath.style.display = 'none';
-            if (legRBase) legRBase.style.display = '';
-            if (legRPath) legRPath.style.display = 'none';
+            if (held1) held1.style.removeProperty('display');
+            if (held0) held0.style.removeProperty('display');
+
+
+            // =====================================================
+            // 🌟 重要：
+            // 不要寫死 display:none
+            // 把 inline display 完全移除
+            //
+            // 站立時 → 原本 CSS 自己隱藏 Path
+            // 跳躍時 → player-jumping CSS 自己顯示 Path
+            // =====================================================
+
+            if (armLBase) armLBase.style.removeProperty('display');
+            if (armLPath) armLPath.style.removeProperty('display');
+
+            if (armRBase) armRBase.style.removeProperty('display');
+            if (armRPath) armRPath.style.removeProperty('display');
+
+            if (legLBase) legLBase.style.removeProperty('display');
+            if (legLPath) legLPath.style.removeProperty('display');
+
+            if (legRBase) legRBase.style.removeProperty('display');
+            if (legRPath) legRPath.style.removeProperty('display');
 
             limbs.forEach(el => {
                 if (el) { 
@@ -6383,16 +7243,29 @@ export function initScene3(playerState, switchScene) {
                     targetWorldX =
                         (targetPx / metrics.width) * 100;
 
-                    // 🌟 2. 註冊實體物理橋樑 (讓玩家過場後可以在上面走！)
-                    window._easterEggBridge = {
-                        startX: playerCenterX_Px,
-                        endX: antennaTipPx
-                    };
+                    // =====================================================
+                    // 🌟 只有「安全長度」才能建立實體天線橋樑
+                    // 不安全長度不能有橋，不然角色會被重新接住
+                    // =====================================================
+
+                    if (isSafeAntennaLength) {
+
+                        window._easterEggBridge = {
+                            startX: playerCenterX_Px,
+                            endX: antennaTipPx
+                        };
+
+                    } else {
+
+                        // ❌ 太短 / 太長
+                        // 這一次天線失敗，不能產生可站立橋樑
+                        window._easterEggBridge = null;
+                    }
 
                     if (!window._bridgePhysicsActive) {
                         window._bridgePhysicsActive = true;
                         function bridgePhysicsLoop() {
-                            if (window._easterEggBridge && !window._isEasterEggActive) {
+                            if (window._easterEggBridge && !window._isEasterEggActive && !window._easterEggUnsafeFalling) {
                                 const m = getScene3StageMetrics();
                                 if (m) {
                                     const px = worldX * m.width / 100;
@@ -6637,10 +7510,10 @@ export function initScene3(playerState, switchScene) {
             
             const frameDurationMs = 150; 
             const moveSpeed = 16; 
+            const hand1Display = document.getElementById('held-item-hand1');
             
             function startUnsafeAntennaGravityFall() {
 
-                // 防止重複觸發
                 if (window._easterEggUnsafeFalling) return;
 
                 const metrics = getScene3StageMetrics();
@@ -6648,22 +7521,39 @@ export function initScene3(playerState, switchScene) {
 
 
                 // =====================================================
-                // 🌟 標記：現在允許主迴圈跑原本 PLA 重力
+                // 🌟 進入「失敗墜落」
                 // =====================================================
 
                 window._easterEggUnsafeFalling = true;
 
+                // =====================================================
+                // 🌟 不安全墜落開始
+                // 立即銷毀這一次天線的實體橋樑
+                // =====================================================
 
-                // 玩家仍然不能控制
-                isPlayerControllable = false;
+                window._easterEggBridge = null;
+
+
+                // =====================================================
+                // 🌟 彩蛋到這裡正式結束
+                // 從這一刻開始玩家按鍵恢復
+                // =====================================================
+
+                window._isEasterEggActive = false;
+                window._easterEggQHeld = false;
+
+                isPlayerControllable = true;
+
+                // 墜落途中先不讓玩家攻擊
                 canAttack = false;
 
-                // 清除任何殘留方向鍵
+
+                // 清掉前面過場殘留的移動鍵
                 clearMovementKeys();
 
 
                 // =====================================================
-                // 🌟 中斷任何帽子導通 / 單擺
+                // 清除 PLA 帽子導通 / 單擺
                 // =====================================================
 
                 if (isPlaHatTethered) {
@@ -6671,11 +7561,13 @@ export function initScene3(playerState, switchScene) {
                 }
 
                 isPlaHatTethered = false;
+                plaHatAnchor = null;
+                plaHatRopeLengthPx = 0;
+                plaHatAngularVelocity = 0;
 
 
                 // =====================================================
-                // 🌟 保留現在所在的實際高度
-                // 不要瞬移到地面
+                // 🌟 保留玩家目前所在高度
                 // =====================================================
 
                 const currentElevation =
@@ -6688,36 +7580,47 @@ export function initScene3(playerState, switchScene) {
 
 
                 // =====================================================
-                // 🌟 離開 PLA 平台
+                // 🌟 徹底離開 PLA 上層平台
                 // =====================================================
 
                 isOnPlaTopPlatform = false;
 
                 plaTopPlatformJumpCameraLocked = false;
 
+                // 防止下一幀用前一個腳底位置重新判定落地
+                plaTopPlatformPreviousFootWorldY = null;
+
                 plaBallisticAirTimeSeconds = 0;
 
 
                 // =====================================================
-                // 🌟 啟用你原本的 PLA 拋體物理
+                // 🌟 啟動 Scene3 原本的拋體重力
                 // =====================================================
 
                 isPlaHatBallistic = true;
-
                 isPlayerJumping = true;
 
 
-                // 這次不是跳出去，所以 X 不要有速度
+                // 不要突然往左右飛
                 plaHatVelocityXPx = 0;
-
                 playerJumpHorizontalVelocity = 0;
 
 
-                // 🌟 初始垂直速度 = 0
-                // 下一幀就會被原本 gravity 1800 拉下去
-                plaHatVelocityUpPx = 0;
+                // =====================================================
+                // 🌟 關鍵：
+                // 給一點點向上初速
+                //
+                // 會有「失去支撐後先飄一下」
+                // 再被原本 1800 gravity 拉下去
+                // =====================================================
 
-                playerJumpVerticalVelocityPx = 0;
+                const UNSAFE_FALL_FLOAT_UP_SPEED = 200;
+
+                plaHatVelocityUpPx =
+                    UNSAFE_FALL_FLOAT_UP_SPEED;
+
+                playerJumpVerticalVelocityPx =
+                    UNSAFE_FALL_FLOAT_UP_SPEED;
 
 
                 playerJumpLandingWorldX =
@@ -6725,14 +7628,19 @@ export function initScene3(playerState, switchScene) {
 
 
                 // =====================================================
-                // 🌟 切進 Scene3 原本的空中姿勢系統
+                // 特殊墜落姿勢
                 // =====================================================
 
                 stickman.classList.add(
                     'stand-still',
                     'player-jumping'
                 );
+
+                applyUnsafeAntennaFallPose();
             }
+                
+
+
             function playUnsafeSecondAntennaTilt() {
 
                 // ✅ 安全長度，不做任何事情
@@ -7249,9 +8157,17 @@ export function initScene3(playerState, switchScene) {
         // 原本的提早 return 在這裡，現在不會阻擋到上方的天線動畫了！
         // 🌟 一般鎖定仍停止遊戲物理
         // 但如果是不安全天線造成的墜落，必須讓原本重力繼續運算
-        if (!isPlayerControllable && !playerDead && !window._easterEggUnsafeFalling) {
-            requestAnimationFrame(gameLoopS3);
-            return;
+        if (!isPlayerControllable && !playerDead) {
+            const unsafeFallMayContinue =
+                window._easterEggUnsafeFalling &&
+                !manualModal.classList.contains('manual-active') &&
+                !backpackIsOpen &&
+                !isGamePaused;
+
+            if (!unsafeFallMayContinue) {
+                requestAnimationFrame(gameLoopS3);
+                return;
+            }
         }
         if (playerDead) return;
         
@@ -7367,6 +8283,7 @@ export function initScene3(playerState, switchScene) {
 
         // --- 內部彩蛋動畫序列函式 ---
         function triggerEasterEggSequence() {
+            savePreEasterEquipmentState();
             window._easterEggTriggered = true;
             window._isEasterEggActive = true;
 
