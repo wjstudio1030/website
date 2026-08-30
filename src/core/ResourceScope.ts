@@ -46,10 +46,16 @@ export class ResourceScope {
     }
 
     requestAnimationFrame(callback: FrameRequestCallback): number {
-        const frameId =
-            globalThis.requestAnimationFrame(callback);
+        let unregisterCleanup = () => {};
 
-        this.addCleanup(() => {
+        const frameId = globalThis.requestAnimationFrame(
+            (timestamp) => {
+                unregisterCleanup();
+                callback(timestamp);
+            }
+        );
+
+        unregisterCleanup = this.addCleanup(() => {
             globalThis.cancelAnimationFrame(frameId);
         });
 

@@ -135,3 +135,40 @@ test('cleanup added after dispose runs immediately', () => {
 
     assert.equal(cleanupCount, 1);
 });
+
+test('completed animation frame is released from the scope', () => {
+    const scope = new ResourceScope();
+
+    const originalRequestAnimationFrame =
+        globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame =
+        globalThis.cancelAnimationFrame;
+
+    let scheduledCallback = null;
+    let cancelCount = 0;
+
+    try {
+        globalThis.requestAnimationFrame = (callback) => {
+            scheduledCallback = callback;
+            return 789;
+        };
+
+        globalThis.cancelAnimationFrame = () => {
+            cancelCount += 1;
+        };
+
+        scope.requestAnimationFrame(() => {});
+
+        scheduledCallback(16);
+
+        scope.dispose();
+
+        assert.equal(cancelCount, 0);
+    } finally {
+        globalThis.requestAnimationFrame =
+            originalRequestAnimationFrame;
+
+        globalThis.cancelAnimationFrame =
+            originalCancelAnimationFrame;
+    }
+});
