@@ -9,6 +9,12 @@ import { initScene2 } from './scene2.js';
 // 🌟 匯入 Scene 3 (你接下來要建立的檔案)
 import { initScene3 } from './scene3.js';
 
+let inputManager = null;
+
+export function configureGameCore(options) {
+    inputManager = options.inputManager;
+}
+
 // 🚀 全局玩家資料庫
 export const playerState = {
     playerName: "WJ_GUEST",
@@ -39,7 +45,10 @@ export function switchScene(fromId, toId) {
         playerState.currentLevel = toId;
 
         // 初始化對應場景
-        if (toId === 1) initScene1(playerState, switchScene);
+        if (toId === 1) {
+            const scene1Controller = initScene1(playerState, switchScene);
+            inputManager?.activate(scene1Controller);
+        }
         if (toId === 2) initScene2(playerState, switchScene);
         if (toId === 3) initScene3(playerState, switchScene); // 🌟 初始化 Scene 3
     }, 500);

@@ -5,16 +5,6 @@
 export function initScene1(playerState, switchScene) {
     const scene1 = document.getElementById('scene-1');
     
-    // 移除舊的鍵盤事件監聽器 (如果有的話)
-    if (window._scene1KeyDown) {
-        window.removeEventListener('keydown', window._scene1KeyDown);
-        window.removeEventListener('keyup', window._scene1KeyUp);
-    }
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
-    
     // 重置 playerState 確保不會卡住
     playerState.ammoOnes = 0;
     playerState.ammoZeros = 0;
@@ -358,8 +348,7 @@ export function initScene1(playerState, switchScene) {
         stickman.classList.add('stand-still');
     });
 
-    let canPickUp = false; 
-    let eventListenerAdded = false;
+    let canPickUp = false;
     
     // 🌟 明確記錄彈藥數量
     let ammoOnes = 0;
@@ -403,14 +392,6 @@ export function initScene1(playerState, switchScene) {
     setTimeout(() => {
         ePrompt.style.opacity = '1';
         canPickUp = true;
-
-        // 儲存事件處理函數到 window 以便之後移除
-        window._scene1KeyDown = handleKeyDown;
-        window._scene1KeyUp = handleKeyUp;
-        
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-        eventListenerAdded = true;
         
         // 啟動遊戲迴圈，但不給予控制權 (isPlayerControllable 依然是 false)
         // 這樣可以讓畫面保持更新，等待玩家按下 E
@@ -688,4 +669,9 @@ export function initScene1(playerState, switchScene) {
 
         requestAnimationFrame(gameLoop);
     }
+    
+    return {
+        handleKeyDown,
+        handleKeyUp
+    };
 }
