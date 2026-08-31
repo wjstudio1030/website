@@ -12,6 +12,7 @@ import { initScene3 } from './scene3.js';
 let inputManager = null;
 let createResourceScope = null;
 let scene1Controller = null;
+let scene2Controller = null;
 
 export function configureGameCore(options) {
     inputManager = options.inputManager;
@@ -44,6 +45,11 @@ export function switchScene(fromId, toId) {
         scene1Controller = null;
     }
 
+    if (fromId === 2 && scene2Controller) {
+        inputManager?.deactivate();
+        scene2Controller = null;
+    }
+
     fromScene.style.opacity = '0';
     
     setTimeout(() => {
@@ -65,7 +71,14 @@ export function switchScene(fromId, toId) {
 
             inputManager?.activate(scene1Controller);
         }
-        if (toId === 2) initScene2(playerState, switchScene);
+
+        if (toId === 2) {
+            scene2Controller =
+                initScene2(playerState, switchScene);
+
+            inputManager?.activate(scene2Controller);
+        }
+
         if (toId === 3) initScene3(playerState, switchScene); // 🌟 初始化 Scene 3
     }, 500);
 }

@@ -5,15 +5,6 @@
 export function initScene2(playerState, switchScene) {
     const scene2 = document.getElementById('scene-2');
     
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
-    if (window._scene1KeyDown) {
-        window.removeEventListener('keydown', window._scene1KeyDown);
-        window.removeEventListener('keyup', window._scene1KeyUp);
-    }
-    
     let ammoOnes = playerState.ammoOnes || 0;
     let ammoZeros = playerState.ammoZeros || 0;
     
@@ -1780,11 +1771,6 @@ export function initScene2(playerState, switchScene) {
         if (keys.hasOwnProperty(key)) keys[key] = false;
     }
 
-    window._scene2KeyDown = handleKeyDown;
-    window._scene2KeyUp = handleKeyUp;
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
     function gameLoopS2() {
         if (!isPlayerControllable) { requestAnimationFrame(gameLoopS2); return; }
 
@@ -1924,4 +1910,9 @@ export function initScene2(playerState, switchScene) {
     }
 
     requestAnimationFrame(gameLoopS2);
+
+    return {
+        handleKeyDown,
+        handleKeyUp
+    };
 }
