@@ -13,6 +13,7 @@ let inputManager = null;
 let createResourceScope = null;
 let scene1Controller = null;
 let scene2Controller = null;
+let scene3Controller = null;
 
 export function configureGameCore(options) {
     inputManager = options.inputManager;
@@ -51,6 +52,11 @@ export function switchScene(fromId, toId) {
         scene2Controller = null;
     }
 
+    if (fromId === 3 && scene3Controller) {
+        inputManager?.deactivate();
+        scene3Controller = null;
+    }
+
     fromScene.style.opacity = '0';
     
     setTimeout(() => {
@@ -80,7 +86,14 @@ export function switchScene(fromId, toId) {
             inputManager?.activate(scene2Controller);
         }
 
-        if (toId === 3) initScene3(playerState, switchScene); // 🌟 初始化 Scene 3
+        if (toId === 3) {
+            scene3Controller = initScene3(
+                playerState,
+                switchScene
+            );
+
+            inputManager?.activate(scene3Controller);
+        }
     }, 500);
 }
 

@@ -6,15 +6,6 @@ export function initScene3(playerState, switchScene) {
     const scene3 = document.getElementById('scene-3');
     const scene3InstanceToken = Symbol('scene3-instance');
     window._scene3InstanceToken = scene3InstanceToken;
-    
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
-    if (window._scene3KeyDown) {
-        window.removeEventListener('keydown', window._scene3KeyDown);
-        window.removeEventListener('keyup', window._scene3KeyUp);
-    }
 
     // =========================================================
     // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
@@ -8089,11 +8080,6 @@ export function initScene3(playerState, switchScene) {
         }
     }
 
-    window._scene3KeyDown = handleKeyDown;
-    window._scene3KeyUp = handleKeyUp;
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
     let isFirstFrame = true;
     let previousScene3FrameTime = null;
 
@@ -9289,4 +9275,9 @@ export function initScene3(playerState, switchScene) {
         }
     }
     requestAnimationFrame(gameLoopS3);
+
+    return {
+        handleKeyDown,
+        handleKeyUp
+    };
 }
