@@ -904,6 +904,14 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         return globalThis.setInterval(callback, delay);
     };
 
+    const scheduleSceneTimeout = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setTimeout(callback, delay);
+        }
+
+        return globalThis.setTimeout(callback, delay);
+    };
+
     const clearSceneInterval = (intervalId) => {
         if (intervalId == null) {
             return;
@@ -1295,7 +1303,7 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         const ex = ((worldX - cameraX) * cw) / 100;
         const ey = (py * ch) / 100 - 15;
 
-        const lightningInterval = setInterval(() => {
+        const lightningInterval = scheduleSceneInterval(() => {
             let d = "";
             let startPoints = [];
 
@@ -1331,10 +1339,11 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         }, 50); 
 
         lightningPath.style.opacity = 1;
-        setTimeout(() => { 
-            clearInterval(lightningInterval); 
-            lightningPath.style.opacity = 0; 
-            lightningPath.setAttribute('d', ''); 
+
+        scheduleSceneTimeout(() => {
+            clearSceneInterval(lightningInterval);
+            lightningPath.style.opacity = 0;
+            lightningPath.setAttribute('d', '');
         }, 600);
     }
 
@@ -1387,9 +1396,12 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
                         
                         bossWeaponAnd.style.filter = 'drop-shadow(0 0 30px #fff) brightness(1.5)';
                         
-                        let shake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`; }, 40);
-                        setTimeout(() => {
-                            clearInterval(shake);
+                        let shake = scheduleSceneInterval(() => {
+                            scene2.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`;
+                        }, 40);
+
+                        scheduleSceneTimeout(() => {
+                            clearSceneInterval(shake);
                             scene2.style.transform = 'none';
                             bossWeaponAnd.style.filter = 'none';
                         }, 150);
@@ -1410,10 +1422,10 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
                         bossAndBody.setAttribute('fill', '#fff'); 
                         bossWeaponAnd.style.filter = 'drop-shadow(0 0 150px #fff) drop-shadow(0 0 80px #fff) brightness(5)';
                         
-                        let bigShake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`; }, 40);
-                        
-                        setTimeout(() => {
-                            clearInterval(bigShake);
+                        let bigShake = scheduleSceneInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`;}, 40);
+
+                        scheduleSceneTimeout(() => {
+                            clearSceneInterval(bigShake);
                             scene2.style.transform = 'none';
                             finalBossSVG.remove();
                             
@@ -1491,12 +1503,10 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
             megaLaserCore.style.transition = 'none';
         }
 
-        let shake = setInterval(() => {
-            scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`;
-        }, 40);
+        let shake = scheduleSceneInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`; }, 40);
 
-        setTimeout(() => { 
-            clearInterval(shake);
+        scheduleSceneTimeout(() => {
+            clearSceneInterval(shake);
             scene2.style.transform = 'none';
             megaLaser.style.transition = 'opacity 0.6s ease-out'; 
             megaLaser.style.opacity = 0; 
