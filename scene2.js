@@ -1465,20 +1465,33 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack1);
         fireBlueLaser();
-        setTimeout(() => { stickman.classList.add('player-dead'); setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500); }, 350); 
+
+        scheduleSceneTimeout(() => {
+            stickman.classList.add('player-dead');
+
+            scheduleSceneTimeout(() => {
+                switchScene(2, returnToScene1 ? 1 : 2);
+            }, 1500);
+        }, 350);
     }
 
     function triggerLightningDeath(returnToScene1 = false, sourceX = 280) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack2);
         fireLightningAttack(sourceX);
-        setTimeout(() => {
-            stickman.classList.add('electrocuted'); 
-            setTimeout(() => {
-                stickman.classList.remove('electrocuted'); stickman.classList.add('burnt-dead'); 
-                setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-            }, 600); 
-        }, 100); 
+
+        scheduleSceneTimeout(() => {
+            stickman.classList.add('electrocuted');
+
+            scheduleSceneTimeout(() => {
+                stickman.classList.remove('electrocuted');
+                stickman.classList.add('burnt-dead');
+
+                scheduleSceneTimeout(() => {
+                    switchScene(2, returnToScene1 ? 1 : 2);
+                }, 1500);
+            }, 600);
+        }, 100);
     }
 
     function fireMegaBlueLaser(sourceWorldX) {
@@ -1521,17 +1534,23 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack3);
         fireMegaBlueLaser(430);
-        setTimeout(() => {
+
+        scheduleSceneTimeout(() => {
             document.getElementById('circuit-3').classList.add('circuit-broken');
-            for(let i=1; i<=5; i++){
+
+            for (let i = 1; i <= 5; i++) {
                 let disp = document.getElementById(`input-d${i}-display`);
-                if(disp && disp.innerText !== "") {
-                    disp.style.transition = 'none'; 
-                    disp.classList.add('text-broken'); 
+
+                if (disp && disp.innerText !== "") {
+                    disp.style.transition = 'none';
+                    disp.classList.add('text-broken');
                 }
             }
-            setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-        }, 150); 
+
+            scheduleSceneTimeout(() => {
+                switchScene(2, returnToScene1 ? 1 : 2);
+            }, 1500);
+        }, 150);
     }
 
     function evaluatePuzzle1() {
