@@ -896,6 +896,27 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         return globalThis.requestAnimationFrame(callback);
     };
 
+    const scheduleSceneInterval = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setInterval(callback, delay);
+        }
+
+        return globalThis.setInterval(callback, delay);
+    };
+
+    const clearSceneInterval = (intervalId) => {
+        if (intervalId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearInterval(intervalId);
+            return;
+        }
+
+        globalThis.clearInterval(intervalId);
+    };
+
     // 預先抓取音效檔案並解碼成 Buffer (純數據)
     fetch('game_audio/game_shoot_enemy3.mp3')
         .then(response => response.arrayBuffer())
@@ -1143,7 +1164,7 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         marqueeActive = true;
         updateMarqueeHighlight();
         
-        marqueeInterval = setInterval(() => {
+        marqueeInterval = scheduleSceneInterval(() => {
             const hasOne = ammoOnes > 0;
             const hasZero = ammoZeros > 0;
             if (hasOne && hasZero) {
@@ -1155,8 +1176,9 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
 
     function stopMarquee() {
         marqueeActive = false;
-        if (marqueeInterval) {
-            clearInterval(marqueeInterval);
+
+        if (marqueeInterval != null) {
+            clearSceneInterval(marqueeInterval);
             marqueeInterval = null;
         }
     }
@@ -1938,6 +1960,7 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         keys.s = false;
         keys.d = false;
 
+        stopMarquee();
         resourceScope?.dispose();
     }
 
