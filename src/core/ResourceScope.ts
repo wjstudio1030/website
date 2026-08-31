@@ -28,9 +28,17 @@ export class ResourceScope {
     }
 
     setTimeout(callback: () => void,delay?: number): ReturnType<typeof globalThis.setTimeout> {
-        const timeoutId = globalThis.setTimeout(callback, delay);
+        let unregisterCleanup = () => {};
 
-        this.addCleanup(() => {
+        const timeoutId = globalThis.setTimeout(
+            () => {
+                unregisterCleanup();
+                callback();
+            },
+            delay
+        );
+
+        unregisterCleanup = this.addCleanup(() => {
             globalThis.clearTimeout(timeoutId);
         });
 

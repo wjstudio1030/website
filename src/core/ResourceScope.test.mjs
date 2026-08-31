@@ -172,3 +172,36 @@ test('completed animation frame is released from the scope', () => {
             originalCancelAnimationFrame;
     }
 });
+
+test('completed timeout is released from the scope', () => {
+    const scope = new ResourceScope();
+
+    const originalSetTimeout = globalThis.setTimeout;
+    const originalClearTimeout = globalThis.clearTimeout;
+
+    let scheduledCallback = null;
+    let clearCount = 0;
+
+    try {
+        globalThis.setTimeout = (callback) => {
+            scheduledCallback = callback;
+            return 456;
+        };
+
+        globalThis.clearTimeout = () => {
+            clearCount += 1;
+        };
+
+        scope.setTimeout(() => {}, 100);
+
+        assert.ok(scheduledCallback);
+        scheduledCallback();
+
+        scope.dispose();
+
+        assert.equal(clearCount, 0);
+    } finally {
+        globalThis.setTimeout = originalSetTimeout;
+        globalThis.clearTimeout = originalClearTimeout;
+    }
+});
