@@ -10,9 +10,12 @@ import { initScene2 } from './scene2.js';
 import { initScene3 } from './scene3.js';
 
 let inputManager = null;
+let createResourceScope = null;
+let scene1Controller = null;
 
 export function configureGameCore(options) {
     inputManager = options.inputManager;
+    createResourceScope = options.createResourceScope;
 }
 
 // 🚀 全局玩家資料庫
@@ -35,6 +38,12 @@ export function switchScene(fromId, toId) {
     
     if(!fromScene || !toScene) return;
 
+    if (fromId === 1 && scene1Controller) {
+        inputManager?.deactivate();
+        scene1Controller.destroy();
+        scene1Controller = null;
+    }
+
     fromScene.style.opacity = '0';
     
     setTimeout(() => {
@@ -46,7 +55,14 @@ export function switchScene(fromId, toId) {
 
         // 初始化對應場景
         if (toId === 1) {
-            const scene1Controller = initScene1(playerState, switchScene);
+            const resourceScope = createResourceScope?.();
+
+            scene1Controller = initScene1(
+                playerState,
+                switchScene,
+                resourceScope
+            );
+
             inputManager?.activate(scene1Controller);
         }
         if (toId === 2) initScene2(playerState, switchScene);
