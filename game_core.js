@@ -47,6 +47,7 @@ export function switchScene(fromId, toId) {
 
     if (fromId === 2 && scene2Controller) {
         inputManager?.deactivate();
+        scene2Controller.destroy();
         scene2Controller = null;
     }
 

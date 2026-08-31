@@ -1613,9 +1613,14 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         if (keys.hasOwnProperty(key)) keys[key] = true;
         
         if (key === 'p') {
-            playerState.ammoOnes = 5; playerState.ammoZeros = 1;
-            isPlayerControllable = false; stickman.classList.add('stand-still');
-            switchScene(1, 2); return;
+            playerState.ammoOnes = 5;
+            playerState.ammoZeros = 1;
+
+            isPlayerControllable = false;
+            stickman.classList.add('stand-still');
+
+            switchScene(2, 2);
+            return;
         }
 
         if (key === 'q' && marqueeActive) selectCurrentOption();
