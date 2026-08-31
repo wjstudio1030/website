@@ -2,11 +2,20 @@
 // WJ STUDIO - 場景 3：全新領域 (scene3.js)
 // =========================================
 
-export function initScene3(playerState, switchScene) {
+export function initScene3(playerState, switchScene, resourceScope = null) {
     const scene3 = document.getElementById('scene-3');
     const scene3InstanceToken = Symbol('scene3-instance');
     window._scene3InstanceToken = scene3InstanceToken;
 
+    let destroyed = false;
+
+    const scheduleSceneFrame = (callback) => {
+        if (resourceScope) {
+            return resourceScope.requestAnimationFrame(callback);
+        }
+
+        return globalThis.requestAnimationFrame(callback);
+    };
     // =========================================================
     // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
     // =========================================================
@@ -3210,7 +3219,9 @@ export function initScene3(playerState, switchScene) {
     let bossTimelineCheckTimer = null;
 
     function isCurrentScene3Instance() {
-        return window._scene3InstanceToken === scene3InstanceToken && scene3.isConnected;
+        return !destroyed &&
+            window._scene3InstanceToken === scene3InstanceToken &&
+            scene3.isConnected;
     }
 
     function waitBossTimeline(ms) {
@@ -8095,7 +8106,7 @@ export function initScene3(playerState, switchScene) {
         // 🌟 1. 時間暫停攔截器
         if (isGamePaused) {
             stickman.classList.add('stand-still');
-            requestAnimationFrame(gameLoopS3);
+            scheduleSceneFrame(gameLoopS3);
             return; 
         }
 
@@ -8151,7 +8162,7 @@ export function initScene3(playerState, switchScene) {
                 !isGamePaused;
 
             if (!unsafeFallMayContinue) {
-                requestAnimationFrame(gameLoopS3);
+                scheduleSceneFrame(gameLoopS3);
                 return;
             }
         }
@@ -8761,7 +8772,7 @@ export function initScene3(playerState, switchScene) {
             }
         });
         nearbyDropItem = closestDrop;
-        requestAnimationFrame(gameLoopS3);
+        scheduleSceneFrame(gameLoopS3);
     }
 
     // ==============================================================
@@ -9274,10 +9285,25 @@ export function initScene3(playerState, switchScene) {
             }, 100); 
         }
     }
-    requestAnimationFrame(gameLoopS3);
+    scheduleSceneFrame(gameLoopS3);
+
+    function destroy() {
+        if (destroyed) {
+            return;
+        }
+
+        destroyed = true;
+        isPlayerControllable = false;
+        canAttack = false;
+
+        clearMovementKeys();
+
+        resourceScope?.dispose();
+    }
 
     return {
         handleKeyDown,
-        handleKeyUp
+        handleKeyUp,
+        destroy
     };
 }

@@ -87,9 +87,12 @@ export function switchScene(fromId, toId) {
         }
 
         if (toId === 3) {
+            const resourceScope = createResourceScope?.();
+
             scene3Controller = initScene3(
                 playerState,
-                switchScene
+                switchScene,
+                resourceScope
             );
 
             inputManager?.activate(scene3Controller);
