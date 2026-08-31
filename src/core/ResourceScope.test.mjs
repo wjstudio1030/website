@@ -205,3 +205,41 @@ test('completed timeout is released from the scope', () => {
         globalThis.clearTimeout = originalClearTimeout;
     }
 });
+
+test('manually cleared interval is released from the scope', () => {
+    const scope = new ResourceScope();
+
+    const originalSetInterval =
+        globalThis.setInterval;
+    const originalClearInterval =
+        globalThis.clearInterval;
+
+    let clearCount = 0;
+
+    try {
+        globalThis.setInterval = () => {
+            return 321;
+        };
+
+        globalThis.clearInterval = () => {
+            clearCount += 1;
+        };
+
+        const intervalId =
+            scope.setInterval(() => {}, 100);
+
+        scope.clearInterval(intervalId);
+
+        assert.equal(clearCount, 1);
+
+        scope.dispose();
+
+        assert.equal(clearCount, 1);
+    } finally {
+        globalThis.setInterval =
+            originalSetInterval;
+
+        globalThis.clearInterval =
+            originalClearInterval;
+    }
+});

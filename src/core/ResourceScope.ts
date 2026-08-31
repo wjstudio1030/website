@@ -2,7 +2,9 @@ type Cleanup = () => void;
 
 export class ResourceScope {
     private cleanups = new Set<Cleanup>();
+    private intervalCleanups = new Map<ReturnType<typeof globalThis.setInterval>,Cleanup>();
     private disposed = false;
+
 
     addCleanup(cleanup: Cleanup): () => void {
         if (this.disposed) {
@@ -17,14 +19,31 @@ export class ResourceScope {
         };
     }
 
-    setInterval(callback: () => void,delay?: number): ReturnType<typeof globalThis.setInterval> {
+    setInterval(callback: () => void, delay?: number): ReturnType<typeof globalThis.setInterval> {
         const intervalId = globalThis.setInterval(callback, delay);
 
-        this.addCleanup(() => {
+        const unregisterCleanup = this.addCleanup(() => {
             globalThis.clearInterval(intervalId);
         });
 
+        if (!this.disposed) {
+            this.intervalCleanups.set(
+                intervalId,
+                unregisterCleanup
+            );
+        }
+
         return intervalId;
+    }
+
+    clearInterval(intervalId: ReturnType<typeof globalThis.setInterval>): void {
+        globalThis.clearInterval(intervalId);
+
+        const unregisterCleanup = this.intervalCleanups.get(intervalId);
+
+        unregisterCleanup?.();
+
+        this.intervalCleanups.delete(intervalId);
     }
 
     setTimeout(callback: () => void,delay?: number): ReturnType<typeof globalThis.setTimeout> {
@@ -82,5 +101,6 @@ export class ResourceScope {
         }
 
         this.cleanups.clear();
+        this.intervalCleanups.clear();
     }
 }
