@@ -2,7 +2,7 @@
 // WJ STUDIO - 場景 2：未知領域與邏輯閘 (scene2.js)
 // =========================================
 
-export function initScene2(playerState, switchScene) {
+export function initScene2(playerState, switchScene, resourceScope = null) {
     const scene2 = document.getElementById('scene-2');
     
     let ammoOnes = playerState.ammoOnes || 0;
@@ -886,6 +886,15 @@ export function initScene2(playerState, switchScene) {
     // ==============================================================
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let shoot3Buffer = null;
+    let destroyed = false;
+
+    const scheduleSceneFrame = (callback) => {
+        if (resourceScope) {
+            return resourceScope.requestAnimationFrame(callback);
+        }
+
+        return globalThis.requestAnimationFrame(callback);
+    };
 
     // 預先抓取音效檔案並解碼成 Buffer (純數據)
     fetch('game_audio/game_shoot_enemy3.mp3')
@@ -1772,7 +1781,12 @@ export function initScene2(playerState, switchScene) {
     }
 
     function gameLoopS2() {
-        if (!isPlayerControllable) { requestAnimationFrame(gameLoopS2); return; }
+
+        if (destroyed) {
+            return;
+        }
+
+        if (!isPlayerControllable) { scheduleSceneFrame(gameLoopS2); return; }
 
         let moved = false; let speedX = 0.4; let speedY = 0.3; 
         if (keys.w) { py -= speedY; moved = true; }
@@ -1906,13 +1920,30 @@ export function initScene2(playerState, switchScene) {
             }
         }
 
-        requestAnimationFrame(gameLoopS2);
+        scheduleSceneFrame(gameLoopS2);
     }
 
-    requestAnimationFrame(gameLoopS2);
+    scheduleSceneFrame(gameLoopS2);
+
+    function destroy() {
+        if (destroyed) {
+            return;
+        }
+
+        destroyed = true;
+        isPlayerControllable = false;
+
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+
+        resourceScope?.dispose();
+    }
 
     return {
         handleKeyDown,
-        handleKeyUp
+        handleKeyUp,
+        destroy
     };
 }

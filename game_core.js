@@ -73,8 +73,8 @@ export function switchScene(fromId, toId) {
         }
 
         if (toId === 2) {
-            scene2Controller =
-                initScene2(playerState, switchScene);
+            const resourceScope = createResourceScope?.();
+            scene2Controller = initScene2(playerState, switchScene, resourceScope);
 
             inputManager?.activate(scene2Controller);
         }
