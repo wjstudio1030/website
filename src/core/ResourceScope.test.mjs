@@ -280,3 +280,40 @@ test('manually cleared timeout is released from the scope', () => {
             originalClearTimeout;
     }
 });
+
+test('manually cancelled animation frame is released from the scope', () => {
+    const scope = new ResourceScope();
+
+    const originalRequestAnimationFrame =
+        globalThis.requestAnimationFrame;
+    const originalCancelAnimationFrame =
+        globalThis.cancelAnimationFrame;
+
+    let cancelCount = 0;
+
+    try {
+        globalThis.requestAnimationFrame = () => {
+            return 789;
+        };
+
+        globalThis.cancelAnimationFrame = () => {
+            cancelCount += 1;
+        };
+
+        const frameId =
+            scope.requestAnimationFrame(() => {});
+
+        scope.cancelAnimationFrame(frameId);
+        assert.equal(cancelCount, 1);
+
+        scope.dispose();
+
+        assert.equal(cancelCount, 1);
+    } finally {
+        globalThis.requestAnimationFrame =
+            originalRequestAnimationFrame;
+
+        globalThis.cancelAnimationFrame =
+            originalCancelAnimationFrame;
+    }
+});

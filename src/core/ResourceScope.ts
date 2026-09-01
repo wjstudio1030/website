@@ -4,6 +4,7 @@ export class ResourceScope {
     private cleanups = new Set<Cleanup>();
     private intervalCleanups = new Map<ReturnType<typeof globalThis.setInterval>,Cleanup>();
     private timeoutCleanups = new Map<ReturnType<typeof globalThis.setTimeout>,() => void>();
+    private frameCleanups = new Map<ReturnType<typeof globalThis.requestAnimationFrame>,() => void>();
     private disposed = false;
 
 
@@ -93,12 +94,13 @@ export class ResourceScope {
         });
     }
 
-    requestAnimationFrame(callback: FrameRequestCallback): number {
-        let unregisterCleanup = () => {};
+    requestAnimationFrame(callback: FrameRequestCallback): ReturnType<typeof globalThis.requestAnimationFrame> {
+    let unregisterCleanup = () => {};
 
-        const frameId = globalThis.requestAnimationFrame(
+    const frameId = globalThis.requestAnimationFrame(
             (timestamp) => {
                 unregisterCleanup();
+                this.frameCleanups.delete(frameId);
                 callback(timestamp);
             }
         );
@@ -107,7 +109,26 @@ export class ResourceScope {
             globalThis.cancelAnimationFrame(frameId);
         });
 
+        this.frameCleanups.set(
+            frameId,
+            unregisterCleanup
+        );
+
         return frameId;
+    }
+
+    cancelAnimationFrame(frameId: ReturnType<typeof globalThis.requestAnimationFrame>): void {
+        globalThis.cancelAnimationFrame(frameId);
+
+        const unregisterCleanup =
+            this.frameCleanups.get(frameId);
+
+        if (!unregisterCleanup) {
+            return;
+        }
+
+        unregisterCleanup();
+        this.frameCleanups.delete(frameId);
     }
 
     dispose(): void {
