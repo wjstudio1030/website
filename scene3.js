@@ -6782,10 +6782,19 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     }
 
     function checkBossTimelineReady() {
-        if (bossTimelineStarted || bossTimelineRunning || bossTimelineCompleted || !isCurrentScene3Instance()) return;
-        if (bossTimelineCheckTimer) clearTimeout(bossTimelineCheckTimer);
+            if (
+                bossTimelineStarted ||
+                bossTimelineRunning ||
+                bossTimelineCompleted ||
+                !isCurrentScene3Instance()
+            ) return;
 
-        bossTimelineCheckTimer = setTimeout(() => {
+            if (bossTimelineCheckTimer !== null) {
+                clearSceneTimeout(bossTimelineCheckTimer);
+                bossTimelineCheckTimer = null;
+            }
+
+            bossTimelineCheckTimer = scheduleSceneTimeout(() => {
             bossTimelineCheckTimer = null;
             if (!isCurrentScene3Instance() || bossTimelineStarted) return;
 
