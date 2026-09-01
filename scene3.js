@@ -38,6 +38,27 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         globalThis.clearInterval(intervalId);
     };
 
+    const scheduleSceneTimeout = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setTimeout(callback, delay);
+        }
+
+        return globalThis.setTimeout(callback, delay);
+    };
+
+    const clearSceneTimeout = (timeoutId) => {
+        if (timeoutId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearTimeout(timeoutId);
+            return;
+        }
+
+        globalThis.clearTimeout(timeoutId);
+    };
+
     // =========================================================
     // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
     // =========================================================
@@ -3000,14 +3021,14 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
     function clearPage3AutoTurnTimer() {
         if (page3AutoTurnTimer !== null) {
-            clearTimeout(page3AutoTurnTimer);
+            clearSceneTimeout(page3AutoTurnTimer);
             page3AutoTurnTimer = null;
         }
     }
 
     function schedulePage4AutoTurn() {
         clearPage3AutoTurnTimer();
-        page3AutoTurnTimer = window.setTimeout(() => {
+        page3AutoTurnTimer = scheduleSceneTimeout(() => {
             page3AutoTurnTimer = null;
             if (
                 !isCurrentScene3Instance() ||
