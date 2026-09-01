@@ -16,6 +16,28 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
         return globalThis.requestAnimationFrame(callback);
     };
+
+    const scheduleSceneInterval = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setInterval(callback, delay);
+        }
+
+        return globalThis.setInterval(callback, delay);
+    };
+
+    const clearSceneInterval = (intervalId) => {
+        if (intervalId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearInterval(intervalId);
+            return;
+        }
+
+        globalThis.clearInterval(intervalId);
+    };
+
     // =========================================================
     // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
     // =========================================================
@@ -6092,10 +6114,10 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             setTimeout(() => spawnBossAmbientFrost(mode), i * 22);
         }
 
-        bossAmbientEmitterTimer = window.setInterval(() => {
+        bossAmbientEmitterTimer = scheduleSceneInterval(() => {
             if (!isCurrentScene3Instance() || !bossAmbientEmitterActive) {
                 if (bossAmbientEmitterTimer !== null) {
-                    clearInterval(bossAmbientEmitterTimer);
+                    clearSceneInterval(bossAmbientEmitterTimer);
                     bossAmbientEmitterTimer = null;
                 }
                 return;
@@ -6113,7 +6135,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     function stopBossAmbientEmitter(clearAfterMs = 4200) {
         bossAmbientEmitterActive = false;
         if (bossAmbientEmitterTimer !== null) {
-            clearInterval(bossAmbientEmitterTimer);
+            clearSceneInterval(bossAmbientEmitterTimer);
             bossAmbientEmitterTimer = null;
         }
         const layer = document.getElementById('boss-ambient-particle-layer');
