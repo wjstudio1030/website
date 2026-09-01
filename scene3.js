@@ -7184,7 +7184,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         // =========================================================
         // 🌟 新增：動作四：史詩級過場衝刺引擎 (天線克隆固定、動態煞車與物理橋樑)
         // =========================================================
-        setTimeout(() => {
+        scheduleSceneTimeout(() => {
             worldX += 1.5; 
             
             // 強制解除 CSS 旋轉干擾並切換為 Path 顯示
@@ -7790,7 +7790,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             }
 
             function epicCutsceneLoop(now) {
-                if (!window._isEasterEggActive || !document.getElementById('stickman-s3')) return;
+                if (!isCurrentScene3Instance() || !window._isEasterEggActive || !document.getElementById('stickman-s3')) return;
 
                 let deltaTime = (now - lastFrameTime) / 1000;
                 if (deltaTime > 0.1) deltaTime = 0.016; 
@@ -7917,7 +7917,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                 stickman.style.left = `${worldX - cameraX}%`; 
                 environmentLayer.style.transform = `translate(${-cameraX}%, ${verticalCameraOffsetPx || 0}px)`;
 
-                requestAnimationFrame(epicCutsceneLoop);
+                scheduleSceneFrame(epicCutsceneLoop);
             }
 
             // 🎬 初始化：載入第一幀
@@ -7929,7 +7929,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             if (legRPath) { legRPath.setAttribute('d', startF.legR); legRPath.setAttribute('fill', 'none'); }
             currentSeqIdx = 1; 
             
-            requestAnimationFrame(epicCutsceneLoop);
+            scheduleSceneFrame(epicCutsceneLoop);
             
         }, 800);
     }
