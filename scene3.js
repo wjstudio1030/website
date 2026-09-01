@@ -17,6 +17,19 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         return globalThis.requestAnimationFrame(callback);
     };
 
+    const cancelSceneFrame = (frameId) => {
+        if (frameId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.cancelAnimationFrame(frameId);
+            return;
+        }
+
+        globalThis.cancelAnimationFrame(frameId);
+    };
+
     const scheduleSceneInterval = (callback, delay) => {
         if (resourceScope) {
             return resourceScope.setInterval(callback, delay);
@@ -3282,7 +3295,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         if (!postBossLandingAnchor || !isCurrentScene3Instance()) return;
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -3966,7 +3979,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             applyPlayerJumpPose(interpolatePlayerJumpPose(lastPose, PLAYER_JUMP_NORMAL_POSE, progress));
 
             if (progress < 1) {
-                playerJumpFrameId = requestAnimationFrame(blendFrame);
+                playerJumpFrameId = scheduleSceneFrame(blendFrame);
                 return;
             }
 
@@ -3985,7 +3998,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             if (!playerDead && !bossTimelineRunning) canAttack = true;
         };
 
-        playerJumpFrameId = requestAnimationFrame(blendFrame);
+        playerJumpFrameId = scheduleSceneFrame(blendFrame);
     }
 
     function startPlayerVerticalJump() {
@@ -4080,7 +4093,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             worldX = playerJumpLandingWorldX;
 
             if (progress < 1) {
-                playerJumpFrameId = requestAnimationFrame(jumpFrame);
+                playerJumpFrameId = scheduleSceneFrame(jumpFrame);
                 return;
             }
 
@@ -4088,7 +4101,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             finishPlayerVerticalJump(PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1]);
         };
 
-        playerJumpFrameId = requestAnimationFrame(jumpFrame);
+        playerJumpFrameId = scheduleSceneFrame(jumpFrame);
     }
 
 
@@ -4436,7 +4449,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         }
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -4460,7 +4473,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         if (!metrics || !geometry) return false;
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -4732,7 +4745,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         const totalElevation = getTotalPlayerElevationPx();
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
