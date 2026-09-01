@@ -9239,7 +9239,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         } else if (isFirstTime) {
             let step = 1; 
             setTimeout(() => {
-                const interval = setInterval(() => {
+                const interval = scheduleSceneInterval(() => {
                     if(step < animPaths.length) {
                         outline.setAttribute('d', animPaths[step]);
                         
@@ -9250,7 +9250,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                         }
                         step++;
                     } else {
-                        clearInterval(interval);
+                        clearSceneInterval(interval);
                         
                         setTimeout(() => {
                             stickmanSvg.style.opacity = '1';
