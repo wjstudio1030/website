@@ -8,6 +8,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     window._scene3InstanceToken = scene3InstanceToken;
 
     let destroyed = false;
+    let bridgePhysicsActive = false;
 
     const scheduleSceneFrame = (callback) => {
         if (resourceScope) {
@@ -7329,9 +7330,13 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                         window._easterEggBridge = null;
                     }
 
-                    if (!window._bridgePhysicsActive) {
-                        window._bridgePhysicsActive = true;
+                    if (!bridgePhysicsActive) {
+                        bridgePhysicsActive = true;
                         function bridgePhysicsLoop() {
+                            if (!isCurrentScene3Instance()) {
+                                return;
+                            }
+
                             if (window._easterEggBridge && !window._isEasterEggActive && !window._easterEggUnsafeFalling) {
                                 const m = getScene3StageMetrics();
                                 if (m) {
@@ -7352,7 +7357,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                                     }
                                 }
                             }
-                            requestAnimationFrame(bridgePhysicsLoop);
+                            scheduleSceneFrame(bridgePhysicsLoop);
                         }
                         bridgePhysicsLoop();
                     }
