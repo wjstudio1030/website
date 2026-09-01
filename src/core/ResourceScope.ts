@@ -3,6 +3,7 @@ type Cleanup = () => void;
 export class ResourceScope {
     private cleanups = new Set<Cleanup>();
     private intervalCleanups = new Map<ReturnType<typeof globalThis.setInterval>,Cleanup>();
+    private timeoutCleanups = new Map<ReturnType<typeof globalThis.setTimeout>,() => void>();
     private disposed = false;
 
 
@@ -52,6 +53,7 @@ export class ResourceScope {
         const timeoutId = globalThis.setTimeout(
             () => {
                 unregisterCleanup();
+                this.timeoutCleanups.delete(timeoutId);
                 callback();
             },
             delay
@@ -61,7 +63,26 @@ export class ResourceScope {
             globalThis.clearTimeout(timeoutId);
         });
 
+        this.timeoutCleanups.set(
+            timeoutId,
+            unregisterCleanup
+        );
+
         return timeoutId;
+    }
+
+    clearTimeout(timeoutId: ReturnType<typeof globalThis.setTimeout>): void {
+        globalThis.clearTimeout(timeoutId);
+
+        const unregisterCleanup =
+            this.timeoutCleanups.get(timeoutId);
+
+        if (!unregisterCleanup) {
+            return;
+        }
+
+        unregisterCleanup();
+        this.timeoutCleanups.delete(timeoutId);
     }
 
     listen(target: EventTarget,type: string,listener: EventListenerOrEventListenerObject,options?: boolean | AddEventListenerOptions): void {

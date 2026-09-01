@@ -243,3 +243,40 @@ test('manually cleared interval is released from the scope', () => {
             originalClearInterval;
     }
 });
+
+test('manually cleared timeout is released from the scope', () => {
+    const scope = new ResourceScope();
+
+    const originalSetTimeout =
+        globalThis.setTimeout;
+    const originalClearTimeout =
+        globalThis.clearTimeout;
+
+    let clearCount = 0;
+
+    try {
+        globalThis.setTimeout = () => {
+            return 654;
+        };
+
+        globalThis.clearTimeout = () => {
+            clearCount += 1;
+        };
+
+        const timeoutId =
+            scope.setTimeout(() => {}, 100);
+
+        scope.clearTimeout(timeoutId);
+        assert.equal(clearCount, 1);
+
+        scope.dispose();
+
+        assert.equal(clearCount, 1);
+    } finally {
+        globalThis.setTimeout =
+            originalSetTimeout;
+
+        globalThis.clearTimeout =
+            originalClearTimeout;
+    }
+});
