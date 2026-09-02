@@ -11,6 +11,9 @@ import { initScene3 } from './scene3.js';
 
 let inputManager = null;
 let createResourceScope = null;
+let createSceneManager = null;
+let sceneManager = null;
+
 let scene1Controller = null;
 let scene2Controller = null;
 let scene3Controller = null;
@@ -18,6 +21,35 @@ let scene3Controller = null;
 export function configureGameCore(options) {
     inputManager = options.inputManager;
     createResourceScope = options.createResourceScope;
+    createSceneManager = options.createSceneManager;
+
+    sceneManager = createSceneManager?.({
+        inputManager,
+        createResourceScope,
+
+        sceneFactories: {
+            1: (resourceScope) =>
+                initScene1(
+                    playerState,
+                    switchScene,
+                    resourceScope
+                ),
+
+            2: (resourceScope) =>
+                initScene2(
+                    playerState,
+                    switchScene,
+                    resourceScope
+                ),
+
+            3: (resourceScope) =>
+                initScene3(
+                    playerState,
+                    switchScene,
+                    resourceScope
+                )
+        }
+    }) ?? null;
 }
 
 // 🚀 全局玩家資料庫
@@ -38,24 +70,32 @@ export function switchScene(fromId, toId) {
     const fromScene = document.getElementById(`scene-${fromId}`);
     const toScene = document.getElementById(`scene-${toId}`);
     
-    if(!fromScene || !toScene) return;
+    if (!fromScene || !toScene) return;
 
-    if (fromId === 1 && scene1Controller) {
-        inputManager?.deactivate();
-        scene1Controller.destroy();
-        scene1Controller = null;
-    }
+    // =========================================
+    // 離開目前 Scene
+    // =========================================
+    if (sceneManager) {
+        sceneManager.leave();
+    } else {
+        // Legacy fallback
+        if (fromId === 1 && scene1Controller) {
+            inputManager?.deactivate();
+            scene1Controller.destroy();
+            scene1Controller = null;
+        }
 
-    if (fromId === 2 && scene2Controller) {
-        inputManager?.deactivate();
-        scene2Controller.destroy();
-        scene2Controller = null;
-    }
+        if (fromId === 2 && scene2Controller) {
+            inputManager?.deactivate();
+            scene2Controller.destroy();
+            scene2Controller = null;
+        }
 
-    if (fromId === 3 && scene3Controller) {
-        inputManager?.deactivate();
-        scene3Controller.destroy();
-        scene3Controller = null;
+        if (fromId === 3 && scene3Controller) {
+            inputManager?.deactivate();
+            scene3Controller.destroy();
+            scene3Controller = null;
+        }
     }
 
     fromScene.style.opacity = '0';
@@ -67,7 +107,17 @@ export function switchScene(fromId, toId) {
         
         playerState.currentLevel = toId;
 
-        // 初始化對應場景
+        // =========================================
+        // Vite / Stage 2 lifecycle
+        // =========================================
+        if (sceneManager) {
+            sceneManager.enter(toId);
+            return;
+        }
+
+        // =========================================
+        // Legacy fallback：初始化對應場景
+        // =========================================
         if (toId === 1) {
             const resourceScope = createResourceScope?.();
 
@@ -82,7 +132,12 @@ export function switchScene(fromId, toId) {
 
         if (toId === 2) {
             const resourceScope = createResourceScope?.();
-            scene2Controller = initScene2(playerState, switchScene, resourceScope);
+
+            scene2Controller = initScene2(
+                playerState,
+                switchScene,
+                resourceScope
+            );
 
             inputManager?.activate(scene2Controller);
         }

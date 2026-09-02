@@ -13,7 +13,7 @@ type SceneControllerFactory = (
     resourceScope: ResourceScope
 ) => SceneController;
 
-interface SceneManagerOptions {
+export interface SceneManagerOptions {
     inputManager: InputManager;
     createResourceScope: () => ResourceScope;
     sceneFactories: Record<SceneId, SceneControllerFactory>;
