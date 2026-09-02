@@ -8756,7 +8756,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                         stickman.classList.add('stand-still');    
                         stickman.classList.add('player-dead');
                         
-                        setTimeout(() => { switchScene(3, 3); }, 1500);
+                        scheduleSceneTimeout(() => { switchScene(3, 3); }, 1500);
                         return;
                     }
                 }
