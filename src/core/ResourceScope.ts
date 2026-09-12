@@ -64,10 +64,12 @@ export class ResourceScope {
             globalThis.clearTimeout(timeoutId);
         });
 
-        this.timeoutCleanups.set(
-            timeoutId,
-            unregisterCleanup
-        );
+        if (!this.disposed) {
+            this.timeoutCleanups.set(
+                timeoutId,
+                unregisterCleanup
+            );
+        }
 
         return timeoutId;
     }
@@ -109,10 +111,12 @@ export class ResourceScope {
             globalThis.cancelAnimationFrame(frameId);
         });
 
-        this.frameCleanups.set(
-            frameId,
-            unregisterCleanup
-        );
+        if (!this.disposed) {
+            this.frameCleanups.set(
+                frameId,
+                unregisterCleanup
+            );
+        }
 
         return frameId;
     }
@@ -144,5 +148,7 @@ export class ResourceScope {
 
         this.cleanups.clear();
         this.intervalCleanups.clear();
+        this.timeoutCleanups.clear();
+        this.frameCleanups.clear();
     }
 }

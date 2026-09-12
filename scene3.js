@@ -3071,8 +3071,18 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         updateManualPage(currentManualPage + 1);
     });
 
+    function restoreManualUiLayering() {
+        const gameScreen = document.getElementById('gameScreen');
+        const sceneManager = document.getElementById('scene-manager');
+        const gameControls = document.querySelector('.game-controls');
+
+        if (gameScreen) gameScreen.style.zIndex = '1';
+        if (sceneManager) sceneManager.style.zIndex = '2';
+        if (gameControls) gameControls.style.pointerEvents = 'auto';
+    }
+
     function openManual(targetPage = 1, autoTurnPage4 = false) {
-        if (bossTimelineRunning || isPlayerJumping || postBossBookSequenceRunning) return;
+        if (playerDead || destroyed || bossTimelineRunning || isPlayerJumping || postBossBookSequenceRunning) return;
         const requestedPage = Number.isInteger(targetPage) ? targetPage : 1;
         clearPage3AutoTurnTimer();
         playActionSfx(sfxOpenBook);
@@ -3101,12 +3111,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             isPlayerControllable = true;
         }
 
-        const gameScreen = document.getElementById('gameScreen');
-        const sceneManager = document.getElementById('scene-manager');
-        const gameControls = document.querySelector('.game-controls');
-        if (gameScreen) gameScreen.style.zIndex = '1';
-        if (sceneManager) sceneManager.style.zIndex = '2';
-        if (gameControls) gameControls.style.pointerEvents = 'auto';
+        restoreManualUiLayering();
         checkBossTimelineReady();
     });
 
@@ -8036,12 +8041,20 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                         bpBtn.innerHTML = '<i class="fas fa-campground"></i>'; 
                         
                         const manualBtn = document.getElementById('inventory-manual-btn');
+
                         if (manualBtn && manualBtn.parentNode) {
-                            manualBtn.parentNode.insertBefore(bpBtn, manualBtn); 
+                            manualBtn.parentNode.insertBefore(bpBtn, manualBtn);
                         }
-                        
+
+                        // Scene3 建立的外部 UI，由 Scene3 lifecycle 負責回收。
+                        const ownedBpBtn = bpBtn;
+
+                        resourceScope?.addCleanup(() => {
+                            ownedBpBtn.remove();
+                        });
+
                         bpBtn.addEventListener('click', function(event) {
-                            if (bossTimelineRunning || isPlayerJumping) return;
+                            if (playerDead || bossTimelineRunning || isPlayerJumping) return;
                             // 🌟 核心防呆：強制移除按鈕焦點，防止鍵盤與滑鼠事件衝突卡死！
                             this.blur(); 
                             if (document.getElementById('backpack-overlay')) return;
@@ -9367,6 +9380,8 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         canAttack = false;
 
         clearMovementKeys();
+
+        restoreManualUiLayering();
 
         resourceScope?.dispose();
     }

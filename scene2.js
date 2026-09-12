@@ -1778,28 +1778,28 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
 
                 modal.classList.add('show-init');
                 
-                setTimeout(() => {
+                scheduleSceneTimeout(() => {
                     modal.classList.add('draw-borders');
                     modal.classList.add('show-bg');
                 }, 100);
 
                 // 動畫 1：顯示文字與名稱
-                setTimeout(() => { 
+                scheduleSceneTimeout(() => {
                     topText.style.opacity = '1'; topText.style.transform = 'translateY(0)'; 
                     titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
                 }, 800);
                 // 動畫 2：畫線
-                setTimeout(() => { separator.style.width = '100%'; }, 1100);
+                scheduleSceneTimeout(() => { separator.style.width = '100%'; }, 1100);
                 // 動畫 3：顯示說明
-                setTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
+                scheduleSceneTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
                 // 動畫 4：最後顯示 ICON
-                setTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
+                scheduleSceneTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
 
-                setTimeout(() => {
+                scheduleSceneTimeout(() => {
                     modal.style.opacity = '0';
-                    setTimeout(() => { modal.classList.remove('show-init', 'draw-borders', 'show-bg'); }, 400);
+                    scheduleSceneTimeout(() => { modal.classList.remove('show-init', 'draw-borders', 'show-bg'); }, 400);
                     
-                    setTimeout(() => {
+                    scheduleSceneTimeout(() => {
                         isPlayerControllable = true;
                         
                         const heldOne = document.getElementById('held-1-s2');

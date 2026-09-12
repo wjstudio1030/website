@@ -65,12 +65,16 @@ export const playerState = {
     hasSecondManual: false
 };
 
+let sceneTransitionId = 0;
+
 // 🚀 場景切換引擎 (Scene Switcher)
 export function switchScene(fromId, toId) {
     const fromScene = document.getElementById(`scene-${fromId}`);
     const toScene = document.getElementById(`scene-${toId}`);
     
     if (!fromScene || !toScene) return;
+
+    const transitionId = ++sceneTransitionId;
 
     // =========================================
     // 離開目前 Scene
@@ -101,7 +105,14 @@ export function switchScene(fromId, toId) {
     fromScene.style.opacity = '0';
     
     setTimeout(() => {
+        if (transitionId !== sceneTransitionId) return;
+
         fromScene.classList.remove('active');
+
+        // Scene lifecycle closure:
+        // container 保留，只銷毀上一個 Scene 的內容。
+        fromScene.replaceChildren();
+
         toScene.classList.add('active');
         toScene.style.opacity = '1';
         
