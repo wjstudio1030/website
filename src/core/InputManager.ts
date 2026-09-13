@@ -23,6 +23,11 @@ export class InputManager {
         this.activeHandler?.handleKeyUp?.(keyboardEvent);
     };
 
+    private readonly handleBlur = (): void => {
+        this.pressedKeys.clear();
+        this.activeHandler?.handleInputReset?.();
+    };
+
     constructor(target: EventTarget) {
         this.target = target;
 
@@ -36,6 +41,12 @@ export class InputManager {
             this.target,
             'keyup',
             this.handleKeyUp
+        );
+
+        this.scope.listen(
+            this.target,
+            'blur',
+            this.handleBlur
         );
     }
 

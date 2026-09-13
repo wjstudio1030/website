@@ -8174,6 +8174,10 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         }
     }
 
+    function handleInputReset() {
+        clearMovementKeys();
+    }
+
     let isFirstFrame = true;
     let previousScene3FrameTime = null;
 
@@ -9389,6 +9393,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     return {
         handleKeyDown,
         handleKeyUp,
+        handleInputReset,
         destroy
     };
 }

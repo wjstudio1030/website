@@ -1836,6 +1836,13 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
         if (keys.hasOwnProperty(key)) keys[key] = false;
     }
 
+    function handleInputReset() {
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+    }
+
     function gameLoopS2() {
 
         if (destroyed) {
@@ -2001,6 +2008,7 @@ export function initScene2(playerState, switchScene, resourceScope = null) {
     return {
         handleKeyDown,
         handleKeyUp,
+        handleInputReset,
         destroy
     };
 }

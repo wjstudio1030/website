@@ -169,3 +169,33 @@ test('destroy removes global keyboard listeners', () => {
     assert.equal(keyDownCount, 0);
     assert.equal(keyUpCount, 0);
 });
+
+test('blur clears pressed state and resets the active input handler', () => {
+    const target = new EventTarget();
+    const input = new InputManager(target);
+
+    let resetCount = 0;
+
+    const handler = {
+        handleInputReset() {
+            resetCount += 1;
+        }
+    };
+
+    input.activate(handler);
+
+    target.dispatchEvent(
+        createKeyboardEvent('keydown', 'KeyW')
+    );
+
+    assert.equal(input.isPressed('KeyW'), true);
+
+    target.dispatchEvent(
+        new Event('blur')
+    );
+
+    assert.equal(input.isPressed('KeyW'), false);
+    assert.equal(resetCount, 1);
+
+    input.destroy();
+});
