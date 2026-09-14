@@ -5944,7 +5944,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         const playerWidth = Math.max(1, stickman.getBoundingClientRect().width || 80);
         const leftPadding = 5;
         const centerX = leftPadding + playerWidth / 2;
-        return Math.max(4.5, Math.min(10, (centerX / sceneWidth) * 100));
+        return Math.max(5, Math.min(10, (centerX / sceneWidth) * 100));
     }
 
     function setBossExpression(expressionName) {
@@ -6738,19 +6738,11 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
         if (!isCurrentScene3Instance()) return;
 
-        // 在取消 fill: forwards 動畫之前，直接讀取畫面上的最後一幀中心點。
-        // 後續世界座標與控制起點完全採用同一個實際像素位置，不再重新估算。
+        // Boss Wind 的動畫終點就是正式 landing anchor。
+        // 直接提交 finalX / finalY，避免從動畫中的 rendered rect
+        // 反算 logical position 而受到 viewport / frame interruption 影響。
         let committedFinalX = finalX;
         let committedFinalY = finalY;
-        if (playerAnimation) {
-            const renderedFinalRect = stickman.getBoundingClientRect();
-            committedFinalX = bossClamp01(
-                (renderedFinalRect.left - sceneRect.left + renderedFinalRect.width / 2) / sceneWidth
-            ) * 100;
-            committedFinalY = bossClamp01(
-                (renderedFinalRect.top - sceneRect.top + renderedFinalRect.height / 2) / sceneHeight
-            ) * 100;
-        }
 
         if (playerAnimation) playerAnimation.cancel();
         if (environmentAnimation) environmentAnimation.cancel();
