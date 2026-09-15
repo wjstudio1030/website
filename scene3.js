@@ -1694,10 +1694,10 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             }
 
             @keyframes bossWindScreenShake {
-                0%   { transform: translate3d(-3px, 2px, 0); }
+                0%   { transform: translate3d(0, 0, 0); }
                 33%  { transform: translate3d(4px, -2px, 0); }
                 66%  { transform: translate3d(-1px, -4px, 0); }
-                100% { transform: translate3d(3px, 3px, 0); }
+                100% { transform: translate3d(0, 0, 0); }
             }
 
             #stickman-s3.boss-wind-pushed #stickman-body-s3,
