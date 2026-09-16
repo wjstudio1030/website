@@ -803,7 +803,6 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                 left: 115%; /* 放置於所有三角怪右側 */
                 transform: translate(0, -50%);
                 z-index: 3;
-                filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
                 overflow: visible;
             }
             .pla-text {
@@ -1832,7 +1831,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                 </svg>
 
                 <!-- 🌟 PLA 邏輯陣列電路圖 (完美還原等距、延伸網格與交點) -->
-                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     
                     <!-- ===== 1. 頂部標籤（整組向下 25，與上方電路同步） ===== -->
                     <g class="pla-text" stroke="none" fill="#fff" font-family="'Orbitron', sans-serif" font-size="18" font-weight="bold" letter-spacing="2px">
@@ -3163,6 +3162,8 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     let playerJumpFrameId = null;
     let playerJumpHorizontalVelocity = 0;
     let playerJumpLandingWorldX = 20;
+    let playerJumpNextAllowedAt = 0;
+    let playerJumpLandingFramePending = false;
     let playerJumpProgress = 0;
     let playerJumpHeightPx = 120;
     let playerJumpVerticalVelocityPx = 0;
@@ -3233,6 +3234,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     let isOnPlaTopPlatform = false;
     let plaTopPlatformElevationPx = 0;
     let plaTopPlatformPreviousFootWorldY = null;
+    let plaTopPlatformStaticGeometryCache = null;
 
     // 🌟 新增：小三角怪擊殺計數器 (總共9隻)
     let smallEnemyKills = 0; 
@@ -3320,6 +3322,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         playerJumpHorizontalVelocity = 0;
         playerJumpLandingWorldX = worldX;
         playerJumpProgress = 0;
+        playerJumpLandingFramePending = false;
         playerJumpVerticalVelocityPx = 0;
         playerWorldElevationPx = 0;
         verticalCameraOffsetPx = 0;
@@ -3355,6 +3358,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     // ==============================================================
     const PLAYER_JUMP_DURATION_MS = 420;
     const PLAYER_JUMP_LANDING_BLEND_MS = 60;
+    const PLAYER_JUMP_RETRIGGER_COOLDOWN_MS = 100;
     // 以世界百分比／秒表示的空中水平物理；60 FPS 下接近原本 0.4%／幀的地面速度。
     const PLAYER_JUMP_AIR_MAX_SPEED = 24;
     const PLAYER_JUMP_AIR_ACCELERATION = 140;
@@ -3977,34 +3981,72 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     }
 
     function finishPlayerVerticalJump(lastPose) {
+        /*
+        物理落地必須立即完成。
+
+        landing pose 的 60ms 只是視覺動畫，
+        不能繼續把玩家視為 airborne，
+        否則主迴圈會暫停 A / D 移動。
+        */
+        playerJumpOffsetPx = 0;
+        playerJumpProgress = 0;
+        playerJumpVerticalVelocityPx = 0;
+
+        worldX =
+            Math.max(
+                5,
+                playerJumpLandingWorldX
+            );
+
+        playerJumpHorizontalVelocity = 0;
+
+        isPlayerJumping = false;
+
+        plaTopPlatformJumpCameraLocked = false;
+
         const blendStart = performance.now();
 
         const blendFrame = now => {
             if (!isCurrentScene3Instance()) return;
-            const progress = playerJumpClamp01((now - blendStart) / PLAYER_JUMP_LANDING_BLEND_MS);
-            applyPlayerJumpPose(interpolatePlayerJumpPose(lastPose, PLAYER_JUMP_NORMAL_POSE, progress));
+
+            const progress =
+                playerJumpClamp01(
+                    (now - blendStart) /
+                    PLAYER_JUMP_LANDING_BLEND_MS
+                );
+
+            applyPlayerJumpPose(
+                interpolatePlayerJumpPose(
+                    lastPose,
+                    PLAYER_JUMP_NORMAL_POSE,
+                    progress
+                )
+            );
 
             if (progress < 1) {
-                playerJumpFrameId = scheduleSceneFrame(blendFrame);
+                playerJumpFrameId =
+                    scheduleSceneFrame(blendFrame);
                 return;
             }
 
-            playerJumpOffsetPx = 0;
-            playerJumpProgress = 0;
-            playerJumpVerticalVelocityPx = 0;
-            // 以逐幀積分出的世界座標作為真正落地點，避免左右移動後落地瞬移。
-            worldX = Math.max(5, playerJumpLandingWorldX);
-            playerJumpHorizontalVelocity = 0;
             resetPlayerJumpPose();
-            stickman.classList.remove('player-jumping');
-            stickman.classList.add('stand-still');
-            isPlayerJumping = false;
+
+            stickman.classList.remove(
+                'player-jumping'
+            );
+
             playerJumpFrameId = null;
-            plaTopPlatformJumpCameraLocked = false;
-            if (!playerDead && !bossTimelineRunning) canAttack = true;
+
+            if (
+                !playerDead &&
+                !bossTimelineRunning
+            ) {
+                canAttack = true;
+            }
         };
 
-        playerJumpFrameId = scheduleSceneFrame(blendFrame);
+        playerJumpFrameId =
+            scheduleSceneFrame(blendFrame);
     }
 
     function startPlayerVerticalJump() {
@@ -4013,6 +4055,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             !jumpManualUnlocked ||
             bossTimelineRunning ||
             isPlayerJumping ||
+            performance.now() < playerJumpNextAllowedAt ||
             isPlaHatTethered ||
             isPlaHatBallistic ||
             (playerWorldElevationPx > 0.5 && !isOnPlaTopPlatform) ||
@@ -4025,11 +4068,14 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             manualModal.classList.contains('manual-active')
         ) return;
 
-        // PLA 最上方橫線已經是實體路地；從這裡進行普通跳躍時，垂直鏡頭全程固定。
+        // PLA 最上方橫線已經是實體路地；
+        // 從這裡進行普通 C 跳躍時，垂直鏡頭全程固定。
         if (isOnPlaTopPlatform) {
             plaTopPlatformJumpCameraLocked = true;
-            plaTopPlatformJumpCameraOffsetPx = verticalCameraOffsetPx;
-            verticalCameraTargetPx = plaTopPlatformJumpCameraOffsetPx;
+            plaTopPlatformJumpCameraOffsetPx =
+                verticalCameraOffsetPx;
+            verticalCameraTargetPx =
+                plaTopPlatformJumpCameraOffsetPx;
         } else {
             plaTopPlatformJumpCameraLocked = false;
         }
@@ -4094,9 +4140,19 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
             playerJumpLandingWorldX = Math.max(
                 5,
-                playerJumpLandingWorldX + playerJumpHorizontalVelocity * deltaSeconds
+                playerJumpLandingWorldX +
+                    playerJumpHorizontalVelocity * deltaSeconds
             );
+
             worldX = playerJumpLandingWorldX;
+
+            /*
+            C Jump physics 與 Scene 3 主迴圈使用不同 RAF。
+            physics 更新後立即同步水平鏡頭與畫面，
+            避免起跳時因 render 落後一幀而產生短暫停頓。
+            */
+            updateScene3HorizontalCamera(deltaSeconds);
+            renderScene3PlayerAndCamera();
 
             if (progress < 1) {
                 playerJumpFrameId = scheduleSceneFrame(jumpFrame);
@@ -4104,7 +4160,22 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             }
 
             playerJumpOffsetPx = 0;
-            finishPlayerVerticalJump(PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1]);
+            playerJumpNextAllowedAt =
+                performance.now() +
+                PLAYER_JUMP_RETRIGGER_COOLDOWN_MS;
+
+            /*
+            最後一個 jumpFrame 已經積分過一次水平 worldX。
+            下一次 gameLoop 不可再立刻疊加地面 0.4，
+            否則 A+C / D+C 落地時會出現單幀雙重位移。
+            */
+            playerJumpLandingFramePending = true;
+
+            finishPlayerVerticalJump(
+                PLAYER_JUMP_SEQUENCE[
+                    PLAYER_JUMP_SEQUENCE.length - 1
+                ]
+            );
         };
 
         playerJumpFrameId = scheduleSceneFrame(jumpFrame);
@@ -4256,6 +4327,100 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         }
     }
 
+    function getCachedPlaTopPlatformStaticGeometry(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+
+        /*
+        PLA 世界幾何不會因 cameraX / verticalCameraOffsetPx 改變。
+        只有 stage 尺寸、位置或 DPR 改變時才需要重新量測。
+        */
+        const cacheKey = [
+            metrics.rect.left,
+            metrics.rect.top,
+            metrics.width,
+            metrics.height,
+            window.devicePixelRatio || 1
+        ]
+            .map(value => Number(value).toFixed(3))
+            .join('|');
+
+        if (
+            plaTopPlatformStaticGeometryCache?.cacheKey === cacheKey &&
+            plaTopPlatformStaticGeometryCache.line?.isConnected
+        ) {
+            return plaTopPlatformStaticGeometryCache;
+        }
+
+        const geometry =
+            getPlaTopPlatformWorldGeometry(metrics);
+
+        if (!geometry) return null;
+
+        const platformTopY =
+            getPlaTopSurfaceWorldY(geometry);
+
+        if (!Number.isFinite(platformTopY)) {
+            return null;
+        }
+
+        try {
+            const line = geometry.line;
+            const matrix = line.getScreenCTM();
+            const svg = line.ownerSVGElement;
+
+            if (
+                !matrix ||
+                !svg ||
+                typeof svg.createSVGPoint !== 'function'
+            ) {
+                return null;
+            }
+
+            const makeWorldX = svgX => {
+                const point = svg.createSVGPoint();
+
+                point.x = svgX;
+                point.y = 75;
+
+                const screenPoint =
+                    point.matrixTransform(matrix);
+
+                const worldPoint =
+                    screenPointToScene3World(
+                        screenPoint,
+                        metrics
+                    );
+
+                return worldPoint?.x;
+            };
+
+            const hole1L = makeWorldX(390);
+            const hole1R = makeWorldX(440);
+            const hole2L = makeWorldX(500);
+
+            if (
+                !Number.isFinite(hole1L) ||
+                !Number.isFinite(hole1R) ||
+                !Number.isFinite(hole2L)
+            ) {
+                return null;
+            }
+
+            plaTopPlatformStaticGeometryCache = {
+                cacheKey,
+                ...geometry,
+                platformTopY,
+                hole1L,
+                hole1R,
+                hole2L
+            };
+
+            return plaTopPlatformStaticGeometryCache;
+        } catch (error) {
+            return null;
+        }
+    }
+
     function getPlayerFootOffsetPx() {
 
         const playerHeight = Math.max(
@@ -4399,14 +4564,12 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         return metrics.groundY - getTotalPlayerElevationPx() + getPlayerFootOffsetPx();
     }
 
-    function getPlaTopPlatformSupportElevation(metrics, geometry) {
+    function getPlaTopPlatformSupportElevation(metrics, geometry, resolvedPlatformTopY = null) {
 
         if (!metrics || !geometry) return 0;
 
         // 🌟 PLA 肉眼真正看到的最上表面
-        const platformTopY =
-            getPlaTopSurfaceWorldY(geometry);
-
+        const platformTopY = Number.isFinite(resolvedPlatformTopY) ? resolvedPlatformTopY : getPlaTopSurfaceWorldY(geometry);
         if (!Number.isFinite(platformTopY)) return 0;
 
         // 🌟 讓火柴人「可視腳底」
@@ -4519,40 +4682,33 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         if (window._easterEggUnsafeFalling) {
             return;
         }
-        const metrics = getScene3StageMetrics();
-        const geometry = getPlaTopPlatformWorldGeometry(metrics);
+        const metrics =
+            getScene3StageMetrics();
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
         if (!metrics || !geometry) return;
 
-         // 🌟 新增
         const platformTopY =
-            getPlaTopSurfaceWorldY(geometry);
-
-        if (!Number.isFinite(platformTopY)) return;
+            geometry.platformTopY;
 
         const playerCenterX = worldX * metrics.width / 100;
         const horizontalMargin = Math.max(10, (stickman.getBoundingClientRect().width || 80) * 0.28);
         
         // 🌟 計算 SVG 缺口的世界坐標 (嚴格判定，無任何容錯，確保斷崖無法輕易跨越)
         let inHole = false;
-        try {
-            const line = geometry.line;
-            const matrix = line.getScreenCTM();
-            const svg = line.ownerSVGElement;
-            const makeWorldX = (svgX) => {
-                const pt = svg.createSVGPoint();
-                pt.x = svgX; pt.y = 75;
-                const screenPt = pt.matrixTransform(matrix);
-                return screenPointToScene3World(screenPt, metrics).x;
-            };
 
-            const hole1L = makeWorldX(390);
-            const hole1R = makeWorldX(440);
-            const hole2L = makeWorldX(500);
+        if (
+            playerCenterX > geometry.hole1L &&
+            playerCenterX < geometry.hole1R
+        ) {
+            inHole = true;
+        }
 
-            // 嚴格掉落：只要角色中心點一越過 390 或 500，立刻判定在洞口中
-            if (playerCenterX > hole1L && playerCenterX < hole1R) inHole = true;
-            if (playerCenterX > hole2L) inHole = true;
-        } catch (e) { }
+        if (playerCenterX > geometry.hole2L) {
+            inHole = true;
+        }
 
         // 如果處於缺口中，則判定為不在平台上，立刻觸發重力下墜
         const withinPlatform =
@@ -4579,7 +4735,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                 leavePlaTopPlatformAsBallistic(metrics);
                 currentFootY = getPlayerFootWorldY(metrics);
             } else {
-                plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry);
+                plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry, platformTopY);
                 playerWorldElevationPx = plaTopPlatformElevationPx;
                 // 普通 C 跳躍期間只疊加 playerJumpOffsetPx；非跳躍時腳底精準貼住線面。
                 if (!isPlayerJumping && !isPlaHatBallistic && !isPlaHatTethered) {
@@ -5124,8 +5280,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
         if (
             plaTopPlatformJumpCameraLocked &&
-            (!isOnPlaTopPlatform || !isPlayerJumping || isPlaHatTethered || isPlaHatBallistic)
-        ) {
+            (!isOnPlaTopPlatform || !isPlayerJumping || isPlaHatTethered || isPlaHatBallistic)) {
             plaTopPlatformJumpCameraLocked = false;
         }
 
@@ -5594,70 +5749,137 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             startLeft,
             startTop,
             impactLeft,
-            impactTop,
-            stageWidth,
-            stageHeight
+            impactTop
         } = geometry;
 
-        // 以實際時間積分的重力拋物線取代過慢的 1.12 秒漂浮；整段約 0.82 秒自然落到頭上。
-        const duration = 820;
-        const durationSeconds = duration / 1000;
-        const deltaX = impactLeft - startLeft;
-        const deltaY = impactTop - startTop;
-        const initialDownVelocity = Math.max(38, Math.min(92, stageHeight * 0.11));
-        const gravity = Math.max(
-            520,
-            (2 * (deltaY - initialDownVelocity * durationSeconds)) /
-                (durationSeconds * durationSeconds)
+        const deltaX =
+            impactLeft - startLeft;
+
+        const deltaY =
+            impactTop - startTop;
+
+        const travelDistance = Math.max(
+            1,
+            Math.hypot(deltaX, deltaY)
         );
-        const startedAt = performance.now();
+
+        /*
+        先前較近的起點使用 650ms 時速度剛好；
+        現在起點移到畫面右上方之外，因此依實際距離決定時間，
+        保持接近相同的移動速度。
+        */
+        const windSpeedPxPerSecond = 1550;
+
+        const duration = Math.max(
+            650,
+            Math.min(
+                1000,
+                travelDistance /
+                    windSpeedPxPerSecond *
+                    1000
+            )
+        );
+
+        // 整條路徑只有同一個方向，不使用重力或拋物線。
+        const tangentRotation =
+            Math.atan2(deltaY, deltaX) *
+            180 /
+            Math.PI -
+            90;
+
+        const startedAt =
+            performance.now();
 
         await new Promise(resolve => {
             const frame = now => {
-                if (!isCurrentScene3Instance() || !book.isConnected) {
+                if (
+                    !isCurrentScene3Instance() ||
+                    !book.isConnected
+                ) {
                     resolve();
                     return;
                 }
 
-                const progress = Math.max(0, Math.min(1, (now - startedAt) / duration));
-                const elapsedSeconds = progress * durationSeconds;
-                // 水平風力前段較強、接近角色時自然收束；Y 軸完全依重力加速。
-                const horizontalEase = 1 - Math.pow(1 - progress, 2.08);
-                const x = startLeft + deltaX * horizontalEase;
-                const y = startTop +
-                    initialDownVelocity * elapsedSeconds +
-                    0.5 * gravity * elapsedSeconds * elapsedSeconds;
+                const progress = Math.max(
+                    0,
+                    Math.min(
+                        1,
+                        (now - startedAt) / duration
+                    )
+                );
 
-                // 只保留非常小的風壓漂移，避免原本像逐格停頓的左右晃動。
-                const microSway = Math.sin(Math.PI * progress) * Math.sin(progress * Math.PI * 2.2) * 2.2;
-                const drawX = x + microSway;
-                const drawY = y - Math.abs(microSway) * 0.2;
+                // 固定直線插值：
+                // 右上起點 → 玩家頭部撞擊點。
+                const drawX =
+                    startLeft +
+                    deltaX * progress;
 
-                const velocityX =
-                    deltaX * 2.08 * Math.pow(Math.max(0, 1 - progress), 1.08) /
-                    durationSeconds;
-                const velocityY = initialDownVelocity + gravity * elapsedSeconds;
-                const tangentRotation = Math.atan2(velocityY, velocityX) * 180 / Math.PI - 90;
-                const flutter = Math.sin(progress * Math.PI * 3.2) * (1 - progress) * 3.2;
-                const settle = postBossBookSmoothstep(0.82, 1, progress);
-                const rotation = (tangentRotation + flutter) * (1 - settle) + 10 * settle;
-                const scale = 0.91 + postBossBookSmoothstep(0, 0.52, progress) * 0.09;
-                const opacity = postBossBookSmoothstep(0, 0.075, progress);
+                const drawY =
+                    startTop +
+                    deltaY * progress;
 
-                book.style.left = `${drawX}px`;
-                book.style.top = `${drawY}px`;
-                book.style.opacity = String(opacity);
-                book.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                /*
+                保留原本書本本身的輕微翻動效果，
+                但只影響旋轉，不再改變飛行路徑。
+                */
+                const flutter =
+                    Math.sin(
+                        progress *
+                        Math.PI *
+                        3.2
+                    ) *
+                    (1 - progress) *
+                    3.2;
+
+                const rotation =
+                    tangentRotation +
+                    flutter;
+
+                const scale =
+                    0.91 +
+                    postBossBookSmoothstep(
+                        0,
+                        0.52,
+                        progress
+                    ) *
+                    0.09;
+
+                const opacity =
+                    postBossBookSmoothstep(
+                        0,
+                        0.075,
+                        progress
+                    );
+
+                book.style.left =
+                    `${drawX}px`;
+
+                book.style.top =
+                    `${drawY}px`;
+
+                book.style.opacity =
+                    String(opacity);
+
+                book.style.transform =
+                    `rotate(${rotation}deg) scale(${scale})`;
 
                 if (progress < 1) {
                     requestAnimationFrame(frame);
                     return;
                 }
 
-                book.style.left = `${impactLeft}px`;
-                book.style.top = `${impactTop}px`;
+                // 最後一幀精確固定在玩家頭部撞擊點。
+                book.style.left =
+                    `${impactLeft}px`;
+
+                book.style.top =
+                    `${impactTop}px`;
+
                 book.style.opacity = '1';
-                book.style.transform = 'rotate(10deg) scale(1)';
+
+                book.style.transform =
+                    `rotate(${tangentRotation}deg) scale(1)`;
+
                 resolve();
             };
 
@@ -5704,12 +5926,73 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             const stageWidth = Math.max(1, stageRect.width || stage.clientWidth || 1000);
             const stageHeight = Math.max(1, stageRect.height || stage.clientHeight || 600);
 
-            // Scene 1 的撞頭幾何：書本左緣在頭部中心左 22px；書底壓入頭頂約 9px。
-            const impactLeft = headRect.left + headRect.width / 2 - environmentRect.left - 22;
-            const impactTop = Math.max(-20, headRect.top - environmentRect.top - 51);
-            const startLeft = impactLeft + Math.max(150, Math.min(270, stageWidth * 0.27));
-            const startTop = Math.min(-72, impactTop - Math.max(250, Math.min(390, stageHeight * 0.62)));
+            // 書本第一段最後撞到角色頭部的位置。
+            // 第一段固定沿約 33° 的方向飛行。
+            const windEntryAngleRad =
+                33 * Math.PI / 180;
 
+            // 原本撞擊角色頭部的基準點。
+            const impactBaseLeft =
+                headRect.left +
+                headRect.width / 2 -
+                environmentRect.left + 5;
+
+            const impactBaseTop =
+                Math.max(
+                    -20,
+                    headRect.top -
+                    environmentRect.top -
+                    51
+                );
+
+            // 撞擊點提前一點：沿原本飛行方向反向退回。
+            // 數值越大，書越早碰到帽子／頭部，不會插得那麼深。
+            const impactBackoffPx = 2;
+
+            const impactLeft =
+                impactBaseLeft +
+                Math.cos(windEntryAngleRad) *
+                impactBackoffPx;
+
+            const impactTop =
+                impactBaseTop -
+                Math.sin(windEntryAngleRad) *
+                impactBackoffPx;
+
+            const stageRightInEnvironment =
+                stageRect.right - environmentRect.left;
+
+            const stageTopInEnvironment =
+                stageRect.top - environmentRect.top;
+
+            // 書本生成點必須完全超出目前可見畫面。
+            const offscreenRightMargin = 120;
+            const offscreenTopMargin = 90;
+
+            // 要超出右邊界至少 120px，需要多少水平距離。
+            const minimumHorizontalTravel =
+                stageRightInEnvironment +
+                offscreenRightMargin -
+                impactLeft;
+
+            // 要超出上邊界至少 90px，在 33° 直線下需要多少水平距離。
+            const minimumVerticalTravel =
+                impactTop -
+                (stageTopInEnvironment - offscreenTopMargin);
+
+            const horizontalTravel = Math.max(
+                minimumHorizontalTravel,
+                minimumVerticalTravel / Math.tan(windEntryAngleRad)
+            );
+
+            // 從撞擊點沿 33° 方向反推到右上方。
+            // start → impact 會形成固定直線：右上 → 左下。
+            const startLeft =
+                impactLeft + horizontalTravel;
+
+            const startTop =
+                impactTop -
+                horizontalTravel * Math.tan(windEntryAngleRad);
             // Scene 1 撞頭後向角色右側偏移 67px；此處只調整 Y 以精準貼住畫面地面。
             const landingLeft = impactLeft + 67;
             const landingTop = Math.max(impactTop + 82, stageRect.bottom - environmentRect.top - 58);
@@ -5773,7 +6056,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
 
             createPostBossBookWindLayer();
 
-            // 先讓霧狀陣風進入畫面，再讓書本沿受風拋物線飛向角色頭部。
+            // 先讓霧狀陣風進入畫面，再讓書本沿固定直線從右上飛向角色頭部。
             await waitBossTimeline(60);
             if (!isCurrentScene3Instance()) return;
 
@@ -8260,12 +8543,51 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         // 單擺與放線後的拋體都由主迴圈積分；原本短跳仍保留原有 420ms 動畫。
         updatePlaHatTraversalPhysics(frameDeltaSeconds);
         
+        const skipGroundMovementForJumpLanding =
+        playerJumpLandingFramePending;
+
+        playerJumpLandingFramePending = false;
+
         if (!isPlayerAttacking && !isPlayerJumping) {
-            // BOSS 過場完成前維持原本四方向移動；完成後上下方向永久交由 C 跳躍控制。
-            if (keys.w && !bossTimelineCompleted) { py -= speedY; moved = true; }
-            if (keys.s && !bossTimelineCompleted) { py += speedY; moved = true; }
-            if (keys.a) { worldX -= speedX; moved = true; facing = -1; }
-            if (keys.d) { worldX += speedX; moved = true; facing = 1; }
+            if (
+                skipGroundMovementForJumpLanding
+            ) {
+                /*
+                jumpFrame 已經負責這個畫面週期的水平位移。
+                仍然保留 moved / facing，避免落地時插入一幀 stand-still。
+                */
+                if (keys.a) {
+                    moved = true;
+                    facing = -1;
+                }
+
+                if (keys.d) {
+                    moved = true;
+                    facing = 1;
+                }
+            } else {
+                if (keys.w && !bossTimelineCompleted) {
+                    py -= speedY;
+                    moved = true;
+                }
+
+                if (keys.s && !bossTimelineCompleted) {
+                    py += speedY;
+                    moved = true;
+                }
+
+                if (keys.a) {
+                    worldX -= speedX;
+                    moved = true;
+                    facing = -1;
+                }
+
+                if (keys.d) {
+                    worldX += speedX;
+                    moved = true;
+                    facing = 1;
+                }
+            }
         }
 
         // BOSS 過場前維持 Scene 1、2 的 10~90 邊界；吹氣過場結束後才保留精準底線。
