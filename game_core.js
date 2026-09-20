@@ -9,6 +9,15 @@ import { initScene2 } from './scene2.js';
 // 🌟 匯入 Scene 3 (你接下來要建立的檔案)
 import { initScene3 } from './scene3.js';
 
+import {
+    resolveGameplayCheckpointFromSearch
+} from './src/dev/gameplayCheckpoints.js';
+
+const activeDevCheckpoint =
+    import.meta.env.DEV
+        ? resolveGameplayCheckpointFromSearch(window.location.search)
+        : null;
+
 let inputManager = null;
 let createResourceScope = null;
 let createSceneManager = null;
@@ -50,6 +59,12 @@ export function configureGameCore(options) {
                 )
         }
     }) ?? null;
+
+    if (activeDevCheckpoint) {
+        launchDevCheckpoint(
+            activeDevCheckpoint
+        );
+    }
 }
 
 // 🚀 全局玩家資料庫
@@ -66,6 +81,82 @@ export const playerState = {
 };
 
 let sceneTransitionId = 0;
+
+function applyDevCheckpointPlayerState(checkpoint) {
+    if (!checkpoint?.playerState) {
+        return;
+    }
+
+    Object.entries(checkpoint.playerState).forEach(([key, value]) => {
+        playerState[key] =
+            Array.isArray(value)
+                ? [...value]
+                : value;
+    });
+}
+
+function launchDevCheckpoint(checkpoint) {
+    if (!checkpoint || !sceneManager) {
+        return false;
+    }
+
+    const targetScene =
+        document.getElementById(`scene-${checkpoint.scene}`);
+
+    if (!targetScene) {
+        console.warn(
+            `[DEV CHECKPOINT] Scene ${checkpoint.scene} does not exist`
+        );
+        return false;
+    }
+
+    /*
+     * SceneManager.leave() 在沒有 active scene 時是安全的。
+     * 這也讓未來重新載入 checkpoint 時維持一致 lifecycle。
+     */
+    sceneManager.leave();
+
+    for (let sceneId = 0; sceneId <= 3; sceneId += 1) {
+        const scene =
+            document.getElementById(`scene-${sceneId}`);
+
+        if (!scene) {
+            continue;
+        }
+
+        const isTargetScene =
+            sceneId === checkpoint.scene;
+
+        scene.classList.toggle(
+            'active',
+            isTargetScene
+        );
+
+        scene.style.opacity =
+            isTargetScene ? '1' : '0';
+    }
+
+    applyDevCheckpointPlayerState(checkpoint);
+
+    playerState.currentLevel = checkpoint.scene;
+
+    if (startGameBtn) {
+        startGameBtn.style.display = 'none';
+        startGameBtn.style.opacity = '0';
+    }
+
+    document.body.classList.remove(
+        'hide-custom-cursor'
+    );
+
+    sceneManager.enter(checkpoint.scene);
+
+    console.info(
+        `[DEV CHECKPOINT] Loaded ${checkpoint.id}`
+    );
+
+    return true;
+}
 
 // 🚀 場景切換引擎 (Scene Switcher)
 export function switchScene(fromId, toId) {
