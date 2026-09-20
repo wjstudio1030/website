@@ -55,7 +55,10 @@ export function configureGameCore(options) {
                 initScene3(
                     playerState,
                     switchScene,
-                    resourceScope
+                    resourceScope,
+                    activeDevCheckpoint?.scene === 3
+                        ? activeDevCheckpoint
+                        : null
                 )
         }
     }) ?? null;
@@ -250,7 +253,10 @@ export function switchScene(fromId, toId) {
             scene3Controller = initScene3(
                 playerState,
                 switchScene,
-                resourceScope
+                resourceScope,
+                activeDevCheckpoint?.scene === 3
+                    ? activeDevCheckpoint
+                    : null
             );
 
             inputManager?.activate(scene3Controller);

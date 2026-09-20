@@ -2,7 +2,7 @@
 // WJ STUDIO - 場景 3：全新領域 (scene3.js)
 // =========================================
 
-export function initScene3(playerState, switchScene, resourceScope = null) {
+export function initScene3(playerState, switchScene, resourceScope = null, devCheckpoint = null) {
     const scene3 = document.getElementById('scene-3');
     const scene3InstanceToken = Symbol('scene3-instance');
     window._scene3InstanceToken = scene3InstanceToken;
@@ -3127,7 +3127,96 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
     }
     manualBtn.style.display = 'flex'; manualBtn.addEventListener('click', openManual);
 
+    function ensureScene3BackpackButton({animateUnlock = false} = {}) {
+        let bpBtn =
+            document.getElementById('inventory-backpack-btn');
 
+        if (bpBtn) {
+            return bpBtn;
+        }
+
+        bpBtn = document.createElement('button');
+        bpBtn.id = 'inventory-backpack-btn';
+        bpBtn.className = 'control-btn';
+        bpBtn.title = 'Backpack';
+        bpBtn.innerHTML =
+            '<i class="fas fa-campground"></i>';
+
+        if (manualBtn?.parentNode) {
+            manualBtn.parentNode.insertBefore(
+                bpBtn,
+                manualBtn
+            );
+        }
+
+        // Scene3 建立的外部 UI，
+        // 由這個 Scene3 instance 的 lifecycle 負責回收。
+        const ownedBpBtn = bpBtn;
+
+        resourceScope?.addCleanup(() => {
+            ownedBpBtn.remove();
+        });
+
+        bpBtn.addEventListener('click', function () {
+            if (
+                playerDead ||
+                bossTimelineRunning ||
+                isPlayerJumping
+            ) {
+                return;
+            }
+
+            this.blur();
+
+            if (
+                document.getElementById(
+                    'backpack-overlay'
+                )
+            ) {
+                return;
+            }
+
+            isPlayerControllable = false;
+            isGamePaused = true;
+            pauseStartTime = performance.now();
+
+            stickman.classList.add('freeze-anim');
+
+            enemies.forEach(enemy => {
+                if (enemy.alive && enemy.el) {
+                    enemy.el.classList.add(
+                        'freeze-anim'
+                    );
+                }
+            });
+
+            triggerBackpackAnimation(false);
+        });
+
+        if (animateUnlock) {
+            bpBtn.style.animation =
+                'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, ' +
+                'btnPulseShake 0.8s ease-in-out';
+
+            bpBtn.style.color =
+                'var(--brand-blue)';
+
+            bpBtn.style.textShadow =
+                '0 0 8px var(--brand-blue)';
+
+            scheduleSceneTimeout(() => {
+                if (!bpBtn.isConnected) {
+                    return;
+                }
+
+                bpBtn.style.animation = '';
+                bpBtn.style.color = '';
+                bpBtn.style.textShadow = '';
+            }, 1000);
+        }
+
+        return bpBtn;
+    }
     // =========================================
     // 🌟 AABB 碰撞偵測輔助函式
     // =========================================
@@ -3350,6 +3439,186 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
         stickman.style.filter = '';
         environmentLayer.style.transform = `translate(${-cameraX}%, 0px)`;
         hidePlaHatTetherVisual();
+    }
+
+    function applyScene3DevCheckpoint(checkpoint) {
+        if (checkpoint?.sceneState?.phase !== 'post-boss') {
+            return;
+        }
+
+        // =========================================
+        // DEV-01A - Scene 3 canonical post-Boss state
+        // =========================================
+
+        // 正常 Boss timeline 已完整發生過。
+        bossTimelineStarted = true;
+        bossTimelineRunning = false;
+        bossTimelineCompleted = true;
+
+        if (bossTimelineCheckTimer !== null) {
+            clearSceneTimeout(bossTimelineCheckTimer);
+            bossTimelineCheckTimer = null;
+        }
+
+        // 9 隻敵人已全部擊殺，8 件正式掉落已全部取得。
+        smallEnemyKills = TOTAL_SMALL_ENEMIES;
+        collectedTriangleLoot = TOTAL_TRIANGLE_LOOT;
+
+        enemies.forEach(enemy => {
+            enemy.alive = false;
+
+            if (enemy.el?.isConnected) {
+                enemy.el.remove();
+            }
+        });
+
+        scene3
+            .querySelectorAll('.loot-drop-item')
+            .forEach(element => element.remove());
+
+        scene3
+            .querySelectorAll(
+                '.split-anim-container, .split-anim-container-sm'
+            )
+            .forEach(element => element.remove());
+
+        const firstKillContainer =
+            scene3.querySelector('#first-kill-container');
+
+        if (firstKillContainer) {
+            firstKillContainer.remove();
+        }
+
+        readyToPickUpTriangle = false;
+        nearbyDropItem = null;
+
+        // Canonical loot layout:
+        // 7 body = 副手 1 + backpack 6
+        // 1 hat  = 頭部
+        isHammerEquipped = true;
+
+        window._hammerSlot = {
+            type: 'handR',
+            x: 555,
+            y: 415
+        };
+
+        hand1Item = null;
+        hand2Item = 'body';
+        headItem = 'hat';
+
+        backpackGrid = new Array(17).fill(null);
+
+        const backpackBodySlot =
+            backpackGrid.findIndex((slot, index) =>
+                slot === null &&
+                (!window._hammerSlot ||
+                    window._hammerSlot.slotIndex !== index)
+            );
+
+        if (backpackBodySlot >= 0) {
+            backpackGrid[backpackBodySlot] = {
+                type: 'body',
+                count: 6
+            };
+        }
+
+        updateMainStickmanEquipment();
+
+        ensureScene3BackpackButton({
+            animateUnlock: false
+        });
+
+        // Boss 已完全離場。
+        const boss =
+            document.getElementById('scene3-boss');
+
+        const flightShell =
+            document.getElementById('boss-flight-shell');
+
+        const windLayer =
+            document.getElementById('boss-wind-layer');
+
+        const stage =
+            document.getElementById('scene3-stage');
+
+        if (boss) {
+            boss.classList.remove(
+                'visible',
+                'departing',
+                'hovering',
+                'inhaling',
+                'blowing'
+            );
+        }
+
+        if (flightShell) {
+            flightShell.style.transform = '';
+            flightShell.style.opacity = '';
+        }
+
+        if (windLayer) {
+            windLayer.classList.remove('active');
+        }
+
+        if (stage) {
+            stage.classList.remove('boss-wind-shake');
+        }
+
+        stopBossAmbientEmitter(0);
+
+        // Boss 開始時 PLA glass barrier 會被解除。
+        const barrier =
+            document.getElementById('pla-glass-barrier');
+
+        if (barrier) {
+            barrier.style.opacity = '0';
+        }
+
+        // Boss 後書本事件尚未發生。
+        postBossBookSequenceStarted = false;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = false;
+        postBossBookPickedUp = false;
+        isNearPostBossBook = false;
+
+        postBossBookElement = null;
+        postBossBookPromptElement = null;
+
+        // PAGE 3 尚未取得，所以 C Jump 尚未解鎖。
+        hasThirdManual = false;
+        jumpManualUnlocked = false;
+        playerState.hasThirdManual = false;
+
+        // 使用正式 Boss Wind 的 landing contract，
+        // 不硬寫 worldX / py。
+        const landingWorldX =
+            getPlayerLeftXPercent();
+
+        const landingY =
+            getPlayerBottomYPercent();
+
+        postBossLandingAnchor = {
+            worldX: landingWorldX,
+            py: landingY,
+            cameraX: 0,
+            facing: 1
+        };
+
+        commitPostBossLandingAnchor();
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        renderScene3PlayerAndCamera();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 post-boss state'
+        );
     }
 
     // ==============================================================
@@ -8306,56 +8575,9 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
                     isGamePaused = false;
                     totalPausedTime += (performance.now() - pauseStartTime);
                     checkBossTimelineReady();
-
-                    let bpBtn = document.getElementById('inventory-backpack-btn');
-                    if (!bpBtn) {
-                        bpBtn = document.createElement('button');
-                        bpBtn.id = 'inventory-backpack-btn';
-                        bpBtn.className = 'control-btn'; 
-                        bpBtn.title = "Backpack"; 
-                        bpBtn.innerHTML = '<i class="fas fa-campground"></i>'; 
-                        
-                        const manualBtn = document.getElementById('inventory-manual-btn');
-
-                        if (manualBtn && manualBtn.parentNode) {
-                            manualBtn.parentNode.insertBefore(bpBtn, manualBtn);
-                        }
-
-                        // Scene3 建立的外部 UI，由 Scene3 lifecycle 負責回收。
-                        const ownedBpBtn = bpBtn;
-
-                        resourceScope?.addCleanup(() => {
-                            ownedBpBtn.remove();
-                        });
-
-                        bpBtn.addEventListener('click', function(event) {
-                            if (playerDead || bossTimelineRunning || isPlayerJumping) return;
-                            // 🌟 核心防呆：強制移除按鈕焦點，防止鍵盤與滑鼠事件衝突卡死！
-                            this.blur(); 
-                            if (document.getElementById('backpack-overlay')) return;
-
-                            isPlayerControllable = false; 
-                            isGamePaused = true;
-                            pauseStartTime = performance.now();
-                            
-                            stickman.classList.add('freeze-anim');
-                            enemies.forEach(e => {
-                                if (e.alive && e.el) e.el.classList.add('freeze-anim');
-                            });
-                            
-                            triggerBackpackAnimation(false); 
-                        });
-
-                        bpBtn.style.animation = 'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, btnPulseShake 0.8s ease-in-out';
-                        bpBtn.style.color = 'var(--brand-blue)';
-                        bpBtn.style.textShadow = '0 0 8px var(--brand-blue)';
-                        
-                        setTimeout(() => {
-                            bpBtn.style.animation = ''; 
-                            bpBtn.style.color = '';
-                            bpBtn.style.textShadow = '';
-                        }, 1000);
-                    }
+                    ensureScene3BackpackButton({
+                        animateUnlock: true
+                    });
                 }, 300);
             }
             return;
@@ -9686,6 +9908,7 @@ export function initScene3(playerState, switchScene, resourceScope = null) {
             }, 100); 
         }
     }
+    applyScene3DevCheckpoint(devCheckpoint);
     scheduleSceneFrame(gameLoopS3);
 
     function destroy() {
