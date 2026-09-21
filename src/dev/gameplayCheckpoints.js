@@ -45,6 +45,23 @@ export const GAMEPLAY_CHECKPOINTS = Object.freeze({
         sceneState: Object.freeze({
             phase: 'post-boss'
         })
+    }),
+    's3-book-landed': Object.freeze({
+        id: 's3-book-landed',
+        scene: 3,
+        description: 'Scene 3 after the post-Boss book has landed and before pickup',
+
+        playerState: Object.freeze({
+            ammoOnes: 0,
+            ammoZeros: 0,
+            hasHammer: true,
+            hasSecondManual: true,
+            hasThirdManual: false
+        }),
+
+        sceneState: Object.freeze({
+            phase: 'book-landed'
+        })
     })
 });
 

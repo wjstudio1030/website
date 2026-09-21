@@ -3440,9 +3440,80 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         environmentLayer.style.transform = `translate(${-cameraX}%, 0px)`;
         hidePlaHatTetherVisual();
     }
+    function applyScene3BookLandedCheckpoint() {
+        // 正常 cinematic 是玩家往右走到 trigger 後才開始。
+        worldX = POST_BOSS_BOOK_TRIGGER_WORLD_X;
+
+        // 使用正常地面 camera 邏輯建立同樣構圖。
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        cameraFocusTransitionUntil = 0;
+
+        updateScene3HorizontalCamera(0);
+        renderScene3PlayerAndCamera();
+
+        // Geometry 必須在角色與 camera 已到 trigger position 後計算。
+        const {
+            startLeft,
+            startTop,
+            landingLeft,
+            landingTop
+        } = getPostBossBookGeometry();
+
+        // 防止未來 re-apply 時留下 duplicate DOM。
+        postBossBookElement?.remove();
+        postBossBookPromptElement?.remove();
+
+        const {
+            book,
+            prompt
+        } = createPostBossBookElements({
+            startLeft,
+            startTop,
+            landingLeft,
+            landingTop
+        });
+
+        // 直接重建 cinematic 已完成的最終狀態。
+        book.style.transition = 'none';
+        book.style.left = `${landingLeft}px`;
+        book.style.top = `${landingTop}px`;
+        book.style.transform = 'rotate(85deg)';
+        book.style.opacity = '1';
+
+        prompt.style.opacity = '0';
+
+        startPostBossBookPromptAnimation(prompt);
+
+        postBossBookSequenceStarted = true;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = true;
+        postBossBookPickedUp = false;
+        isNearPostBossBook = false;
+
+        // 尚未撿書，所以 PAGE 3 / C Jump 仍然鎖住。
+        hasThirdManual = false;
+        jumpManualUnlocked = false;
+        playerState.hasThirdManual = false;
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        updatePostBossBookProximity();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 book-landed state'
+        );
+    }
 
     function applyScene3DevCheckpoint(checkpoint) {
-        if (checkpoint?.sceneState?.phase !== 'post-boss') {
+        const phase = checkpoint?.sceneState?.phase;
+
+        if (phase !== 'post-boss' && phase !== 'book-landed') {
             return;
         }
 
@@ -3615,6 +3686,10 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         setBossUiLocked(false);
 
         renderScene3PlayerAndCamera();
+        if (phase === 'book-landed') {
+            applyScene3BookLandedCheckpoint();
+            return;
+        }
 
         console.info(
             '[DEV CHECKPOINT] Applied Scene 3 post-boss state'
@@ -6155,6 +6230,201 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             requestAnimationFrame(frame);
         });
     }
+    function getPostBossBookGeometry() {
+        const stage = document.getElementById('scene3-stage');
+        const head = document.getElementById('stickman-head-s3');
+
+        if (!stage || !head || !environmentLayer) {
+            throw new Error('Post-BOSS book sequence DOM is incomplete.');
+        }
+
+        const stageRect = stage.getBoundingClientRect();
+        const environmentRect = environmentLayer.getBoundingClientRect();
+        const headRect = head.getBoundingClientRect();
+
+        const stageWidth = Math.max(
+            1,
+            stageRect.width || stage.clientWidth || 1000
+        );
+
+        const stageHeight = Math.max(
+            1,
+            stageRect.height || stage.clientHeight || 600
+        );
+
+        // 書本第一段最後撞到角色頭部的位置。
+        // 第一段固定沿約 33° 的方向飛行。
+        const windEntryAngleRad =
+            33 * Math.PI / 180;
+
+        // 原本撞擊角色頭部的基準點。
+        const impactBaseLeft =
+            headRect.left +
+            headRect.width / 2 -
+            environmentRect.left + 5;
+
+        const impactBaseTop =
+            Math.max(
+                -20,
+                headRect.top -
+                environmentRect.top -
+                51
+            );
+
+        // 撞擊點沿飛行方向稍微往回收，
+        // 避免書本視覺上穿進角色頭部。
+        const impactBackoffPx = 2;
+
+        const impactLeft =
+            impactBaseLeft +
+            Math.cos(windEntryAngleRad) *
+            impactBackoffPx;
+
+        const impactTop =
+            impactBaseTop -
+            Math.sin(windEntryAngleRad) *
+            impactBackoffPx;
+
+        const stageRightInEnvironment =
+            stageRect.right - environmentRect.left;
+
+        const stageTopInEnvironment =
+            stageRect.top - environmentRect.top;
+
+        // 書本生成點必須完全超出目前可見畫面。
+        const offscreenRightMargin = 120;
+        const offscreenTopMargin = 90;
+
+        // 要超出右邊界至少 120px，需要多少水平距離。
+        const minimumHorizontalTravel =
+            stageRightInEnvironment +
+            offscreenRightMargin -
+            impactLeft;
+
+        // 要超出上邊界至少 90px，在 33° 直線下需要多少水平距離。
+        const minimumVerticalTravel =
+            impactTop -
+            (stageTopInEnvironment - offscreenTopMargin);
+
+        const horizontalTravel = Math.max(
+            minimumHorizontalTravel,
+            minimumVerticalTravel /
+                Math.tan(windEntryAngleRad)
+        );
+
+        // 從撞擊點沿 33° 方向反推到右上方。
+        // start → impact 會形成固定直線：右上 → 左下。
+        const startLeft =
+            impactLeft + horizontalTravel;
+
+        const startTop =
+            impactTop -
+            horizontalTravel *
+                Math.tan(windEntryAngleRad);
+
+        // Scene 1 撞頭後向角色右側偏移 67px；
+        // 此處只調整 Y 以精準貼住畫面地面。
+        const landingLeft = impactLeft + 67;
+
+        const landingTop = Math.max(
+            impactTop + 82,
+            stageRect.bottom -
+                environmentRect.top -
+                58
+        );
+            return {
+            stageWidth,
+            stageHeight,
+            startLeft,
+            startTop,
+            impactLeft,
+            impactTop,
+            landingLeft,
+            landingTop
+        };
+    }
+
+    function createPostBossBookElements({startLeft, startTop, landingLeft, landingTop}) {
+        const book = document.createElement('div');
+        book.id = 'post-boss-falling-book-s3';
+        book.style.cssText = [
+            'position:absolute',
+            `top:${startTop}px`,
+            `left:${startLeft}px`,
+            'width:45px',
+            'height:60px',
+            'background-color:#094b8e',
+            'border:2px solid #fff',
+            'border-left:8px solid #042a53',
+            'border-radius:2px 6px 6px 2px',
+            'box-shadow:inset -4px 0 0 #ddd, 0 0 15px rgba(0,242,254,0.5)',
+            'display:flex',
+            'justify-content:center',
+            'align-items:center',
+            'opacity:0',
+            'z-index:9',
+            'pointer-events:auto',
+            'transform:rotate(84deg) scale(0.88)',
+            'transform-origin:center center',
+            'will-change:left,top,transform,opacity'
+        ].join(';');
+        book.innerHTML = `<span style="color:#fff; font-family:'Orbitron', sans-serif; font-size:14px; font-weight:900; transform:rotate(-90deg); letter-spacing:2px;">C++</span>`;
+
+        const prompt = document.createElement('div');
+        prompt.id = 'post-boss-book-e-prompt-s3';
+        prompt.textContent = 'E';
+        prompt.style.cssText = [
+            'position:absolute',
+            `left:${landingLeft - 10}px`,
+            `top:${landingTop - 45}px`,
+            'width:30px',
+            'height:30px',
+            'background:rgba(0,242,254,0.15)',
+            'border:2px solid var(--brand-blue)',
+            'border-radius:6px',
+            'color:#fff',
+            "font-family:'Orbitron', sans-serif",
+            'font-weight:bold',
+            'font-size:14px',
+            'display:flex',
+            'justify-content:center',
+            'align-items:center',
+            'opacity:0',
+            'transition:opacity 0.3s',
+            'z-index:20',
+            'box-shadow:0 0 10px var(--brand-blue)',
+            'pointer-events:none',
+            'will-change:transform,opacity'
+        ].join(';');
+
+        environmentLayer.appendChild(book);
+        environmentLayer.appendChild(prompt);
+        postBossBookElement = book;
+        postBossBookPromptElement = prompt;
+        return {
+            book,
+            prompt
+        };
+    }
+
+    function startPostBossBookPromptAnimation(prompt) {
+        if (
+            !prompt ||
+            typeof prompt.animate !== 'function'
+        ) {
+            return;
+        }
+
+        prompt.animate([
+            { transform: 'translateY(0)' },
+            { transform: 'translateY(-5px)' },
+            { transform: 'translateY(0)' }
+        ], {
+            duration: 1500,
+            iterations: Infinity,
+            easing: 'ease-in-out'
+        });
+    }
 
     async function triggerPostBossBookFallSequence() {
         if (
@@ -6183,146 +6453,26 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         setBossUiLocked(true);
 
         try {
-            const stage = document.getElementById('scene3-stage');
-            const head = document.getElementById('stickman-head-s3');
-            if (!stage || !head || !environmentLayer) {
-                throw new Error('Post-BOSS book sequence DOM is incomplete.');
-            }
+            const {
+                stageWidth,
+                stageHeight,
+                startLeft,
+                startTop,
+                impactLeft,
+                impactTop,
+                landingLeft,
+                landingTop
+            } = getPostBossBookGeometry();
 
-            const stageRect = stage.getBoundingClientRect();
-            const environmentRect = environmentLayer.getBoundingClientRect();
-            const headRect = head.getBoundingClientRect();
-            const stageWidth = Math.max(1, stageRect.width || stage.clientWidth || 1000);
-            const stageHeight = Math.max(1, stageRect.height || stage.clientHeight || 600);
-
-            // 書本第一段最後撞到角色頭部的位置。
-            // 第一段固定沿約 33° 的方向飛行。
-            const windEntryAngleRad =
-                33 * Math.PI / 180;
-
-            // 原本撞擊角色頭部的基準點。
-            const impactBaseLeft =
-                headRect.left +
-                headRect.width / 2 -
-                environmentRect.left + 5;
-
-            const impactBaseTop =
-                Math.max(
-                    -20,
-                    headRect.top -
-                    environmentRect.top -
-                    51
-                );
-
-            // 撞擊點提前一點：沿原本飛行方向反向退回。
-            // 數值越大，書越早碰到帽子／頭部，不會插得那麼深。
-            const impactBackoffPx = 2;
-
-            const impactLeft =
-                impactBaseLeft +
-                Math.cos(windEntryAngleRad) *
-                impactBackoffPx;
-
-            const impactTop =
-                impactBaseTop -
-                Math.sin(windEntryAngleRad) *
-                impactBackoffPx;
-
-            const stageRightInEnvironment =
-                stageRect.right - environmentRect.left;
-
-            const stageTopInEnvironment =
-                stageRect.top - environmentRect.top;
-
-            // 書本生成點必須完全超出目前可見畫面。
-            const offscreenRightMargin = 120;
-            const offscreenTopMargin = 90;
-
-            // 要超出右邊界至少 120px，需要多少水平距離。
-            const minimumHorizontalTravel =
-                stageRightInEnvironment +
-                offscreenRightMargin -
-                impactLeft;
-
-            // 要超出上邊界至少 90px，在 33° 直線下需要多少水平距離。
-            const minimumVerticalTravel =
-                impactTop -
-                (stageTopInEnvironment - offscreenTopMargin);
-
-            const horizontalTravel = Math.max(
-                minimumHorizontalTravel,
-                minimumVerticalTravel / Math.tan(windEntryAngleRad)
-            );
-
-            // 從撞擊點沿 33° 方向反推到右上方。
-            // start → impact 會形成固定直線：右上 → 左下。
-            const startLeft =
-                impactLeft + horizontalTravel;
-
-            const startTop =
-                impactTop -
-                horizontalTravel * Math.tan(windEntryAngleRad);
-            // Scene 1 撞頭後向角色右側偏移 67px；此處只調整 Y 以精準貼住畫面地面。
-            const landingLeft = impactLeft + 67;
-            const landingTop = Math.max(impactTop + 82, stageRect.bottom - environmentRect.top - 58);
-
-            const book = document.createElement('div');
-            book.id = 'post-boss-falling-book-s3';
-            book.style.cssText = [
-                'position:absolute',
-                `top:${startTop}px`,
-                `left:${startLeft}px`,
-                'width:45px',
-                'height:60px',
-                'background-color:#094b8e',
-                'border:2px solid #fff',
-                'border-left:8px solid #042a53',
-                'border-radius:2px 6px 6px 2px',
-                'box-shadow:inset -4px 0 0 #ddd, 0 0 15px rgba(0,242,254,0.5)',
-                'display:flex',
-                'justify-content:center',
-                'align-items:center',
-                'opacity:0',
-                'z-index:9',
-                'pointer-events:auto',
-                'transform:rotate(84deg) scale(0.88)',
-                'transform-origin:center center',
-                'will-change:left,top,transform,opacity'
-            ].join(';');
-            book.innerHTML = `<span style="color:#fff; font-family:'Orbitron', sans-serif; font-size:14px; font-weight:900; transform:rotate(-90deg); letter-spacing:2px;">C++</span>`;
-
-            const prompt = document.createElement('div');
-            prompt.id = 'post-boss-book-e-prompt-s3';
-            prompt.textContent = 'E';
-            prompt.style.cssText = [
-                'position:absolute',
-                `left:${landingLeft - 10}px`,
-                `top:${landingTop - 45}px`,
-                'width:30px',
-                'height:30px',
-                'background:rgba(0,242,254,0.15)',
-                'border:2px solid var(--brand-blue)',
-                'border-radius:6px',
-                'color:#fff',
-                "font-family:'Orbitron', sans-serif",
-                'font-weight:bold',
-                'font-size:14px',
-                'display:flex',
-                'justify-content:center',
-                'align-items:center',
-                'opacity:0',
-                'transition:opacity 0.3s',
-                'z-index:20',
-                'box-shadow:0 0 10px var(--brand-blue)',
-                'pointer-events:none',
-                'will-change:transform,opacity'
-            ].join(';');
-
-            environmentLayer.appendChild(book);
-            environmentLayer.appendChild(prompt);
-            postBossBookElement = book;
-            postBossBookPromptElement = prompt;
-
+            const {
+                book,
+                prompt
+            } = createPostBossBookElements({
+                startLeft,
+                startTop,
+                landingLeft,
+                landingTop
+            });
             createPostBossBookWindLayer();
 
             // 先讓霧狀陣風進入畫面，再讓書本沿固定直線從右上飛向角色頭部。
@@ -6364,17 +6514,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             if (!isCurrentScene3Instance()) return;
 
             prompt.style.opacity = '0';
-            if (typeof prompt.animate === 'function') {
-                prompt.animate([
-                    { transform: 'translateY(0)' },
-                    { transform: 'translateY(-5px)' },
-                    { transform: 'translateY(0)' }
-                ], {
-                    duration: 1500,
-                    iterations: Infinity,
-                    easing: 'ease-in-out'
-                });
-            }
+            startPostBossBookPromptAnimation(prompt);
 
             postBossBookReadyToPick = true;
             updatePostBossBookProximity();
