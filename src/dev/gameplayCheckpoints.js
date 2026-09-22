@@ -79,6 +79,23 @@ export const GAMEPLAY_CHECKPOINTS = Object.freeze({
         sceneState: Object.freeze({
             phase: 'pla-approach'
         })
+    }),
+    's3-pre-easter-egg': Object.freeze({
+        id: 's3-pre-easter-egg',
+        scene: 3,
+        description: 'Scene 3 grounded on the PLA top platform before the Easter Egg jump buffer zone',
+
+        playerState: Object.freeze({
+            ammoOnes: 0,
+            ammoZeros: 0,
+            hasHammer: true,
+            hasSecondManual: true,
+            hasThirdManual: true
+        }),
+
+        sceneState: Object.freeze({
+            phase: 'pre-easter-egg'
+        })
     })
 });
 

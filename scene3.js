@@ -3594,10 +3594,124 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         );
     }
 
+    function applyScene3PreEasterEggCheckpoint() {
+        // 先取得「已撿書、C Jump 已解鎖」的 canonical 狀態。
+        applyScene3PlaApproachCheckpoint();
+
+        const triggerGeometry =
+            getEasterEggTriggerGeometry();
+
+        if (!triggerGeometry) {
+            console.warn(
+                '[DEV CHECKPOINT] Could not resolve Easter Egg trigger geometry'
+            );
+            return;
+        }
+
+        const {
+            metrics,
+            geometry
+        } = triggerGeometry;
+
+        const noJumpBoundaryWorldX =
+            getEasterEggNoJumpBoundaryWorldX(
+                triggerGeometry
+            );
+
+        if (!Number.isFinite(noJumpBoundaryWorldX)) {
+            console.warn(
+                '[DEV CHECKPOINT] Could not resolve Easter Egg no-jump boundary'
+            );
+            return;
+        }
+
+        const platformLeftWorldX =
+            geometry.leftX /
+            metrics.width *
+            100;
+
+        // 站在未來 S25-03 no-new-C-jump boundary 左側，
+        // 保留一小段正常 approach，方便直接測 boundary。
+        worldX =
+            Math.max(
+                platformLeftWorldX + 1,
+                noJumpBoundaryWorldX -
+                    EASTER_EGG_CHECKPOINT_APPROACH_PADDING_WORLD_X
+            );
+
+        facing = 1;
+
+        // 彩蛋必須完全尚未開始。
+        window._easterEggTriggered = false;
+        window._isEasterEggActive = false;
+        window._easterEggAnimationDone = false;
+        window._easterEggQHeld = false;
+        window._easterEggFrozen = false;
+        window._easterEggUnsafeFalling = false;
+        window._easterEggAntennaExtension = 0;
+        window._easterEggBridge = null;
+
+        preEasterEquipmentSnapshot = null;
+
+        document
+            .querySelectorAll(
+                '[id="ee-fixed-antenna-container"]'
+            )
+            .forEach(element => element.remove());
+
+        toggleEasterEggQPose(false);
+
+        // 不允許 checkpoint 帶入上一個 jump frame。
+        playerJumpNextAllowedAt = 0;
+        playerJumpLandingFramePending = false;
+
+        clearMovementKeys();
+
+        // 使用正式 PLA landing contract，
+        // 不自己手動偽造 platform elevation。
+        landPlayerOnPlaTopPlatform(
+            metrics,
+            geometry
+        );
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        // checkpoint 載入時直接建立穩定 camera 構圖，
+        // 不從 pla-approach 的 worldX=100 慢慢滑過來。
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        horizontalCameraInitialized = false;
+        cameraFocusTransitionUntil = 0;
+
+        updateScene3HorizontalCamera(0);
+
+        verticalCameraOffsetPx = 0;
+        verticalCameraTargetPx = 0;
+
+        // 讓 top-platform camera 一次收斂到正常 gameplay framing。
+        updateScene3VerticalCamera(1);
+
+        renderScene3PlayerAndCamera();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 pre-Easter-Egg state',
+            {
+                worldX,
+                noJumpBoundaryWorldX,
+                triggerStartWorldX:
+                    triggerGeometry.startWorldX,
+                maxJumpTravelWorldX:
+                    getPlayerJumpMaxHorizontalTravelWorldX()
+            }
+        );
+    }
+
     function applyScene3DevCheckpoint(checkpoint) {
         const phase = checkpoint?.sceneState?.phase;
 
-        if (phase !== 'post-boss' && phase !== 'book-landed' && phase !== 'pla-approach') {
+        if (phase !== 'post-boss' && phase !== 'book-landed' && phase !== 'pla-approach' && phase !== 'pre-easter-egg') {
             return;
         }
 
@@ -3781,6 +3895,11 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             return;
         }
 
+        if (phase === 'pre-easter-egg') {
+            applyScene3PreEasterEggCheckpoint();
+            return;
+        }
+
         console.info(
             '[DEV CHECKPOINT] Applied Scene 3 post-boss state'
         );
@@ -3793,10 +3912,71 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
     const PLAYER_JUMP_DURATION_MS = 420;
     const PLAYER_JUMP_LANDING_BLEND_MS = 60;
     const PLAYER_JUMP_RETRIGGER_COOLDOWN_MS = 100;
-    // 以世界百分比／秒表示的空中水平物理；60 FPS 下接近原本 0.4%／幀的地面速度。
+
+    const PLAYER_JUMP_AIR_INITIAL_SPEED = 10;
     const PLAYER_JUMP_AIR_MAX_SPEED = 24;
     const PLAYER_JUMP_AIR_ACCELERATION = 140;
     const PLAYER_JUMP_AIR_DRAG = 9;
+
+    const EASTER_EGG_JUMP_SAFETY_MARGIN_WORLD_X = 1;
+    const EASTER_EGG_CHECKPOINT_APPROACH_PADDING_WORLD_X = 2;
+
+    function getPlayerJumpMaxHorizontalTravelWorldX() {
+        const durationSeconds =
+            PLAYER_JUMP_DURATION_MS / 1000;
+
+        const initialSpeed =
+            Math.min(
+                PLAYER_JUMP_AIR_INITIAL_SPEED,
+                PLAYER_JUMP_AIR_MAX_SPEED
+            );
+
+        const accelerationTime =
+            Math.max(
+                0,
+                Math.min(
+                    durationSeconds,
+                    (
+                        PLAYER_JUMP_AIR_MAX_SPEED -
+                        initialSpeed
+                    ) /
+                    PLAYER_JUMP_AIR_ACCELERATION
+                )
+            );
+
+        const accelerationDistance =
+            initialSpeed *
+            accelerationTime +
+            0.5 *
+            PLAYER_JUMP_AIR_ACCELERATION *
+            accelerationTime *
+            accelerationTime;
+
+        const maxSpeedDistance =
+            PLAYER_JUMP_AIR_MAX_SPEED *
+            Math.max(
+                0,
+                durationSeconds -
+                accelerationTime
+            );
+
+        return (
+            accelerationDistance +
+            maxSpeedDistance
+        );
+    }
+
+    function getEasterEggNoJumpBoundaryWorldX(
+        triggerGeometry
+    ) {
+        if (!triggerGeometry) return null;
+
+        return (
+            triggerGeometry.startWorldX -
+            getPlayerJumpMaxHorizontalTravelWorldX() -
+            EASTER_EGG_JUMP_SAFETY_MARGIN_WORLD_X
+        );
+    }
 
     // 每一點都精準對應 PLA 圖上可導通的 X 中心或頂部圓點中心（SVG viewBox 座標）。
     // 圓點與 X 共用完全相同的搜尋半徑、固定點、單擺、放線與防重抓邏輯。
@@ -4525,7 +4705,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         canAttack = false;
         playerJumpOffsetPx = 0;
         playerJumpLandingWorldX = worldX;
-        playerJumpHorizontalVelocity = initialDirection * 10;
+        playerJumpHorizontalVelocity = initialDirection * PLAYER_JUMP_AIR_INITIAL_SPEED;
         keys.w = false;
         keys.s = false;
         stickman.classList.remove('anim-attack', 'boss-wind-landed');
@@ -4853,6 +5033,59 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         } catch (error) {
             return null;
         }
+    }
+
+    const EASTER_EGG_TRIGGER_OFFSET_PX = 28;
+    const EASTER_EGG_TRIGGER_HALF_WIDTH_PX = 15;
+
+    function getEasterEggTriggerGeometry(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (
+            !geometry ||
+            !Number.isFinite(geometry.hole1L)
+        ) {
+            return null;
+        }
+
+        const centerPx =
+            geometry.hole1L -
+            EASTER_EGG_TRIGGER_OFFSET_PX;
+
+        const startPx =
+            centerPx -
+            EASTER_EGG_TRIGGER_HALF_WIDTH_PX;
+
+        const endPx =
+            centerPx +
+            EASTER_EGG_TRIGGER_HALF_WIDTH_PX;
+
+        return {
+            metrics,
+            geometry,
+
+            centerPx,
+            startPx,
+            endPx,
+
+            centerWorldX:
+                centerPx /
+                metrics.width *
+                100,
+
+            startWorldX:
+                startPx /
+                metrics.width *
+                100,
+
+            endWorldX:
+                endPx /
+                metrics.width *
+                100
+        };
     }
 
     function getPlayerFootOffsetPx() {
@@ -9067,28 +9300,18 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         // 🌟 新增：PLA 斷崖邊緣彩蛋觸發判定 (附帶觸發位置微調教學)
         // ==============================================================
         if (!window._easterEggTriggered && isOnPlaTopPlatform && isHammerEquipped && hand2Item !== null) {
-            const metrics = getScene3StageMetrics();
-            const geometry = getPlaTopPlatformWorldGeometry(metrics);
-            if (metrics && geometry) {
-                try {
-                    const line = geometry.line;
-                    const matrix = line.getScreenCTM();
-                    const svg = line.ownerSVGElement;
-                    const pt = svg.createSVGPoint();
-                    pt.x = 390; pt.y = 75; // 斷崖邊緣
-                    const screenPt = pt.matrixTransform(matrix);
-                    const hole1L = screenPointToScene3World(screenPt, metrics).x;
-                    const playerCenterX = worldX * metrics.width / 100;
+            const triggerGeometry =
+                getEasterEggTriggerGeometry();
 
-                    // 💡 【觸發位置微調】
-                    // hole1L 是斷崖真正的邊緣。如果想要角色在「更左邊一點」就觸發，
-                    // 只要調整這裡的「- 5」。例如改成「- 15」就會提早觸發！
-                    const triggerZoneX = hole1L - 28; 
+            if (triggerGeometry) {
+                const playerCenterX =
+                    worldX *
+                    triggerGeometry.metrics.width /
+                    100;
 
-                    if (Math.abs(playerCenterX - triggerZoneX) < 15) {
-                        triggerEasterEggSequence();
-                    }
-                } catch(e) {}
+                if (playerCenterX > triggerGeometry.startPx && playerCenterX < triggerGeometry.endPx) {
+                    triggerEasterEggSequence();
+                }
             }
         }
 
