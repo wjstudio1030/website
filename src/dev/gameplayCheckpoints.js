@@ -62,6 +62,23 @@ export const GAMEPLAY_CHECKPOINTS = Object.freeze({
         sceneState: Object.freeze({
             phase: 'book-landed'
         })
+    }),
+    's3-pla-approach': Object.freeze({
+        id: 's3-pla-approach',
+        scene: 3,
+        description: 'Scene 3 grounded at the PLA approach after acquiring the third manual',
+
+        playerState: Object.freeze({
+            ammoOnes: 0,
+            ammoZeros: 0,
+            hasHammer: true,
+            hasSecondManual: true,
+            hasThirdManual: true
+        }),
+
+        sceneState: Object.freeze({
+            phase: 'pla-approach'
+        })
     })
 });
 

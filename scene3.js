@@ -3510,10 +3510,94 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         );
     }
 
+    function applyScene3PlaApproachCheckpoint() {
+        // 書本事件已經完整結束，而且書已經被撿取。
+        postBossBookSequenceStarted = true;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = false;
+        postBossBookPickedUp = true;
+        isNearPostBossBook = false;
+
+        postBossBookElement?.remove();
+        postBossBookPromptElement?.remove();
+
+        postBossBookElement = null;
+        postBossBookPromptElement = null;
+
+        // PAGE 3 已取得，C Jump 已正式解鎖。
+        hasThirdManual = true;
+        jumpManualUnlocked = true;
+        playerState.hasThirdManual = true;
+
+        // Checkpoint 代表玩家已經把自動開啟的 Manual 關掉。
+        manualModal.classList.remove('manual-active');
+
+        // 玩家直接站在 PLA 前方的安全地面位置。
+        worldX = 100;
+        facing = 1;
+
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        horizontalCameraInitialized = false;
+        cameraFocusTransitionUntil = 0;
+
+        // 尚未開始任何 PLA traversal。
+        isPlaHatTethered = false;
+        isPlaHatBallistic = false;
+        plaHatAnchor = null;
+        plaHatRopeLengthPx = 0;
+        plaHatAngularVelocity = 0;
+        plaHatVelocityXPx = 0;
+        plaHatVelocityUpPx = 0;
+        plaBallisticAirTimeSeconds = 0;
+
+        plaTopPlatformSolid = false;
+        isOnPlaTopPlatform = false;
+        plaTopPlatformJumpCameraLocked = false;
+
+        playerWorldElevationPx = 0;
+        playerJumpOffsetPx = 0;
+        playerJumpHorizontalVelocity = 0;
+        playerJumpVerticalVelocityPx = 0;
+        playerJumpLandingWorldX = worldX;
+        isPlayerJumping = false;
+
+        hidePlaHatTetherVisual();
+
+        // Easter egg 尚未開始。
+        window._isEasterEggActive = false;
+        window._easterEggTriggered = false;
+
+        isGamePaused = false;
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        stickman.classList.remove(
+            'anim-attack',
+            'player-jumping',
+            'player-tumble',
+            'boss-wind-pushed',
+            'boss-wind-landed'
+        );
+
+        stickman.classList.add('stand-still');
+
+        updateScene3HorizontalCamera(0);
+        renderScene3PlayerAndCamera();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 PLA approach state'
+        );
+    }
+
     function applyScene3DevCheckpoint(checkpoint) {
         const phase = checkpoint?.sceneState?.phase;
 
-        if (phase !== 'post-boss' && phase !== 'book-landed') {
+        if (phase !== 'post-boss' && phase !== 'book-landed' && phase !== 'pla-approach') {
             return;
         }
 
@@ -3686,8 +3770,14 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         setBossUiLocked(false);
 
         renderScene3PlayerAndCamera();
+
         if (phase === 'book-landed') {
             applyScene3BookLandedCheckpoint();
+            return;
+        }
+
+        if (phase === 'pla-approach') {
+            applyScene3PlaApproachCheckpoint();
             return;
         }
 
