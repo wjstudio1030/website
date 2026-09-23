@@ -3966,9 +3966,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         );
     }
 
-    function getEasterEggNoJumpBoundaryWorldX(
-        triggerGeometry
-    ) {
+    function getEasterEggNoJumpBoundaryWorldX(triggerGeometry) {
         if (!triggerGeometry) return null;
 
         return (
@@ -3976,6 +3974,26 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             getPlayerJumpMaxHorizontalTravelWorldX() -
             EASTER_EGG_JUMP_SAFETY_MARGIN_WORLD_X
         );
+    }
+
+    function shouldBlockNewPlayerJumpForEasterEgg() {
+        if (window._easterEggTriggered || !isOnPlaTopPlatform || !isHammerEquipped || hand2Item === null) {
+            return false;
+        }
+
+        const triggerGeometry =
+            getEasterEggTriggerGeometry();
+
+        const noJumpBoundaryWorldX =
+            getEasterEggNoJumpBoundaryWorldX(
+                triggerGeometry
+            );
+
+        if (!Number.isFinite(noJumpBoundaryWorldX)) {
+            return false;
+        }
+
+        return worldX >= noJumpBoundaryWorldX;
     }
 
     // 每一點都精準對應 PLA 圖上可導通的 X 中心或頂部圓點中心（SVG viewBox 座標）。
@@ -4667,6 +4685,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         if (
             !bossTimelineCompleted ||
             !jumpManualUnlocked ||
+            shouldBlockNewPlayerJumpForEasterEgg() ||
             bossTimelineRunning ||
             isPlayerJumping ||
             performance.now() < playerJumpNextAllowedAt ||
