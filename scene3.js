@@ -1831,7 +1831,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                 </svg>
 
                 <!-- 🌟 PLA 邏輯陣列電路圖 (完美還原等距、延伸網格與交點) -->
-                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 150%; height: auto; z-index: 3; overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     
                     <!-- ===== 1. 頂部標籤（整組向下 25，與上方電路同步） ===== -->
                     <g class="pla-text" stroke="none" fill="#fff" font-family="'Orbitron', sans-serif" font-size="18" font-weight="bold" letter-spacing="2px">
@@ -5054,8 +5054,8 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         }
     }
 
-    const EASTER_EGG_TRIGGER_OFFSET_PX = 28;
-    const EASTER_EGG_TRIGGER_HALF_WIDTH_PX = 15;
+    const EASTER_EGG_TRIGGER_OFFSET_SVG = 28 / 3;
+    const EASTER_EGG_TRIGGER_HALF_WIDTH_SVG = 15 / 3;
 
     function getEasterEggTriggerGeometry(metrics = getScene3StageMetrics()) {
         if (!metrics) return null;
@@ -5063,24 +5063,37 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         const geometry =
             getCachedPlaTopPlatformStaticGeometry(metrics);
 
+        if (!geometry || !Number.isFinite(geometry.hole1L) || !Number.isFinite(geometry.hole1R)) {
+            return null;
+        }
+
+        const plaSvgUnitWorldPx =
+            (geometry.hole1R - geometry.hole1L) /
+            (440 - 390);
+
         if (
-            !geometry ||
-            !Number.isFinite(geometry.hole1L)
+            !Number.isFinite(plaSvgUnitWorldPx) ||
+            plaSvgUnitWorldPx <= 0
         ) {
             return null;
         }
 
         const centerPx =
             geometry.hole1L -
-            EASTER_EGG_TRIGGER_OFFSET_PX;
+            EASTER_EGG_TRIGGER_OFFSET_SVG *
+            plaSvgUnitWorldPx;
+
+        const triggerHalfWidthPx =
+            EASTER_EGG_TRIGGER_HALF_WIDTH_SVG *
+            plaSvgUnitWorldPx;
 
         const startPx =
             centerPx -
-            EASTER_EGG_TRIGGER_HALF_WIDTH_PX;
+            triggerHalfWidthPx;
 
         const endPx =
             centerPx +
-            EASTER_EGG_TRIGGER_HALF_WIDTH_PX;
+            triggerHalfWidthPx;
 
         return {
             metrics,
