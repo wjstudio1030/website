@@ -2634,6 +2634,8 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
 
         window._easterEggBridge = null;
 
+        easterEggFixedAntennaAnchor = null;
+
 
         // =====================================================
         // ③ 刪除「固定在世界裡」的倒下天線
@@ -3265,6 +3267,10 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
     let playerWorldElevationPx = 0;
     let verticalCameraOffsetPx = 0;
     let verticalCameraTargetPx = 0;
+    let easterEggLockedStageWidthPx = null;
+    let easterEggLockedStageHeightPx = null;
+    let easterEggLockedScreenElevationRatio = null;
+    let easterEggFixedAntennaAnchor = null;
     // 只計算 PLA 導通／平台離開後的拋體滯空時間；一般地面短跳完全不參與。
     // 下降越久，垂直鏡頭的向下追蹤速度才會逐步提高，短距離落下仍維持柔和。
     let plaBallisticAirTimeSeconds = 0;
@@ -3650,6 +3656,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         window._easterEggUnsafeFalling = false;
         window._easterEggAntennaExtension = 0;
         window._easterEggBridge = null;
+        easterEggFixedAntennaAnchor = null;
 
         preEasterEquipmentSnapshot = null;
 
@@ -6174,6 +6181,199 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         }
     }
 
+    function reprojectFixedEasterEggAntenna(metrics) {
+        if (!metrics || !easterEggFixedAntennaAnchor) return;
+
+        const fixedContainer =
+            document.getElementById('ee-fixed-antenna-container');
+        const clonedGroup =
+            document.getElementById('ee-fixed-falling-group');
+        const ownerSvg = clonedGroup?.ownerSVGElement;
+
+        if (
+            !fixedContainer ||
+            !clonedGroup ||
+            !ownerSvg ||
+            typeof clonedGroup.getScreenCTM !== 'function'
+        ) return;
+
+        const {
+            worldXRatio,
+            plaYOffsetSvg,
+            containerWidthRatio,
+            containerHeightRatio,
+            svgX: anchorSvgX,
+            svgY: anchorSvgY
+        } = easterEggFixedAntennaAnchor;
+
+        if (
+            !Number.isFinite(worldXRatio) ||
+            !Number.isFinite(plaYOffsetSvg) ||
+            !Number.isFinite(containerWidthRatio) ||
+            containerWidthRatio <= 0 ||
+            !Number.isFinite(containerHeightRatio) ||
+            containerHeightRatio <= 0 ||
+            !Number.isFinite(anchorSvgX) ||
+            !Number.isFinite(anchorSvgY) ||
+            !Number.isFinite(metrics.width) ||
+            metrics.width <= 0
+        ) return;
+
+        const desiredContainerWidth =
+            containerWidthRatio *
+            metrics.width;
+
+        const desiredContainerHeight =
+            containerHeightRatio *
+            metrics.width;
+
+        fixedContainer.style.width =
+            `${desiredContainerWidth}px`;
+
+        fixedContainer.style.height =
+            `${desiredContainerHeight}px`;
+
+        void fixedContainer.getBoundingClientRect();
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (
+            !geometry ||
+            !Number.isFinite(geometry.platformTopY) ||
+            !Number.isFinite(geometry.hole1L) ||
+            !Number.isFinite(geometry.hole1R)
+        ) return;
+
+        const plaSvgUnitWorldPx =
+            (geometry.hole1R - geometry.hole1L) /
+            (440 - 390);
+
+        if (
+            !Number.isFinite(plaSvgUnitWorldPx) ||
+            plaSvgUnitWorldPx <= 0
+        ) return;
+
+        try {
+            const matrix = clonedGroup.getScreenCTM();
+            if (!matrix) return;
+
+            const point = ownerSvg.createSVGPoint();
+            point.x = anchorSvgX;
+            point.y = anchorSvgY;
+
+            const currentAnchorScreen =
+                point.matrixTransform(matrix);
+
+            const desiredWorldX =
+                worldXRatio *
+                metrics.width;
+
+            const desiredWorldY =
+                geometry.platformTopY +
+                plaYOffsetSvg *
+                plaSvgUnitWorldPx;
+
+            const desiredScreenX =
+                desiredWorldX +
+                metrics.rect.left -
+                cameraX * metrics.width / 100;
+
+            const desiredScreenY =
+                desiredWorldY +
+                metrics.rect.top +
+                verticalCameraOffsetPx;
+
+            const currentLeft =
+                Number.parseFloat(fixedContainer.style.left);
+            const currentTop =
+                Number.parseFloat(fixedContainer.style.top);
+
+            if (
+                !Number.isFinite(currentAnchorScreen.x) ||
+                !Number.isFinite(currentAnchorScreen.y) ||
+                !Number.isFinite(desiredScreenX) ||
+                !Number.isFinite(desiredScreenY) ||
+                !Number.isFinite(currentLeft) ||
+                !Number.isFinite(currentTop)
+            ) return;
+
+            const deltaX =
+                desiredScreenX -
+                currentAnchorScreen.x;
+
+            const deltaY =
+                desiredScreenY -
+                currentAnchorScreen.y;
+
+            fixedContainer.style.left =
+                `${currentLeft + deltaX}px`;
+
+            fixedContainer.style.top =
+                `${currentTop + deltaY}px`;
+        } catch (error) {
+            return;
+        }
+    }
+
+    function reanchorLockedEasterEggForStageResize() {
+        if (
+            !window._isEasterEggActive ||
+            isPlayerControllable ||
+            !isOnPlaTopPlatform
+        ) return;
+
+        const metrics = getScene3StageMetrics();
+        if (!metrics) return;
+
+        const stageResized =
+            Math.abs(metrics.width - easterEggLockedStageWidthPx) > 0.5 ||
+            Math.abs(metrics.height - easterEggLockedStageHeightPx) > 0.5;
+
+        if (!stageResized) return;
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (!geometry || !Number.isFinite(geometry.platformTopY)) return;
+
+        plaTopPlatformElevationPx =
+            getPlaTopPlatformSupportElevation(
+                metrics,
+                geometry,
+                geometry.platformTopY
+            );
+
+        playerWorldElevationPx = plaTopPlatformElevationPx;
+
+        const currentFootY = getPlayerFootWorldY(metrics);
+        if (Number.isFinite(currentFootY)) {
+            plaTopPlatformPreviousFootWorldY = currentFootY;
+        }
+
+        if (Number.isFinite(easterEggLockedScreenElevationRatio)) {
+            const totalElevation =
+                getTotalPlayerElevationPx();
+
+            const desiredScreenElevationPx =
+                easterEggLockedScreenElevationRatio *
+                metrics.height;
+
+            verticalCameraOffsetPx =
+                totalElevation -
+                desiredScreenElevationPx;
+
+            verticalCameraTargetPx =
+                verticalCameraOffsetPx;
+        }
+
+        easterEggLockedStageWidthPx = metrics.width;
+        easterEggLockedStageHeightPx = metrics.height;
+
+        renderScene3PlayerAndCamera();
+        reprojectFixedEasterEggAntenna(metrics);
+    }
+
     function renderScene3PlayerAndCamera() {
         const totalElevation = getTotalPlayerElevationPx();
         const px = worldX - cameraX;
@@ -8363,8 +8563,15 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                     if (isSafeAntennaLength) {
 
                         window._easterEggBridge = {
-                            startX: playerCenterX_Px,
-                            endX: antennaTipPx
+                            startWorldX:
+                                playerCenterX_Px /
+                                metrics.width *
+                                100,
+
+                            endWorldX:
+                                antennaTipPx /
+                                metrics.width *
+                                100
                         };
 
                     } else {
@@ -8384,9 +8591,20 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                             if (window._easterEggBridge && !window._isEasterEggActive && !window._easterEggUnsafeFalling) {
                                 const m = getScene3StageMetrics();
                                 if (m) {
-                                    const px = worldX * m.width / 100;
                                     const b = window._easterEggBridge;
-                                    if (px >= b.startX - 15 && px <= b.endX + 15) {
+                                    const bridgeToleranceWorldX =
+                                        15 *
+                                        100 /
+                                        m.width;
+
+                                    if (
+                                        worldX >=
+                                            b.startWorldX -
+                                            bridgeToleranceWorldX &&
+                                        worldX <=
+                                            b.endWorldX +
+                                            bridgeToleranceWorldX
+                                    ) {
                                         if (isPlaHatBallistic && playerJumpVerticalVelocityPx <= 0) {
                                             isPlaHatBallistic = false;
                                             isPlayerJumping = false;
@@ -8432,6 +8650,57 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                             }
                         } catch (e) {
                             console.warn('讀取原天線支點失敗:', e);
+                        }
+
+                        easterEggFixedAntennaAnchor = null;
+
+                        const originalAnchorWorld =
+                            screenPointToScene3World(
+                                originalAnchorScreen,
+                                metrics
+                            );
+
+                        const geometry =
+                            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+                        const plaSvgUnitWorldPx =
+                            geometry &&
+                            Number.isFinite(geometry.hole1L) &&
+                            Number.isFinite(geometry.hole1R)
+                                ? (geometry.hole1R - geometry.hole1L) /
+                                    (440 - 390)
+                                : null;
+
+                        if (
+                            Number.isFinite(originalAnchorWorld?.x) &&
+                            Number.isFinite(originalAnchorWorld?.y) &&
+                            Number.isFinite(geometry?.platformTopY) &&
+                            Number.isFinite(geometry?.hole1L) &&
+                            Number.isFinite(geometry?.hole1R) &&
+                            Number.isFinite(plaSvgUnitWorldPx) &&
+                            plaSvgUnitWorldPx > 0 &&
+                            Number.isFinite(metrics.width) &&
+                            metrics.width > 0
+                        ) {
+                            easterEggFixedAntennaAnchor = {
+                                worldXRatio:
+                                    originalAnchorWorld.x /
+                                    metrics.width,
+                                plaYOffsetSvg:
+                                    (
+                                        originalAnchorWorld.y -
+                                        geometry.platformTopY
+                                    ) /
+                                    plaSvgUnitWorldPx,
+                                containerWidthRatio:
+                                    80 /
+                                    metrics.width,
+                                containerHeightRatio:
+                                    120 /
+                                    metrics.width,
+                                svgX: ANCHOR_X,
+                                svgY: ANCHOR_Y
+                            };
                         }
 
 
@@ -9241,6 +9510,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                 !isGamePaused;
 
             if (!unsafeFallMayContinue) {
+                reanchorLockedEasterEggForStageResize();
                 scheduleSceneFrame(gameLoopS3);
                 return;
             }
@@ -9391,6 +9661,29 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             savePreEasterEquipmentState();
             window._easterEggTriggered = true;
             window._isEasterEggActive = true;
+
+            const easterEggLockMetrics = getScene3StageMetrics();
+
+            easterEggLockedStageWidthPx =
+                easterEggLockMetrics?.width ?? null;
+
+            easterEggLockedStageHeightPx =
+                easterEggLockMetrics?.height ?? null;
+
+            if (
+                Number.isFinite(easterEggLockMetrics?.height) &&
+                easterEggLockMetrics.height > 0
+            ) {
+                const lockedScreenElevationPx =
+                    getTotalPlayerElevationPx() -
+                    verticalCameraOffsetPx;
+
+                easterEggLockedScreenElevationRatio =
+                    lockedScreenElevationPx /
+                    easterEggLockMetrics.height;
+            } else {
+                easterEggLockedScreenElevationRatio = null;
+            }
 
             // 1. 永久鎖定操作，不會有 setTimeout 把他改回 true！
             isPlayerControllable = false;
