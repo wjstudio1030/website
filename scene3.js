@@ -3364,6 +3364,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
     ];
 
     let backpackIsOpen = false;
+    let backpackCloseGeneration = 0;
 
     // ==============================================================
     // 🌨️ 六枝邏輯 BOSS Timeline 控制器
@@ -9320,6 +9321,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
         // 🌟 1. 關閉背包並恢復遊戲時間 (按 X 關閉)
         if (key === 'x' && backpackIsOpen) {
             backpackIsOpen = false;
+            backpackCloseGeneration += 1;
             const overlay = document.getElementById('backpack-overlay');
             if(overlay) {
                 overlay.style.opacity = '0';
@@ -10403,13 +10405,16 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                     // 因為上方已精準配發了 x 與 y，這裡再也不會發生瞬移或消失了！
                     hammerElem.setAttribute('transform', `translate(${closestSlot.x}, ${closestSlot.y}) scale(0.48) rotate(0)`);
                 }
-                
+
+                const dropCloseGeneration = backpackCloseGeneration;
                 setTimeout(() => {
                     const oldOverlay = document.getElementById('backpack-overlay');
                     if (oldOverlay) oldOverlay.remove();
                     updateMainStickmanEquipment();
-                    triggerBackpackAnimation(false, true);
-                }, 300); 
+                    if (dropCloseGeneration === backpackCloseGeneration) {
+                        triggerBackpackAnimation(false, true);
+                    }
+                }, 300);
             });
 
             overlay.addEventListener('mouseleave', () => {
@@ -10573,6 +10578,7 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
             activeItem.setAttribute('transform', `translate(${tx}, ${ty}) scale(${scale})`);
 
             // 6. 無縫更新資料
+            const dropCloseGeneration = backpackCloseGeneration;
             setTimeout(() => {
                 if (action === 'equip_hand2') {
                     let orig = backpackGrid[oIndex];
@@ -10602,9 +10608,11 @@ export function initScene3(playerState, switchScene, resourceScope = null, devCh
                 
                 const oldOverlay = document.getElementById('backpack-overlay');
                 if (oldOverlay) oldOverlay.remove();
-                updateMainStickmanEquipment(); 
-                triggerBackpackAnimation(false, true); 
-            }, 300); 
+                updateMainStickmanEquipment();
+                if (dropCloseGeneration === backpackCloseGeneration) {
+                    triggerBackpackAnimation(false, true);
+                }
+            }, 300);
         };
         
         overlay.addEventListener('mouseup', handleItemMouseUpLeave);
