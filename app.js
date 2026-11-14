@@ -244,11 +244,15 @@ if (introOverlay && smokeCanvas) {
 
 function checkIntroTrigger() {
     if (window.innerWidth > 960 && isIntroTimeReady && !hasIntroTriggered) {
-        // Dynamically locate the bottom of the added technology section.
-        // Future inserted content above this marker shifts the trigger automatically.
+        // Keep the previously shifted trigger anchor after the HOME hero.
+        // Fire when the original TEDx hero reaches ~6% below the viewport top,
+        // matching the full-hero framing across desktop screen sizes.
+        // This follows future changes to the technology section and hero height.
         const introAnchor = document.getElementById('wj-intro-trigger-anchor');
+        const homeHero = document.querySelector('body > .main');
+        const heroHeight = homeHero ? homeHero.getBoundingClientRect().height : window.innerHeight * 0.90;
         const thresholdY = introAnchor
-            ? introAnchor.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.70
+            ? introAnchor.getBoundingClientRect().top + window.scrollY - heroHeight - window.innerHeight * 0.06
             : 50;
         if (window.scrollY > Math.max(50, thresholdY)) { 
             hasIntroTriggered = true;
