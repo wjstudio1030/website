@@ -45,6 +45,114 @@
             </ul>
         </div>
     </nav>
+    <!-- WJ Academy: first visible HOME content; five in-page static category panels -->
+    <section id="wj-technology" class="wj-tech" aria-labelledby="wj-tech-heading">
+        <div class="wj-tech__wrap">
+            <header class="wj-tech__header">
+                <div>
+                    <div class="wj-tech__eyebrow">WJ 資電工坊 / WJ ACADEMY</div>
+                    <h2 class="wj-tech__title" id="wj-tech-heading">探索五大<span>技術領域</span></h2>
+                </div>
+                <div class="wj-tech__meta">FIVE FIELDS &nbsp; / &nbsp; ONE CREATIVE LAB</div>
+            </header>
+            <div class="wj-tech__selector" role="tablist" aria-label="選擇技術領域">
+                <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-iot" data-field="iot" data-theme="peach" aria-controls="wj-tech-panel-iot" aria-selected="true" tabindex="0">
+                    <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">01 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-microchip"></i></span></span>
+                    <span class="wj-tech__tab-label">電子實作與物聯網<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                </button>
+                <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-game" data-field="game" data-theme="pink" aria-controls="wj-tech-panel-game" aria-selected="false" tabindex="-1">
+                    <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">02 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-gamepad"></i></span></span>
+                    <span class="wj-tech__tab-label">遊戲開發<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                </button>
+                <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-program" data-field="program" data-theme="purple" aria-controls="wj-tech-panel-program" aria-selected="false" tabindex="-1">
+                    <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">03 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-code"></i></span></span>
+                    <span class="wj-tech__tab-label">程式應用<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                </button>
+                <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-website" data-field="website" data-theme="violet" aria-controls="wj-tech-panel-website" aria-selected="false" tabindex="-1">
+                    <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">04 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-laptop-code"></i></span></span>
+                    <span class="wj-tech__tab-label">互動式網站<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                </button>
+                <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-xr" data-field="xr" data-theme="blue" aria-controls="wj-tech-panel-xr" aria-selected="false" tabindex="-1">
+                    <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">05 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-vr-cardboard"></i></span></span>
+                    <span class="wj-tech__tab-label">AI X VR/AR<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                </button>
+            </div>
+            <div class="wj-tech__stage">
+                <section class="wj-tech__panel" id="wj-tech-panel-iot" data-field-panel="iot" data-theme="peach" role="tabpanel" aria-labelledby="wj-tech-tab-iot">
+                    <div class="wj-tech__panel-main">
+                        <div>
+                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 01</div>
+                            <h3 class="wj-tech__panel-heading"><span>電子實作與物聯網</span></h3>
+                            <div class="wj-tech__panel-english">ELECTRONICS / INTERNET OF THINGS</div>
+                        </div>
+                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
+                    </div>
+                    <div class="wj-tech__panel-graphic" aria-hidden="true">
+                        <div class="wj-tech__graphic-frame"><i class="fas fa-microchip wj-tech__graphic-icon"></i></div>
+                        <span class="wj-tech__graphic-corner">01 &nbsp; / &nbsp; 05</span>
+                    </div>
+                </section>
+                <section class="wj-tech__panel" id="wj-tech-panel-game" data-field-panel="game" data-theme="pink" role="tabpanel" aria-labelledby="wj-tech-tab-game" hidden>
+                    <div class="wj-tech__panel-main">
+                        <div>
+                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 02</div>
+                            <h3 class="wj-tech__panel-heading"><span>遊戲開發</span></h3>
+                            <div class="wj-tech__panel-english">GAME DEVELOPMENT</div>
+                        </div>
+                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
+                    </div>
+                    <div class="wj-tech__panel-graphic" aria-hidden="true">
+                        <div class="wj-tech__graphic-frame"><i class="fas fa-gamepad wj-tech__graphic-icon"></i></div>
+                        <span class="wj-tech__graphic-corner">02 &nbsp; / &nbsp; 05</span>
+                    </div>
+                </section>
+                <section class="wj-tech__panel" id="wj-tech-panel-program" data-field-panel="program" data-theme="purple" role="tabpanel" aria-labelledby="wj-tech-tab-program" hidden>
+                    <div class="wj-tech__panel-main">
+                        <div>
+                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 03</div>
+                            <h3 class="wj-tech__panel-heading"><span>程式應用</span></h3>
+                            <div class="wj-tech__panel-english">PROGRAMMING / APPLICATIONS</div>
+                        </div>
+                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
+                    </div>
+                    <div class="wj-tech__panel-graphic" aria-hidden="true">
+                        <div class="wj-tech__graphic-frame"><i class="fas fa-code wj-tech__graphic-icon"></i></div>
+                        <span class="wj-tech__graphic-corner">03 &nbsp; / &nbsp; 05</span>
+                    </div>
+                </section>
+                <section class="wj-tech__panel" id="wj-tech-panel-website" data-field-panel="website" data-theme="violet" role="tabpanel" aria-labelledby="wj-tech-tab-website" hidden>
+                    <div class="wj-tech__panel-main">
+                        <div>
+                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 04</div>
+                            <h3 class="wj-tech__panel-heading"><span>互動式網站</span></h3>
+                            <div class="wj-tech__panel-english">INTERACTIVE WEB EXPERIENCES</div>
+                        </div>
+                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
+                    </div>
+                    <div class="wj-tech__panel-graphic" aria-hidden="true">
+                        <div class="wj-tech__graphic-frame"><i class="fas fa-laptop-code wj-tech__graphic-icon"></i></div>
+                        <span class="wj-tech__graphic-corner">04 &nbsp; / &nbsp; 05</span>
+                    </div>
+                </section>
+                <section class="wj-tech__panel" id="wj-tech-panel-xr" data-field-panel="xr" data-theme="blue" role="tabpanel" aria-labelledby="wj-tech-tab-xr" hidden>
+                    <div class="wj-tech__panel-main">
+                        <div>
+                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 05</div>
+                            <h3 class="wj-tech__panel-heading"><span>AI X VR/AR</span></h3>
+                            <div class="wj-tech__panel-english">AI / IMMERSIVE TECHNOLOGY</div>
+                        </div>
+                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
+                    </div>
+                    <div class="wj-tech__panel-graphic" aria-hidden="true">
+                        <div class="wj-tech__graphic-frame"><i class="fas fa-vr-cardboard wj-tech__graphic-icon"></i></div>
+                        <span class="wj-tech__graphic-corner">05 &nbsp; / &nbsp; 05</span>
+                    </div>
+                </section>
+            </div>
+            <div class="wj-tech__foot"><span>WJ / TECHNOLOGY</span><span class="wj-tech__foot-line"></span><span>01 — 05</span></div>
+        </div>
+    </section>
+
     <!--Hero Section-->
     <div class="main">
         <div class="main__container">
@@ -74,56 +182,6 @@
         </div>
     </div>
 
-    <!-- New static WJ technology section: no existing home content replaced -->
-    <section id="wj-technology" class="wj-tech" aria-labelledby="wj-tech-heading">
-        <div class="wj-tech__wrap">
-            <div class="wj-tech__top">
-                <div>
-                    <div class="wj-tech__eyebrow">WJ 資電工坊 / WJ ACADEMY</div>
-                    <h2 class="wj-tech__title" id="wj-tech-heading">探索五大<span>技術領域</span></h2>
-                </div>
-                <div class="wj-tech__summary">FIVE FIELDS / ONE CREATIVE LAB</div>
-            </div>
-            <div class="wj-tech__grid">
-                <a class="wj-tech__card" data-theme="coral" href="Tech_AI.html" aria-label="前往AI 人工智慧初始頁面">
-                    <span class="wj-tech__card-number">FIELD / 01</span>
-                    <span class="wj-tech__card-icon" aria-hidden="true"><i class="fas fa-brain"></i></span>
-                    <span class="wj-tech__card-title">AI 人工智慧</span>
-                    <span class="wj-tech__card-en">ARTIFICIAL INTELLIGENCE</span>
-                    <span class="wj-tech__card-foot">EXPLORE <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
-                </a>
-                <a class="wj-tech__card" data-theme="pink" href="Tech_IoT.html" aria-label="前往電子實作與物聯網初始頁面">
-                    <span class="wj-tech__card-number">FIELD / 02</span>
-                    <span class="wj-tech__card-icon" aria-hidden="true"><i class="fas fa-microchip"></i></span>
-                    <span class="wj-tech__card-title">電子實作與物聯網</span>
-                    <span class="wj-tech__card-en">ELECTRONICS / IoT</span>
-                    <span class="wj-tech__card-foot">EXPLORE <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
-                </a>
-                <a class="wj-tech__card" data-theme="lilac" href="Tech_Web.html" aria-label="前往程式設計與互動網站初始頁面">
-                    <span class="wj-tech__card-number">FIELD / 03</span>
-                    <span class="wj-tech__card-icon" aria-hidden="true"><i class="fas fa-code"></i></span>
-                    <span class="wj-tech__card-title">程式設計與互動網站</span>
-                    <span class="wj-tech__card-en">PROGRAMMING / WEB</span>
-                    <span class="wj-tech__card-foot">EXPLORE <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
-                </a>
-                <a class="wj-tech__card" data-theme="violet" href="Tech_Game.html" aria-label="前往遊戲開發初始頁面">
-                    <span class="wj-tech__card-number">FIELD / 04</span>
-                    <span class="wj-tech__card-icon" aria-hidden="true"><i class="fas fa-gamepad"></i></span>
-                    <span class="wj-tech__card-title">遊戲開發</span>
-                    <span class="wj-tech__card-en">GAME DEVELOPMENT</span>
-                    <span class="wj-tech__card-foot">EXPLORE <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
-                </a>
-                <a class="wj-tech__card" data-theme="indigo" href="Tech_XR.html" aria-label="前往VR / AR 沉浸式體驗初始頁面">
-                    <span class="wj-tech__card-number">FIELD / 05</span>
-                    <span class="wj-tech__card-icon" aria-hidden="true"><i class="fas fa-vr-cardboard"></i></span>
-                    <span class="wj-tech__card-title">VR / AR 沉浸式體驗</span>
-                    <span class="wj-tech__card-en">EXTENDED REALITY</span>
-                    <span class="wj-tech__card-foot">EXPLORE <i class="fas fa-arrow-right" aria-hidden="true"></i></span>
-                </a>
-            </div>
-            <div class="wj-tech__bottom"><span>WJ / TECHNOLOGY</span><span class="wj-tech__line"></span></div>
-        </div>
-    </section>
     <div id="wj-intro-trigger-anchor" aria-hidden="true"></div>
 
     <!-- 🌟 進入網站 3 秒 + 下滑觸發：純白流體微霧與 SVG 動畫幕後舞台 -->
@@ -218,6 +276,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="technology-tabs.js" defer></script>
 </body>
 
 </html>
