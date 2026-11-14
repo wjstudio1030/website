@@ -131,3 +131,245 @@
     #wj-technology .wj-tech__tab-label { margin-top: 12px; }
     #wj-technology .wj-tech__panel { min-height: clamp(380px, 58svh, 490px); }
 }
+
+
+/* =========================================================
+   TECHNOLOGY SHOWCASE / EFFECTS V1
+   Scoped to the new homepage section; no existing site effects altered.
+   Motion is composited (opacity/transform), optional and accessibility-aware.
+   ========================================================= */
+#wj-technology.wj-tech { overflow: hidden; }
+
+#wj-technology.wj-tech::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: .48;
+    background:
+        radial-gradient(ellipse 42% 38% at 6% 34%, rgba(255,129,119,.13), transparent 76%),
+        radial-gradient(ellipse 38% 44% at 94% 72%, rgba(107,87,252,.13), transparent 80%);
+    animation: wjTechAmbient 12s ease-in-out infinite alternate;
+}
+@keyframes wjTechAmbient {
+    from { opacity: .34; transform: scale(1); }
+    to   { opacity: .62; transform: scale(1.08); }
+}
+
+/* Pointer-aware, restrained highlight on technology cards. */
+#wj-technology .wj-tech__tab {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+        transform .35s cubic-bezier(.18,.85,.25,1),
+        background-color .3s ease,
+        border-color .3s ease,
+        box-shadow .35s ease;
+}
+#wj-technology .wj-tech__tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0;
+    background: radial-gradient(210px circle at var(--wj-spot-x,50%) var(--wj-spot-y,50%),
+        color-mix(in srgb, var(--tab-color) 22%, transparent),
+        transparent 74%);
+    transition: opacity .32s ease;
+}
+#wj-technology .wj-tech__tab::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: -1px;
+    height: 2px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--tab-color), transparent);
+    opacity: 0;
+    transform: scaleX(.3);
+    transition: opacity .3s ease, transform .35s ease;
+}
+#wj-technology .wj-tech__tab:is(:hover,[aria-selected="true"])::before { opacity: .7; }
+#wj-technology .wj-tech__tab:is(:hover,[aria-selected="true"])::after { opacity: .84; transform: scaleX(1); }
+#wj-technology .wj-tech__tab:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,.18), 0 0 25px color-mix(in srgb, var(--tab-color) 9%, transparent);
+}
+#wj-technology .wj-tech__tab[aria-selected="true"] { box-shadow: inset 0 3px 0 var(--tab-color), 0 0 22px color-mix(in srgb,var(--tab-color) 13%,transparent); }
+#wj-technology .wj-tech__tab[aria-selected="true"]:hover { transform: translateY(-3px); }
+#wj-technology .wj-tech__tab-icon {
+    transition: transform .35s cubic-bezier(.18,.85,.25,1), box-shadow .35s ease, background-color .35s ease;
+}
+#wj-technology .wj-tech__tab:is(:hover,[aria-selected="true"]) .wj-tech__tab-icon {
+    transform: translateY(-3px) rotate(-5deg);
+    box-shadow: 0 0 18px color-mix(in srgb,var(--tab-color) 20%,transparent);
+}
+#wj-technology .wj-tech__tab-arrow { display: inline-block; transition: transform .3s ease; }
+#wj-technology .wj-tech__tab:is(:hover,[aria-selected="true"]) .wj-tech__tab-arrow { transform: translateX(5px); }
+#wj-technology .wj-tech__tab.wj-tech__tab--tapped .wj-tech__tab-icon { animation: wjTechTap .36s ease-out; }
+@keyframes wjTechTap {
+    0%   { transform: scale(.9) rotate(-8deg); }
+    65%  { transform: scale(1.13) rotate(3deg); }
+    100% { transform: translateY(-3px) rotate(-5deg); }
+}
+
+/* The panel remains the same height while the five fields change. */
+#wj-technology .wj-tech__stage::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    background: linear-gradient(115deg,rgba(255,129,119,.055),transparent 42%,rgba(117,90,250,.06));
+    filter: blur(20px);
+    pointer-events: none;
+}
+#wj-technology .wj-tech__panel:not([hidden]) {
+    animation: wjTechPanelIn .55s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes wjTechPanelIn {
+    from { opacity: .28; transform: translateY(13px) scale(.991); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-overline,
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-heading,
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-english,
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-slot {
+    animation: wjTechTextUp .62s cubic-bezier(.2,.9,.2,1) both;
+}
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-heading { animation-delay: .06s; }
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-english { animation-delay: .11s; }
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-slot { animation-delay: .17s; }
+@keyframes wjTechTextUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Precise, low-key holographic scanner / signal traces. */
+#wj-technology .wj-tech__panel-graphic::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 2px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: .35;
+    background: linear-gradient(90deg,transparent 8%,var(--panel-color) 52%,transparent 92%);
+    box-shadow: 0 0 24px color-mix(in srgb,var(--panel-color) 40%,transparent);
+    animation: wjTechScanner 9s linear infinite;
+}
+@keyframes wjTechScanner {
+    0% { transform: translateY(-6px); opacity: 0; }
+    9% { opacity: .27; }
+    84% { opacity: .22; }
+    100% { transform: translateY(560px); opacity: 0; }
+}
+#wj-technology .wj-tech__graphic-frame {
+    --wj-parallax-x: 0px;
+    --wj-parallax-y: 0px;
+    transform: translate3d(var(--wj-parallax-x),var(--wj-parallax-y),0) rotate(-12deg);
+    transition: transform .28s cubic-bezier(.15,.8,.25,1), box-shadow .3s ease;
+    box-shadow: 0 0 45px color-mix(in srgb,var(--panel-color) 10%,transparent);
+}
+#wj-technology .wj-tech__panel:not([hidden]) .wj-tech__graphic-frame {
+    animation: wjTechFrameReveal .75s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes wjTechFrameReveal {
+    from { opacity: .25; scale: .88; }
+    to   { opacity: 1; scale: 1; }
+}
+#wj-technology .wj-tech__graphic-icon {
+    animation: wjTechIconBreathe 6s ease-in-out infinite;
+}
+@keyframes wjTechIconBreathe {
+    0%,100% { opacity: .92; filter: drop-shadow(0 0 14px color-mix(in srgb,var(--panel-color) 16%,transparent)); }
+    50%     { opacity: 1; filter: drop-shadow(0 0 27px color-mix(in srgb,var(--panel-color) 41%,transparent)); }
+}
+#wj-technology .wj-tech__signal-layer { position: absolute; inset: 0; pointer-events: none; }
+#wj-technology .wj-tech__signal-path {
+    position: absolute;
+    height: 1px;
+    opacity: .55;
+    background: linear-gradient(90deg,transparent,var(--panel-color),transparent);
+}
+#wj-technology .wj-tech__signal-path::after {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 6px;
+    position: absolute;
+    left: 2%;
+    top: -3px;
+    border: 1px solid var(--panel-color);
+    border-radius: 1px;
+    background: #1d1b24;
+    box-shadow: 0 0 9px var(--panel-color);
+    animation: wjTechSignal 4.6s ease-in-out infinite alternate;
+}
+#wj-technology .wj-tech__signal-path--a { top: 30%; left: 6%; width: 37%; transform: rotate(-16deg); }
+#wj-technology .wj-tech__signal-path--b { top: 64%; right: 7%; width: 31%; transform: rotate(16deg); }
+#wj-technology .wj-tech__signal-path--b::after { animation-delay: -2.3s; }
+@keyframes wjTechSignal { to { left: 95%; } }
+
+/* Individual rhythm, shared visual language. */
+#wj-technology .wj-tech__panel[data-field-panel="game"] .wj-tech__graphic-icon {
+    animation: wjTechGameFloat 4.8s ease-in-out infinite;
+}
+@keyframes wjTechGameFloat {
+    0%,100% { translate: 0 0; }
+    50% { translate: 0 -7px; }
+}
+#wj-technology .wj-tech__panel[data-field-panel="program"] .wj-tech__graphic-icon {
+    animation: wjTechProgramBlink 5s ease-in-out infinite;
+}
+@keyframes wjTechProgramBlink { 0%,100% { opacity: 1; } 47% { opacity: .65; } 53% { opacity: 1; } }
+#wj-technology .wj-tech__panel[data-field-panel="website"] .wj-tech__graphic-icon {
+    animation: wjTechWebFloat 6s ease-in-out infinite;
+}
+@keyframes wjTechWebFloat { 0%,100% { translate: 0 0; } 50% { translate: 3px -4px; } }
+#wj-technology .wj-tech__panel[data-field-panel="xr"] .wj-tech__graphic-icon {
+    animation: wjTechIconBreathe 4.8s ease-in-out infinite;
+}
+
+/* Enter once when the top section is visible; no content is hidden without JS. */
+#wj-technology.wj-tech--entered .wj-tech__header { animation: wjTechEntrance .7s cubic-bezier(.16,1,.3,1) both; }
+#wj-technology.wj-tech--entered .wj-tech__tab { animation: wjTechEntrance .68s cubic-bezier(.16,1,.3,1) both; }
+#wj-technology.wj-tech--entered .wj-tech__tab:nth-child(1) { animation-delay: .07s; }
+#wj-technology.wj-tech--entered .wj-tech__tab:nth-child(2) { animation-delay: .13s; }
+#wj-technology.wj-tech--entered .wj-tech__tab:nth-child(3) { animation-delay: .19s; }
+#wj-technology.wj-tech--entered .wj-tech__tab:nth-child(4) { animation-delay: .25s; }
+#wj-technology.wj-tech--entered .wj-tech__tab:nth-child(5) { animation-delay: .31s; }
+@keyframes wjTechEntrance {
+    from { opacity: .12; translate: 0 20px; }
+    to   { opacity: 1; translate: 0 0; }
+}
+
+@media (max-width:720px) {
+    #wj-technology .wj-tech__tab:hover { transform: none; }
+    #wj-technology .wj-tech__tab[aria-selected="true"]:hover { transform: none; }
+    #wj-technology .wj-tech__panel-graphic::after { animation-duration: 13s; }
+}
+@media (prefers-reduced-motion:reduce) {
+    #wj-technology.wj-tech::before,
+    #wj-technology .wj-tech__panel-graphic::after,
+    #wj-technology .wj-tech__graphic-icon,
+    #wj-technology .wj-tech__signal-path::after,
+    #wj-technology .wj-tech__panel:not([hidden]),
+    #wj-technology .wj-tech__panel:not([hidden]) .wj-tech__graphic-frame,
+    #wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-overline,
+    #wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-heading,
+    #wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-english,
+    #wj-technology .wj-tech__panel:not([hidden]) .wj-tech__panel-slot,
+    #wj-technology.wj-tech--entered .wj-tech__header,
+    #wj-technology.wj-tech--entered .wj-tech__tab,
+    #wj-technology .wj-tech__tab.wj-tech__tab--tapped .wj-tech__tab-icon {
+        animation: none !important;
+    }
+    #wj-technology .wj-tech__tab,
+    #wj-technology .wj-tech__tab-icon,
+    #wj-technology .wj-tech__graphic-frame,
+    #wj-technology .wj-tech__tab::before,
+    #wj-technology .wj-tech__tab::after { transition: none !important; }
+}
