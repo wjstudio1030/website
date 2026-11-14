@@ -96,3 +96,14 @@
 .wjx .wjx-panel[data-id="award"]{background:radial-gradient(circle at 65% 36%,#18345d,#070e1c 80%)}
 .wjx .wjx-panel[data-id="toy"]{background:radial-gradient(circle at 65% 36%,#1c5770,#07101f 80%)}
 @media(max-width:600px){.wjx .wjx-panel[data-id="award"] .wjx-photo{left:0;width:100%;object-position:center 35%}}
+
+/* Photo compositions keep the actual achievements visible on desktop. */
+.wjx .wjx-panel[data-id="award"] .wjx-photo{top:7%;left:32%;width:57%;height:86%;object-fit:contain;object-position:center;border-radius:12px}
+.wjx .wjx-panel[data-id="toy"] .wjx-photo{top:14%;left:15%;width:72%;height:72%;object-fit:contain;object-position:center;border-radius:12px;box-shadow:0 0 70px #6bbfff18}
+.wjx .wjx-skill-visual.wjx-fired .wjx-wire{animation-duration:.48s;stroke:#dcffff;stroke-width:3}
+.wjx .wjx-skill-visual.wjx-fired .wjx-ai-node{animation-duration:.5s;fill:#c8f9ff}
+.wjx .wjx-skill-visual.wjx-fired .wjx-vr-eye{animation-duration:.55s;filter:drop-shadow(0 0 20px #6fdaff)}
+.wjx .wjx-panel[data-id="toy"].wjx-fired .wjx-repair-heart{animation-duration:.5s;color:#b4ffe2}
+.wjx .wjx-panel.wjx-fired .wjx-shards span{will-change:transform,opacity}
+@keyframes wjxBurst{0%{opacity:1;transform:translate(0,0) rotate(0)}55%{opacity:1}100%{opacity:0;transform:translate(var(--wjx-x,40px),var(--wjx-y,-100px)) rotate(420deg)}}
+@media(max-width:600px){.wjx .wjx-panel[data-id="award"] .wjx-photo{left:5%;top:8%;height:84%;width:90%}.wjx .wjx-panel[data-id="toy"] .wjx-photo{left:3%;top:12%;height:75%;width:94%}}

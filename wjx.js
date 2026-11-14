@@ -99,6 +99,12 @@
         replay(root.querySelector('.wjx-skill-visual[data-wjx-visual="' + activeSkill + '"]'), 1000);
       }
     });
+    root.querySelectorAll(".wjx-shards span").forEach(function (particle, i) {
+      const angle = (i / 15) * Math.PI * 2;
+      const distance = 120 + (i % 4) * 27;
+      particle.style.setProperty("--wjx-x", Math.round(Math.cos(angle) * distance) + "px");
+      particle.style.setProperty("--wjx-y", Math.round(Math.sin(angle) * distance - 25) + "px");
+    });
     root.querySelectorAll("[data-wjx-action]").forEach(function (button) {
       button.addEventListener("click", function () { playPanel(button.dataset.wjxAction); });
     });
