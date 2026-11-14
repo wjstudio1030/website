@@ -1,0 +1,270 @@
+/* WJ 技術領域：獨立靜態版面，不影響既有 HOME/動畫 */
+#wj-technology.wj-tech {
+    --tech-bg: #171719;
+    --tech-peach: #ff8177;
+    --tech-violet: #6753ff;
+    position: relative;
+    width: 100%;
+    background: linear-gradient(145deg, #1a1a1d 0%, #151519 55%, #1d1b26 100%);
+    color: #f9f8fb;
+    padding: clamp(80px, 9vw, 144px) 0 clamp(85px, 9vw, 145px);
+    border-top: 1px solid rgba(255, 255, 255, .075);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    overflow: hidden;
+}
+#wj-technology.wj-tech *,
+body.wj-tech-page .wj-technology-page * { box-sizing: border-box; }
+#wj-technology .wj-tech__wrap {
+    position: relative;
+    width: min(1380px, calc(100% - 96px));
+    margin: 0 auto;
+}
+#wj-technology .wj-tech__top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 54px;
+}
+#wj-technology .wj-tech__eyebrow,
+body.wj-tech-page .wj-technology-page__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    font-family: var(--font-tech), sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .2em;
+    color: #b6b1c2;
+}
+#wj-technology .wj-tech__eyebrow::before,
+body.wj-tech-page .wj-technology-page__eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff8177, #7963fa);
+}
+#wj-technology .wj-tech__title {
+    font-size: clamp(34px, 4.5vw, 68px);
+    letter-spacing: -.035em;
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 21px 0 0;
+    color: #fff;
+}
+#wj-technology .wj-tech__title span {
+    background: linear-gradient(100deg, #ff8177 5%, #d397ca 50%, #7460fa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+#wj-technology .wj-tech__summary {
+    color: #aca8b6;
+    font-size: 12px;
+    font-family: var(--font-tech), sans-serif;
+    white-space: nowrap;
+    letter-spacing: .14em;
+    padding-bottom: 10px;
+}
+#wj-technology .wj-tech__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0,1fr));
+    gap: clamp(10px, 1.15vw, 17px);
+}
+#wj-technology .wj-tech__card {
+    --tech-card-accent: #ff8177;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 348px;
+    padding: 25px 20px 24px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: linear-gradient(160deg, #26242b, #1d1d22 67%, #1c1b22);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+}
+#wj-technology .wj-tech__card::before {
+    content: "";
+    width: 38px;
+    height: 3px;
+    position: absolute;
+    top: -1px;
+    left: 20px;
+    background: var(--tech-card-accent);
+}
+#wj-technology .wj-tech__card:hover,
+#wj-technology .wj-tech__card:focus-visible {
+    border-color: var(--tech-card-accent);
+    background: linear-gradient(150deg, #30303a, #212129 67%, #26212d);
+    box-shadow: 0 18px 45px rgba(0,0,0,.2);
+    outline: none;
+}
+#wj-technology .wj-tech__card[data-theme="coral"] { --tech-card-accent: #ff8177; }
+#wj-technology .wj-tech__card[data-theme="pink"] { --tech-card-accent: #f3a0b9; }
+#wj-technology .wj-tech__card[data-theme="lilac"] { --tech-card-accent: #bd8de1; }
+#wj-technology .wj-tech__card[data-theme="violet"] { --tech-card-accent: #997afa; }
+#wj-technology .wj-tech__card[data-theme="indigo"] { --tech-card-accent: #7065ff; }
+#wj-technology .wj-tech__card-number {
+    font-family: var(--font-tech), sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #a9a5b2;
+    letter-spacing: .13em;
+}
+#wj-technology .wj-tech__card-icon {
+    width: 78px;
+    height: 78px;
+    display: grid;
+    place-items: center;
+    margin: 33px 0 auto;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--tech-card-accent), transparent 55%);
+    background: color-mix(in srgb, var(--tech-card-accent), transparent 91%);
+    color: var(--tech-card-accent);
+    font-size: 30px;
+}
+#wj-technology .wj-tech__card-title {
+    display: block;
+    font-size: clamp(18px, 1.4vw, 23px);
+    line-height: 1.48;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    margin-top: 26px;
+    min-height: 64px;
+}
+#wj-technology .wj-tech__card-en {
+    margin-top: 8px;
+    display: block;
+    color: #a6a3b0;
+    font: 600 10px/1.5 var(--font-tech), sans-serif;
+    letter-spacing: .07em;
+}
+#wj-technology .wj-tech__card-foot {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,.14);
+    margin-top: 26px;
+    padding-top: 17px;
+    color: #bebac6;
+    font: 600 11px var(--font-tech), sans-serif;
+    letter-spacing: .11em;
+}
+#wj-technology .wj-tech__card-foot i { color: var(--tech-card-accent); font-size: 15px; }
+#wj-technology .wj-tech__bottom {
+    margin-top: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font: 500 11px var(--font-tech), sans-serif;
+    letter-spacing: .1em;
+    color: #807e8a;
+}
+#wj-technology .wj-tech__line {
+    height: 1px;
+    flex: 1;
+    margin-left: 25px;
+    background: linear-gradient(90deg, #ff817755, #765bff44, transparent);
+}
+
+/* 五個獨立初始頁面：內容區保留空白，僅建立一致的框架 */
+body.wj-tech-page { background: #141414; }
+body.wj-tech-page .wj-technology-page {
+    min-height: calc(100vh - 130px);
+    color: #fff;
+    background: linear-gradient(135deg,#17171a 0%,#1b1924 67%,#17151f 100%);
+    padding: clamp(48px,7vw,95px) 0 100px;
+}
+body.wj-tech-page .wj-technology-page__container { width: min(1250px, calc(100% - 88px)); margin: 0 auto; }
+body.wj-tech-page .wj-technology-page__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #c6c1d0;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 10px 0;
+}
+body.wj-tech-page .wj-technology-page__back:hover,
+body.wj-tech-page .wj-technology-page__back:focus-visible { color: #ff8177; }
+body.wj-tech-page .wj-technology-page__header { margin: 58px 0 35px; }
+body.wj-tech-page .wj-technology-page__header h1 {
+    font-size: clamp(34px,5vw,70px);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    line-height: 1.24;
+    margin: 18px 0 0;
+}
+body.wj-tech-page .wj-technology-page__header h1 span {
+    background: linear-gradient(90deg, #ff8177, #c89ed1, #7564fa);
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+body.wj-tech-page .wj-technology-page__canvas {
+    position: relative;
+    min-height: min(59vh, 530px);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px;
+    background: #1a1a1ed6;
+    overflow: hidden;
+}
+body.wj-tech-page .wj-technology-page__canvas::before {
+    content: "";
+    position: absolute;
+    width: 74px;
+    height: 3px;
+    top: -1px;
+    left: 35px;
+    background: linear-gradient(90deg,#ff8177,#836bff);
+}
+body.wj-tech-page .wj-technology-page__canvas::after {
+    content: "";
+    position: absolute;
+    inset: 28px;
+    border: 1px solid rgba(255,255,255,.045);
+    pointer-events: none;
+}
+body.wj-tech-page .wj-technology-page__foot {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    color: #aba7b5;
+    margin-top: 28px;
+    font: 500 11px var(--font-tech),sans-serif;
+    letter-spacing: .1em;
+}
+body.wj-tech-page .wj-technology-page__footer {
+    padding: 25px 0;
+    text-align: center;
+    color: #a3a3a8;
+    background: #141414;
+    font-size: 13px;
+}
+@media(max-width:1200px) {
+    #wj-technology .wj-tech__grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+    #wj-technology .wj-tech__card {min-height:320px;}
+}
+@media(max-width:720px) {
+    #wj-technology.wj-tech {padding:68px 0 77px;}
+    #wj-technology .wj-tech__wrap {width:calc(100% - 32px);}
+    #wj-technology .wj-tech__top {display:block; margin-bottom:32px;}
+    #wj-technology .wj-tech__summary {margin-top:20px;}
+    #wj-technology .wj-tech__grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    #wj-technology .wj-tech__card {min-height:272px;padding:19px 15px 17px;}
+    #wj-technology .wj-tech__card-icon {width:53px;height:53px;font-size:22px;margin:25px 0 auto;border-radius:13px;}
+    #wj-technology .wj-tech__card-title {font-size:17px;margin-top:20px;min-height:56px;}
+    #wj-technology .wj-tech__card-en {font-size:8px;}
+    #wj-technology .wj-tech__card-foot {font-size:9px;margin-top:19px;padding-top:13px;}
+    body.wj-tech-page .wj-technology-page__container {width:calc(100% - 34px);}
+    body.wj-tech-page .wj-technology-page__canvas {min-height:50vh;}
+}
+@media(max-width:370px) {
+    #wj-technology .wj-tech__grid {grid-template-columns:1fr;}
+    #wj-technology .wj-tech__card {min-height:220px;}
+}

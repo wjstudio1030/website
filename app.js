@@ -244,7 +244,13 @@ if (introOverlay && smokeCanvas) {
 
 function checkIntroTrigger() {
     if (window.innerWidth > 960 && isIntroTimeReady && !hasIntroTriggered) {
-        if (window.scrollY > 50) { 
+        // Dynamically locate the bottom of the added technology section.
+        // Future inserted content above this marker shifts the trigger automatically.
+        const introAnchor = document.getElementById('wj-intro-trigger-anchor');
+        const thresholdY = introAnchor
+            ? introAnchor.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.70
+            : 50;
+        if (window.scrollY > Math.max(50, thresholdY)) { 
             hasIntroTriggered = true;
             introOverlay.classList.add('intro-active');
             console.log("🚀 [SYSTEM]: True Aerodynamic Stream -> Gentle Mist Engine Triggered!");
