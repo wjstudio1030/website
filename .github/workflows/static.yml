@@ -36,7 +36,7 @@ jobs:
       - name: Prepare public site without game
         run: |
           mkdir -p public-site
-          cp index.html Memories.html Tutor.html app.js styles.css wjx.css wjx.js public-site/
+          cp index.html Memories.html Tutor.html app.js styles.css public-site/
           cp -R images MyBooks KeyFrame Web_Animation audio draw_svg public-site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
