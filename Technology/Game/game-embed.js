@@ -6,11 +6,8 @@
 (() => {
     "use strict";
 
-    // Local development only.
-    const hostName = location.hostname;
-    const local = /^(localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.test(hostName);
-
-    if (!local) return;
+    // Same-origin embedding on both localhost and GitHub Pages.
+    // Paths stay relative to the current HOME URL (e.g. /website/).
 
     const panel = document.getElementById("wj-tech-panel-game");
     if (!panel) return;
