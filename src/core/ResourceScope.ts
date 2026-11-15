@@ -1,0 +1,154 @@
+type Cleanup = () => void;
+
+export class ResourceScope {
+    private cleanups = new Set<Cleanup>();
+    private intervalCleanups = new Map<ReturnType<typeof globalThis.setInterval>,Cleanup>();
+    private timeoutCleanups = new Map<ReturnType<typeof globalThis.setTimeout>,() => void>();
+    private frameCleanups = new Map<ReturnType<typeof globalThis.requestAnimationFrame>,() => void>();
+    private disposed = false;
+
+
+    addCleanup(cleanup: Cleanup): () => void {
+        if (this.disposed) {
+            cleanup();
+            return () => {};
+        }
+
+        this.cleanups.add(cleanup);
+
+        return () => {
+            this.cleanups.delete(cleanup);
+        };
+    }
+
+    setInterval(callback: () => void, delay?: number): ReturnType<typeof globalThis.setInterval> {
+        const intervalId = globalThis.setInterval(callback, delay);
+
+        const unregisterCleanup = this.addCleanup(() => {
+            globalThis.clearInterval(intervalId);
+        });
+
+        if (!this.disposed) {
+            this.intervalCleanups.set(
+                intervalId,
+                unregisterCleanup
+            );
+        }
+
+        return intervalId;
+    }
+
+    clearInterval(intervalId: ReturnType<typeof globalThis.setInterval>): void {
+        globalThis.clearInterval(intervalId);
+
+        const unregisterCleanup = this.intervalCleanups.get(intervalId);
+
+        unregisterCleanup?.();
+
+        this.intervalCleanups.delete(intervalId);
+    }
+
+    setTimeout(callback: () => void,delay?: number): ReturnType<typeof globalThis.setTimeout> {
+        let unregisterCleanup = () => {};
+
+        const timeoutId = globalThis.setTimeout(
+            () => {
+                unregisterCleanup();
+                this.timeoutCleanups.delete(timeoutId);
+                callback();
+            },
+            delay
+        );
+
+        unregisterCleanup = this.addCleanup(() => {
+            globalThis.clearTimeout(timeoutId);
+        });
+
+        if (!this.disposed) {
+            this.timeoutCleanups.set(
+                timeoutId,
+                unregisterCleanup
+            );
+        }
+
+        return timeoutId;
+    }
+
+    clearTimeout(timeoutId: ReturnType<typeof globalThis.setTimeout>): void {
+        globalThis.clearTimeout(timeoutId);
+
+        const unregisterCleanup =
+            this.timeoutCleanups.get(timeoutId);
+
+        if (!unregisterCleanup) {
+            return;
+        }
+
+        unregisterCleanup();
+        this.timeoutCleanups.delete(timeoutId);
+    }
+
+    listen(target: EventTarget,type: string,listener: EventListenerOrEventListenerObject,options?: boolean | AddEventListenerOptions): void {
+        target.addEventListener(type, listener, options);
+
+        this.addCleanup(() => {
+            target.removeEventListener(type, listener, options);
+        });
+    }
+
+    requestAnimationFrame(callback: FrameRequestCallback): ReturnType<typeof globalThis.requestAnimationFrame> {
+    let unregisterCleanup = () => {};
+
+    const frameId = globalThis.requestAnimationFrame(
+            (timestamp) => {
+                unregisterCleanup();
+                this.frameCleanups.delete(frameId);
+                callback(timestamp);
+            }
+        );
+
+        unregisterCleanup = this.addCleanup(() => {
+            globalThis.cancelAnimationFrame(frameId);
+        });
+
+        if (!this.disposed) {
+            this.frameCleanups.set(
+                frameId,
+                unregisterCleanup
+            );
+        }
+
+        return frameId;
+    }
+
+    cancelAnimationFrame(frameId: ReturnType<typeof globalThis.requestAnimationFrame>): void {
+        globalThis.cancelAnimationFrame(frameId);
+
+        const unregisterCleanup =
+            this.frameCleanups.get(frameId);
+
+        if (!unregisterCleanup) {
+            return;
+        }
+
+        unregisterCleanup();
+        this.frameCleanups.delete(frameId);
+    }
+
+    dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+
+        this.disposed = true;
+
+        for (const cleanup of this.cleanups) {
+            cleanup();
+        }
+
+        this.cleanups.clear();
+        this.intervalCleanups.clear();
+        this.timeoutCleanups.clear();
+        this.frameCleanups.clear();
+    }
+}

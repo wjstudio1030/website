@@ -42,8 +42,20 @@
 
         tabs.forEach(function (tab, index) {
             tab.addEventListener("click", function () {
-                activate(tab.getAttribute("data-field"), false);
-            });
+    var field = tab.getAttribute("data-field");
+
+    if (field === "program") {
+        window.open("https://wjstudio1030.github.io/AI_Stock_Project_V3/", "_blank", "noopener,noreferrer");
+        return;
+    }
+
+    if (field === "website") {
+        window.open("Memories.html", "_blank", "noopener,noreferrer");
+        return;
+    }
+
+    activate(field, false);
+});
             tab.addEventListener("animationend", function (event) {
                 if (event.animationName === "wjTechTap") {
                     tab.classList.remove("wj-tech__tab--tapped");

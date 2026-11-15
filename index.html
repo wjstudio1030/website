@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="images/WJ_ICON.png" />
     <title>WJ STUDIO</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.public.css" />
     <link rel="stylesheet" href="technology.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,508 @@
     <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght,YOPQ@100..900,300&display=swap"
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+<style id="wj-local-index-headings">
+  .wj-experience-kicker {
+    box-sizing: border-box;
+    min-height: 80px;
+    margin: 0;
+    padding: 24px clamp(20px,3.5vw,58px);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #fff;
+    background: #17151b;
+    border-top: 1px solid #ffffff12;
+    font-family: "Orbitron",sans-serif;
+    font-size: clamp(13px,1.05vw,17px);
+    font-weight: 650;
+    letter-spacing: .09em;
+  }
+  .wj-experience-line {
+    width: 34px;
+    height: 3px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg,#ff8177,#8b64e9);
+  }
+  #wj-technology .wj-tech__tab[data-field="xr"] .wj-tech__tab-label {
+    font-size: clamp(11px,.98vw,15px);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  #wj-tech-panel-xr .wj-tech__panel-heading {
+    font-size: clamp(25px,2.6vw,43px);
+    overflow-wrap: anywhere;
+  }
+</style>
+    <link rel="stylesheet" href="wj-local-tech-updates.css" />
+<style id="wj-highlights-style-v2">
+#wj-experience-kicker.wj-experience-kicker {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  width:min(1390px,calc(100% - 90px)) !important;
+  min-height:0 !important;
+  height:auto !important;
+  padding:18px 0 16px !important;
+  margin:0 auto !important;
+  border:0 !important;
+  background:transparent !important;
+  gap:11px !important;
+  font:600 11px/1.8 var(--font-tech),sans-serif !important;
+  letter-spacing:.2em !important;
+  color:#d0c1cb !important;
+  writing-mode:horizontal-tb !important;
+}
+#wj-experience-kicker .wj-experience-line {
+  width:26px !important;
+  height:3px !important;
+  flex:0 0 26px !important;
+  background:linear-gradient(90deg,#ff8177,#755afa) !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+#wj-experience-kicker span:not(.wj-experience-line) {
+  color:inherit !important;
+  font:inherit !important;
+  letter-spacing:inherit !important;
+  writing-mode:horizontal-tb !important;
+  word-break:keep-all !important;
+}
+@media(max-width:720px){
+  #wj-experience-kicker.wj-experience-kicker {
+    width:calc(100% - 32px) !important;
+    font-size:10px !important;
+    letter-spacing:.1em !important;
+  }
+}
+</style>
+    <link rel="stylesheet" href="Technology/Home/home-refinements.css" />
+<style id="wj-home-triptych-style">
+/* New hero sections, original photo assets. */
+.wj-hero-repeat {
+  width:100%;
+  min-height:90vh;
+  position:relative;
+  overflow:hidden;
+}
+.wj-hero-repeat .wj-hero-repeat__link {
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:100%;
+  position:relative;
+  z-index:2;
+  text-decoration:none;
+  color:#fff;
+  cursor:pointer;
+}
+.wj-hero-repeat .main__container {
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:100%;
+}
+.wj-hero-repeat .main__content {
+  position:relative;
+  z-index:2;
+  width:40%;
+  flex:0 0 40%;
+  padding-left:8vw;
+}
+/* Reverse the text position on section 02. */
+.wj-hero-repeat--right .main__content {
+  width:47%;
+  flex:0 0 47%;
+  margin-left:auto;
+  padding-left:3vw;
+  padding-right:5vw;
+}
+/* Legibility over the right-hand TEDx photo. */
+.wj-hero-repeat--right .wj-hero-repeat__link::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(
+    270deg,
+    rgba(12,10,25,.85) 0%,
+    rgba(12,10,25,.43) 42%,
+    transparent 77%
+  );
+}
+.wj-hero-repeat .wj-repeat-hello,
+.wj-hero-repeat .wj-repeat-name {
+  font-size:clamp(34px,4vw,64px);
+  font-weight:800;
+  line-height:1.35;
+  white-space:nowrap;
+  letter-spacing:.01em;
+}
+.wj-hero-repeat .wj-repeat-hello {
+  background:linear-gradient(to top,#ff3269,#ffb199);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.wj-hero-repeat .wj-repeat-name {
+  background:linear-gradient(to top,#553fff,#21d4fd);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.wj-hero-repeat .main__content p {
+  color:white;
+  margin-top:1rem;
+}
+.wj-hero-repeat .main__btn {
+  opacity:1;
+  animation:none;
+  width:auto;
+  padding:14px clamp(30px,5.5vw,120px);
+  white-space:nowrap;
+  pointer-events:none;
+}
+.wj-hero-repeat__link:hover .main__btn {
+  transform:translateY(-2px);
+  filter:brightness(1.12);
+}
+.wj-hero-repeat__link:focus-visible {
+  outline:3px solid #ed9ac6;
+  outline-offset:-4px;
+}
+/* Footer branding. */
+#footer__logo .wj-footer-icon {
+  display:block;
+  width:1.08em;
+  height:1.08em;
+  object-fit:contain;
+  flex-shrink:0;
+  margin-right:9px;
+}
+.social__icons {
+  width:170px;
+  gap:22px;
+}
+.social__icon--link:focus-visible {
+  outline:2px solid #ff8177;
+  outline-offset:5px;
+}
+@media(max-width:960px) {
+  .wj-hero-repeat {
+    height:auto;
+    min-height:100vh;
+  }
+  .wj-hero-repeat .wj-hero-repeat__link {
+    min-height:100vh;
+    height:auto;
+  }
+  .wj-hero-repeat .main__container {
+    min-height:100vh;
+    height:auto !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+  }
+  .wj-hero-repeat .main__content,
+  .wj-hero-repeat--right .main__content {
+    width:100% !important;
+    flex:1 1 auto !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:32px 22px !important;
+    text-align:center !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+  }
+  .wj-hero-repeat .main__content p {
+    font-size:clamp(16px,4vw,25px);
+  }
+  .wj-hero-repeat .wj-repeat-hello,
+  .wj-hero-repeat .wj-repeat-name {
+    font-size:clamp(27px,6vw,50px);
+  }
+  .wj-hero-repeat .main__btn {
+    margin:24px auto 0 !important;
+    padding:12px 24px !important;
+  }
+  .wj-hero-repeat--right .wj-hero-repeat__link::before {
+    background:rgba(10,10,20,.38);
+  }
+  .social__icons {
+    width:auto;
+    justify-content:center;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .wj-hero-repeat::before,
+  .wj-hero-repeat::after {
+    animation:none !important;
+    opacity:1 !important;
+  }
+}
+</style>
+<style id="wj-home-panel-separation-style">
+body > .main,
+#wj-hero-repeat-1,
+#wj-hero-repeat-2 {
+    width: min(1760px, calc(100% - 28px));
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 1px rgba(130, 110, 255, 0.05),
+        0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+body > .main {
+    margin-top: 14px;
+}
+
+.footer__container {
+    margin-top: 22px;
+}
+
+@media screen and (max-width: 960px) {
+    body > .main,
+    #wj-hero-repeat-1,
+    #wj-hero-repeat-2 {
+        width: calc(100% - 12px);
+        margin-top: 10px;
+        border-radius: 12px;
+    }
+
+    .footer__container {
+        margin-top: 14px;
+    }
+}
+</style>
+<style id="wj-dark-background-fix">
+/* 三個 TEDx 版面外圍統一使用 WJ 深色背景 */
+html,
+body {
+    background-color: #151518 !important;
+}
+</style>
+<style id="wj-hero-photo-style">
+/* Photo-only sections: keep existing borders and spacing. */
+#wj-hero-repeat-1.wj-hero-photo,
+#wj-hero-repeat-2.wj-hero-photo {
+    position: relative !important;
+    display: block !important;
+    width: min(1760px, calc(100% - 28px));
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    background-color: #151518 !important;
+    background-position: center center !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+}
+#wj-hero-repeat-1.wj-hero-photo {
+    background-image: none !important; /* 左圖只在 ::before 顯示一次 */
+}
+#wj-hero-repeat-2.wj-hero-photo {
+    background-image: url("images/WJ_HIGHLIGHT_03.png") !important;
+}
+/* Remove the original split TEDx background images. */
+#wj-hero-repeat-1.wj-hero-photo::before,
+#wj-hero-repeat-1.wj-hero-photo::after,
+#wj-hero-repeat-2.wj-hero-photo::before,
+#wj-hero-repeat-2.wj-hero-photo::after {
+    content: none !important;
+    display: none !important;
+    animation: none !important;
+}
+/* Entire photo remains clickable. */
+#wj-hero-repeat-1 .wj-hero-photo__link,
+#wj-hero-repeat-2 .wj-hero-photo__link {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+}
+#wj-hero-repeat-1 .wj-hero-photo__link::before,
+#wj-hero-repeat-2 .wj-hero-photo__link::before {
+    content: none !important;
+    display: none !important;
+}
+.wj-hero-photo__link:focus-visible {
+    outline: 3px solid #f2a0ca;
+    outline-offset: -4px;
+}
+@media(max-width:960px) {
+    #wj-hero-repeat-1.wj-hero-photo,
+    #wj-hero-repeat-2.wj-hero-photo {
+        width: calc(100% - 12px) !important;
+        min-height: 0 !important;
+        height: auto !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+}
+</style>
+<style id="wj-second-photo-first-style">
+
+#wj-hero-repeat-1.wj-hero-photo {
+    background-color: #151518 !important;
+    background-image: none !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* 第一張照片：與原版左側完全相同的漸層及翻轉淡入 */
+
+#wj-hero-repeat-1.wj-hero-photo::before {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+
+    width: 60% !important; /* 左側 60% 獨立照片區，不需要重複底圖 */
+    height: 100% !important;
+    inset: auto !important;
+    top: 0 !important;
+    left: 0 !important;
+
+    z-index: 0 !important;
+    pointer-events: none !important;
+
+    background-image:
+        linear-gradient(
+            to right,
+            rgba(20,20,20,0.1) 0%,
+            rgba(20,20,20,0.1) 97%,
+            rgba(20,20,20,1) 100%
+        ),
+        url("images/WJ_HIGHLIGHT_02_LEFT.png") !important;
+
+    background-size: 100% 100%, cover !important;
+    background-position: center, 55% center !important; /* 改這個百分比即可調整人物位置 */
+    background-repeat: no-repeat !important;
+
+    opacity: 0;
+    transform: scaleX(-1) scale(1.05);
+    animation:
+        bgRevealFlip 2s
+        cubic-bezier(.25,.46,.45,.94)
+        .3s forwards !important;
+}
+
+/* 第二張照片：與原版右側完全相同的漸層及滑入 */
+
+#wj-hero-repeat-1.wj-hero-photo::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+
+    top: 0 !important;
+    left: auto !important;
+    right: 0 !important;
+
+    width: 40% !important;
+    height: 100% !important;
+
+    z-index: 0 !important;
+    pointer-events: none !important;
+
+    background-image:
+        linear-gradient(
+            to right,
+            #141414 0%,
+            rgba(20,20,20,.4) 5%,
+            transparent 15%
+        ),
+        url("images/WJ_HIGHLIGHT_02_RIGHT.png") !important;
+
+    background-size: 100% 100%, auto 110% !important;
+    background-position: left center, right center !important;
+    background-repeat: no-repeat !important;
+
+    opacity: 0;
+    transform: translateX(30px);
+    animation:
+        bgRevealRight 2s
+        cubic-bezier(.25,.46,.45,.94)
+        .6s forwards !important;
+}
+
+/* 保留完整照片點擊範圍 */
+
+#wj-hero-repeat-1 .wj-hero-photo__link {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 畫面未進入可視範圍前，暫停淡入動畫 */
+
+#wj-hero-repeat-1.wj-second-photo-pending::before,
+#wj-hero-repeat-1.wj-second-photo-pending::after {
+    animation-play-state: paused !important;
+}
+
+/* 跟第一個版面一樣，手機只顯示主照片 */
+
+@media (max-width: 960px) {
+
+    #wj-hero-repeat-1.wj-hero-photo::before {
+        width: 100% !important;
+        background-image:
+            linear-gradient(rgba(20,20,20,.14),rgba(20,20,20,.14)),
+            url("images/WJ_HIGHLIGHT_02_LEFT.png") !important;
+
+        background-size: 100% 100%, cover !important;
+        background-position: center, 55% center !important;
+
+        transform: scale(1);
+        animation:
+            bgReveal 2s
+            cubic-bezier(.25,.46,.45,.94)
+            .3s forwards !important;
+    }
+
+    #wj-hero-repeat-1.wj-hero-photo::after {
+        display: none !important;
+    }
+}
+
+</style>
+<style id="wj-second-left-unflip">
+/* 只取消第二個版面左側照片的水平翻轉 */
+@keyframes wjSecondLeftNormal {
+    0% {
+        opacity: 0;
+        transform: scale(1.15);
+        filter: blur(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+@media (min-width: 961px) {
+    #wj-hero-repeat-1.wj-hero-photo::before {
+        animation: wjSecondLeftNormal 2s
+            cubic-bezier(.25,.46,.45,.94)
+            .3s forwards !important;
+    }
+}
+</style>
+    <link rel="stylesheet" href="Technology/Tutor/home-course-redesign.css" />
 </head>
 
 <body>
@@ -34,13 +536,13 @@
             </div>
             <ul class="navbar__menu">
                 <li class="navbar__item">
-                    <a href="index.html" class="navbar__links">Home</a>
+                    <a href="index.html" class="navbar__links">首頁</a>
                 </li>
                 <li class="navbar__item">
-                    <a href="Memories.html" class="navbar__links">Memories</a>
+                    <a href="Memories.html" class="navbar__links">高中備審</a>
                 </li>
                 <li class="navbar__btn">
-                    <a href="Tutor.html" class="button">Tutor</a>
+                    <a href="#wj-free-course" class="button">免費課程報名</a>
                 </li>
             </ul>
         </div>
@@ -58,7 +560,7 @@
             <div class="wj-tech__selector" role="tablist" aria-label="選擇技術領域">
                 <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-iot" data-field="iot" data-theme="peach" aria-controls="wj-tech-panel-iot" aria-selected="true" tabindex="0">
                     <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">01 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-microchip"></i></span></span>
-                    <span class="wj-tech__tab-label">電子實作與物聯網<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                    <span class="wj-tech__tab-label">物聯網與智慧互動應用<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
                 </button>
                 <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-game" data-field="game" data-theme="pink" aria-controls="wj-tech-panel-game" aria-selected="false" tabindex="-1">
                     <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">02 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-gamepad"></i></span></span>
@@ -74,28 +576,17 @@
                 </button>
                 <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-xr" data-field="xr" data-theme="blue" aria-controls="wj-tech-panel-xr" aria-selected="false" tabindex="-1">
                     <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">05 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-vr-cardboard"></i></span></span>
-                    <span class="wj-tech__tab-label">AI X VR/AR<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                    <span class="wj-tech__tab-label">AI X VR虛擬實境/AR擴增實境<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
                 </button>
             </div>
             <div class="wj-tech__stage">
-                <section class="wj-tech__panel" id="wj-tech-panel-iot" data-field-panel="iot" data-theme="peach" role="tabpanel" aria-labelledby="wj-tech-tab-iot">
-                    <div class="wj-tech__panel-main">
-                        <div>
-                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 01</div>
-                            <h3 class="wj-tech__panel-heading"><span>電子實作與物聯網</span></h3>
-                            <div class="wj-tech__panel-english">ELECTRONICS / INTERNET OF THINGS</div>
-                        </div>
-                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
-                    </div>
-                    <div class="wj-tech__panel-graphic" aria-hidden="true">
-                        <div class="wj-tech__signal-layer">
-                            <span class="wj-tech__signal-path wj-tech__signal-path--a"></span>
-                            <span class="wj-tech__signal-path wj-tech__signal-path--b"></span>
-                        </div>
-                        <div class="wj-tech__graphic-frame"><i class="fas fa-microchip wj-tech__graphic-icon"></i></div>
-                        <span class="wj-tech__graphic-corner">01 &nbsp; / &nbsp; 05</span>
-                    </div>
-                </section>
+                <section class="wj-tech__panel iotv2" id="wj-tech-panel-iot"
+         data-field-panel="iot" data-theme="peach"
+         role="tabpanel" aria-labelledby="wj-tech-tab-iot">
+    <div id="iotv2-root">
+        <h3>物聯網與智慧互動應用</h3>
+    </div>
+</section>
                 <section class="wj-tech__panel" id="wj-tech-panel-game" data-field-panel="game" data-theme="pink" role="tabpanel" aria-labelledby="wj-tech-tab-game" hidden>
                     <div class="wj-tech__panel-main">
                         <div>
@@ -150,28 +641,180 @@
                         <span class="wj-tech__graphic-corner">04 &nbsp; / &nbsp; 05</span>
                     </div>
                 </section>
-                <section class="wj-tech__panel" id="wj-tech-panel-xr" data-field-panel="xr" data-theme="blue" role="tabpanel" aria-labelledby="wj-tech-tab-xr" hidden>
-                    <div class="wj-tech__panel-main">
-                        <div>
-                            <div class="wj-tech__panel-overline">WJ ACADEMY &nbsp; / &nbsp; FIELD 05</div>
-                            <h3 class="wj-tech__panel-heading"><span>AI X VR/AR</span></h3>
-                            <div class="wj-tech__panel-english">AI / IMMERSIVE TECHNOLOGY</div>
-                        </div>
-                        <div class="wj-tech__panel-slot" aria-hidden="true"><i></i><i></i></div>
-                    </div>
-                    <div class="wj-tech__panel-graphic" aria-hidden="true">
-                        <div class="wj-tech__signal-layer">
-                            <span class="wj-tech__signal-path wj-tech__signal-path--a"></span>
-                            <span class="wj-tech__signal-path wj-tech__signal-path--b"></span>
-                        </div>
-                        <div class="wj-tech__graphic-frame"><i class="fas fa-vr-cardboard wj-tech__graphic-icon"></i></div>
-                        <span class="wj-tech__graphic-corner">05 &nbsp; / &nbsp; 05</span>
-                    </div>
-                </section>
+                <section class="wj-tech__panel" id="wj-tech-panel-xr" data-field-panel="xr" data-theme="blue" role="tabpanel" aria-labelledby="wj-tech-tab-xr" hidden><div class="wj-xr-video-head">
+    <div class="wj-tech__panel-overline">
+        WJ ACADEMY / FIELD 05
+    </div>
+    <h3 class="wj-xr-video-title">
+        AI X VR虛擬實境 / AR擴增實境
+    </h3>
+    <p class="wj-xr-video-subtitle">
+        IMMERSIVE TECHNOLOGY / INTERACTIVE EXPERIENCE
+    </p>
+</div>
+
+<div class="wj-xr-video-content">
+    <div class="wj-xr-video-frame">
+        <iframe
+            title="WJ AI VR AR 作品展示影片"
+            src="https://www.youtube-nocookie.com/embed/pzwW1Vj25pI?start=145&amp;rel=0"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <a
+        class="wj-xr-video-link"
+        href="https://www.youtube.com/watch?v=pzwW1Vj25pI&amp;t=145s"
+        target="_blank"
+        rel="noopener noreferrer">
+        在 YouTube 開啟影片
+    </a>
+</div></section>
             </div>
             <div class="wj-tech__foot"><span>WJ / TECHNOLOGY</span><span class="wj-tech__foot-line"></span><span>01 — 05</span></div>
         </div>
     </section>
+
+    <!-- WJ FREE COURSE START: redesigned registration, HOME only -->
+<section id="wj-free-course" class="wjcourse" aria-labelledby="wjcourse-title">
+  <div class="wjcourse__shell">
+    <header class="wjcourse__intro">
+      <div class="wjcourse__brand"><span class="wjcourse__brand-line" aria-hidden="true"></span><span>WJ 資電工坊 / WJ ACADEMY</span></div>
+      <h2 class="wjcourse__title" id="wjcourse-title">免費課程報名倒數</h2>
+      <div class="wjcourse__countdown" id="wjcourse-countdown" role="timer" aria-label="台灣時間每日循環倒數 23:59:59" aria-live="off">
+        <span id="wjcourse-hh">23</span><span class="wjcourse__colon" aria-hidden="true">:</span><span id="wjcourse-mm">59</span><span class="wjcourse__colon" aria-hidden="true">:</span><span id="wjcourse-ss">59</span>
+      </div>
+    </header>
+
+    <div class="wjcourse__form-shell">
+      <div class="wjcourse__heading">
+        <div>
+          <p class="wjcourse__eyebrow">WJ ACADEMY · REGISTRATION</p>
+          <h3>填寫報名免費課程</h3>
+          <p class="wjcourse__intro-text">探索興趣最終完成實際產品，告訴我孩子對哪些領域有興趣！</p>
+        </div>
+        <span class="wjcourse__heading-mark" aria-hidden="true">01 — 07</span>
+      </div>
+
+      <form id="wjCourseForm" action="https://formspree.io/f/xzeeoybl" method="POST" accept-charset="UTF-8" novalidate>
+        <input type="hidden" name="_subject" value="WJ STUDIO｜首頁免費課程諮詢">
+        <input type="hidden" name="form_source" value="WJ STUDIO HOME / 免費課程報名">
+        <div class="wjcourse__grid">
+          <div class="wjcourse__field">
+            <label for="wjcourse-parent">家長怎麼稱呼您？ <span class="wjcourse__required" aria-label="必填">*</span></label>
+            <input id="wjcourse-parent" name="parent_name" type="text" placeholder="例如：陳媽媽、王爸爸" autocomplete="name" maxlength="80" required>
+          </div>
+
+          <div class="wjcourse__field">
+            <span class="wjcourse__field-label" id="wjcourse-grade-label">孩子目前的年級 <span class="wjcourse__required" aria-label="必填">*</span></span>
+            <div class="wjcourse__select" data-name="student_grade" data-required="true" data-label="孩子目前的年級">
+              <input type="hidden" name="student_grade" value="">
+              <button type="button" class="wjcourse__select-trigger" aria-label="孩子目前的年級" aria-haspopup="listbox" aria-expanded="false" aria-controls="wjcourse-grade-options">
+                <span class="wjcourse__select-text wjcourse__placeholder">請選擇孩子目前的年級</span><span class="wjcourse__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="wjcourse__select-options" id="wjcourse-grade-options" role="listbox" aria-label="孩子目前的年級" hidden>
+                <button type="button" role="option" aria-selected="false" data-value="國一">國一</button>
+                <button type="button" role="option" aria-selected="false" data-value="國二">國二</button>
+                <button type="button" role="option" aria-selected="false" data-value="國三">國三</button>
+                <button type="button" role="option" aria-selected="false" data-value="高一">高一</button>
+                <button type="button" role="option" aria-selected="false" data-value="高二">高二</button>
+                <button type="button" role="option" aria-selected="false" data-value="高三">高三</button>
+                <button type="button" role="option" aria-selected="false" data-value="其他／尚未決定">其他／尚未決定</button>
+              </div>
+            </div>
+          </div>
+
+          <fieldset class="wjcourse__field wjcourse__full wjcourse__interest">
+            <legend>孩子感興趣的領域 <span class="wjcourse__optional">（可複選）</span></legend>
+            <p class="wjcourse__help">可不選；如果還沒有找到方向，也可以選「還在探索」。</p>
+            <div class="wjcourse__interest-picker" id="wjcourse-interest-picker">
+              <button type="button" id="wjcourse-interest-trigger" class="wjcourse__select-trigger" aria-expanded="false" aria-controls="wjcourse-interest-options">
+                <span id="wjcourse-interest-text" class="wjcourse__placeholder">選擇感興趣的領域</span><span class="wjcourse__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="wjcourse__interest-options" id="wjcourse-interest-options" hidden>
+                <div class="wjcourse__interest-list">
+                  <label><input type="checkbox" value="物聯網與智慧互動應用"><span>物聯網與智慧互動應用</span></label>
+                  <label><input type="checkbox" value="遊戲開發"><span>遊戲開發</span></label>
+                  <label><input type="checkbox" value="程式設計與應用"><span>程式設計與應用</span></label>
+                  <label><input type="checkbox" value="互動式網站設計"><span>互動式網站設計</span></label>
+                  <label><input type="checkbox" value="VR虛擬實境/AR擴增實境"><span>VR虛擬實境/AR擴增實境</span></label>
+                  <label><input type="checkbox" value="AI整合與應用"><span>AI整合與應用</span></label>
+                  <label><input type="checkbox" value="還在探索"><span>還在探索</span></label>
+                </div>
+                <div class="wjcourse__interest-actions">
+                  <button type="button" id="wjcourse-interest-cancel" class="wjcourse__cancel">取消</button>
+                  <button type="button" id="wjcourse-interest-done" class="wjcourse__done">完成選擇</button>
+                </div>
+              </div>
+              <input type="hidden" name="interested_fields" id="wjcourse-interests-value" value="">
+            </div>
+
+            <div class="wjcourse__terminal" aria-label="WJ STUDIO 領域分析">
+              <div class="wjcourse__terminal-head"><span aria-hidden="true" class="wjcourse__terminal-dots"><i></i><i></i><i></i></span><span>WJ STUDIO_ANALYZER.exe</span></div>
+              <pre class="wjcourse__terminal-code" id="wjcourse-analyzer" aria-live="polite">[SYSTEM] 等待完成領域選擇...</pre>
+            </div>
+          </fieldset>
+
+          <div class="wjcourse__field">
+            <span class="wjcourse__field-label">目前最希望解決的事情 <span class="wjcourse__required" aria-label="必填">*</span></span>
+            <div class="wjcourse__select" data-name="primary_goal" data-required="true" data-label="目前最希望解決的事情">
+              <input type="hidden" name="primary_goal" value="">
+              <button type="button" class="wjcourse__select-trigger" aria-label="目前最希望解決的事情" aria-haspopup="listbox" aria-expanded="false" aria-controls="wjcourse-goal-options">
+                <span class="wjcourse__select-text wjcourse__placeholder">請選擇您最希望解決的事情</span><span class="wjcourse__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="wjcourse__select-options" id="wjcourse-goal-options" role="listbox" aria-label="目前最希望解決的事情" hidden>
+                <button type="button" role="option" aria-selected="false" data-value="探索興趣與未來方向">探索興趣與未來方向</button>
+                <button type="button" role="option" aria-selected="false" data-value="從零學習技術與程式">從零學習技術與程式</button>
+                <button type="button" role="option" aria-selected="false" data-value="完成個人專題作品">完成個人專題作品</button>
+                <button type="button" role="option" aria-selected="false" data-value="準備競賽／科展">準備競賽／科展</button>
+                <button type="button" role="option" aria-selected="false" data-value="整理學習歷程">整理學習歷程</button>
+                <button type="button" role="option" aria-selected="false" data-value="想先了解課程內容">想先了解課程內容</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wjcourse__field">
+            <span class="wjcourse__field-label">方便聯絡的方式 <span class="wjcourse__required" aria-label="必填">*</span></span>
+            <div class="wjcourse__select" data-name="contact_method" data-required="true" data-label="方便聯絡的方式">
+              <input type="hidden" name="contact_method" value="">
+              <button type="button" class="wjcourse__select-trigger" aria-label="方便聯絡的方式" aria-haspopup="listbox" aria-expanded="false" aria-controls="wjcourse-contact-options">
+                <span class="wjcourse__select-text wjcourse__placeholder">請選擇方便聯絡的方式</span><span class="wjcourse__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="wjcourse__select-options" id="wjcourse-contact-options" role="listbox" aria-label="方便聯絡的方式" hidden>
+                <button type="button" role="option" aria-selected="false" data-value="LINE">LINE</button>
+                <button type="button" role="option" aria-selected="false" data-value="電子郵件">電子郵件</button>
+                <button type="button" role="option" aria-selected="false" data-value="電話">電話</button>
+                <button type="button" role="option" aria-selected="false" data-value="Facebook">Facebook</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wjcourse__field wjcourse__full">
+            <label for="wjcourse-contact-info">聯絡資訊 <span class="wjcourse__required" aria-label="必填">*</span></label>
+            <input id="wjcourse-contact-info" name="contact_info" type="text" placeholder="請先選擇上方聯絡方式" maxlength="180" required>
+            <p class="wjcourse__help">請依選擇的聯絡方式填寫 LINE ID、Email、電話或 Facebook 帳號，方便我們回覆。</p>
+          </div>
+
+          <div class="wjcourse__field wjcourse__full">
+            <label for="wjcourse-notes">還有什麼想先告訴我們？ <span class="wjcourse__optional">（選填）</span></label>
+            <textarea id="wjcourse-notes" name="additional_info" rows="4" placeholder="例如：孩子曾做過的小作品、感興趣的主題、想參加的競賽……" maxlength="3000"></textarea>
+          </div>
+        </div>
+        <button type="submit" id="wjcourse-submit" class="wjcourse__submit">SUBMIT REGISTRATION / 送出報名</button>
+        <p class="wjcourse__status" id="wjcourse-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+<!-- WJ FREE COURSE END -->
+
+    <div id="wj-experience-kicker" class="wj-experience-kicker">
+    <span class="wj-experience-line" aria-hidden="true"></span>
+    <span>WJ 高光時刻 / WJ HIGHLIGHTS</span>
+</div>
 
     <!--Hero Section-->
     <div class="main">
@@ -181,7 +824,7 @@
                 <h1 class="reveal-text">HELLO！</h1>
                 <h2 class="reveal-text delay-1">I'M&nbsp;JARVIS</h2>
                 <p class="reveal-text delay-2">Wanna hear a tiny tale about my amazing adventures?</p>
-                <a href="Memories.html" class="main__btn">
+                <a href="https://www.youtube.com/watch?v=Fl4DmKrRQmU" target="_blank" rel="noopener noreferrer" class="main__btn">
                     <span>Bring&nbsp;&nbsp;Back&nbsp;&nbsp;Memories</span>
                 </a>
             </div>
@@ -239,7 +882,29 @@
                 class="stage-element layer-hidden">
         </div>
     </div>
-    <!--Footer Section-->
+    <section class="main wj-hero-repeat wj-hero-photo"
+         id="wj-hero-repeat-1"
+         aria-label="WJ 照片展示 2">
+  <a class="wj-hero-repeat__link wj-hero-photo__link"
+     href="https://www.youtube.com/watch?v=Fl4DmKrRQmU"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="觀看 WJ TEDx 影片：展示照片 2">
+  </a>
+</section>
+
+<section class="main wj-hero-repeat wj-hero-photo"
+         id="wj-hero-repeat-2"
+         aria-label="WJ 照片展示 3">
+  <a class="wj-hero-repeat__link wj-hero-photo__link"
+     href="https://www.youtube.com/watch?v=Fl4DmKrRQmU"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="觀看 WJ TEDx 影片：展示照片 3">
+  </a>
+</section>
+
+<!--Footer Section-->
     <div class="footer__container">
         <!--<div class="footer__links">
             <div class="footer__link--wrapper">
@@ -271,32 +936,125 @@
         <div class="social__media">
             <div class="social__media--wrap">
                 <div class="footer__logo">
-                    <a href="index.html" id="footer__logo"><i class="fas fa-gem"></i>NEXT</a>
+                    <a href="index.html" id="footer__logo">
+  <img src="images/WJ_ICON.png"
+       class="wj-footer-icon" alt="" aria-hidden="true">
+  WJ STUDIO
+</a>
                 </div>
-                <p class="website__rights">© NEXT 2026. All rights reserved</p>
+                <p class="website__rights">© WJ STUDIO 2026. All rights reserved</p>
                 <div class="social__icons">
-                    <a href="index.html" class="social__icon--link" target="_blank">
-                        <i class="fab fa-facebook"></i>
-                    </a>
-                    <a href="index.html" class="social__icon--link" target="_blank">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="index.html" class="social__icon--link" target="_blank">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="index.html" class="social__icon--link" target="_blank">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="index.html" class="social__icon--link" target="_blank">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                </div>
+  <a class="social__icon--link"
+     href="https://www.facebook.com/jarvis.hung.164307?locale=zh_TW"
+     target="_blank" rel="noopener noreferrer"
+     aria-label="Facebook">
+    <i class="fab fa-facebook" aria-hidden="true"></i>
+  </a>
+  <a class="social__icon--link"
+     href="https://www.instagram.com/jarvis._.1030?psln=MWFtaGhybGFjNjloYw%3D%3D&amp;utm_source=qr"
+     target="_blank" rel="noopener noreferrer"
+     aria-label="Instagram">
+    <i class="fab fa-instagram" aria-hidden="true"></i>
+  </a>
+  <a class="social__icon--link"
+     href="https://www.youtube.com/@wj0210"
+     target="_blank" rel="noopener noreferrer"
+     aria-label="YouTube">
+    <i class="fab fa-youtube" aria-hidden="true"></i>
+  </a>
+</div>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+        <!-- LOCAL PREVIEW ONLY: GAME menu, never shown on public website domains. -->
+    <script>
+    (function () {
+        var host = (location.hostname || '').toLowerCase();
+        var localHost = /^(localhost|127\.0\.0\.1|::1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/i.test(host);
+        if (location.protocol !== 'file:' && !localHost) return;
+        var menu = document.querySelector('.navbar__menu');
+        if (!menu || menu.querySelector('.wj-local-game')) return;
+        var item = document.createElement('li');
+        item.className = 'navbar__item wj-local-game';
+        var link = document.createElement('a');
+        link.className = 'navbar__links';
+        link.href = (location.protocol === 'file:') ? 'Game.html' : 'Game.vite.html';
+        link.textContent = 'Game';
+        item.appendChild(link);
+        var tutor = menu.querySelector('.navbar__btn');
+        if (tutor) menu.insertBefore(item, tutor); else menu.appendChild(item);
+    })();
+    </script>
+    <script src="app.public.js"></script>
     <script src="technology-tabs.js" defer></script>
+    <script src="Technology/IOT/iot-experience-v2.js" defer></script>
+    <script src="Technology/Game/game-embed.js" defer></script>
+    <script src="Technology/Game/game-cursor-bridge.js" defer></script>
+    <script src="Technology/Home/home-interactions.js" defer></script>
+<script id="wj-hero-match-original-size">
+(() => {
+  const original = document.querySelector("body > .main:not(.wj-hero-repeat)");
+  const panels = [
+    document.getElementById("wj-hero-repeat-1"),
+    document.getElementById("wj-hero-repeat-2")
+  ];
+
+  if (!original || panels.some(p => !p)) return;
+
+  function syncSize() {
+    const rect = original.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    panels.forEach(panel => {
+      panel.style.setProperty("box-sizing", "border-box", "important");
+      panel.style.setProperty("width", rect.width + "px", "important");
+      panel.style.setProperty("height", rect.height + "px", "important");
+      panel.style.setProperty("min-height", "0", "important");
+      panel.style.setProperty("aspect-ratio", "auto", "important");
+      panel.style.setProperty("max-width", "none", "important");
+    });
+  }
+
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(syncSize).observe(original);
+  }
+  window.addEventListener("resize", syncSize, {passive:true});
+  syncSize();
+})();
+</script>
+<script id="wj-second-photo-onview">
+(() => {
+    const panel = document.getElementById(
+        "wj-hero-repeat-1"
+    );
+
+    if (!panel) return;
+
+    if (!("IntersectionObserver" in window)) {
+        return;
+    }
+
+    panel.classList.add("wj-second-photo-pending");
+
+    const observer = new IntersectionObserver(
+        entries => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    panel.classList.remove(
+                        "wj-second-photo-pending"
+                    );
+                    observer.disconnect();
+                }
+            }
+        },
+        { threshold: 0.12 }
+    );
+
+    observer.observe(panel);
+})();
+</script>
+    <script src="Technology/Tutor/home-course-redesign.js" defer></script>
 </body>
 
 </html>

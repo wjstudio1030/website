@@ -1,0 +1,265 @@
+/* WJ STUDIO | HOME Course Classic UI V1
+   Match legacy Tutor.html: neutral-black inputs, white-on-select,
+   cyan dropdown hover, cyan ANALYZER terminal.
+   Scoped to HOME only; does not change Tutor.html.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@600;700;800&display=swap');
+
+#wj-free-course {
+    --brand-blue: #00f2fe;
+    --brand-peach: #ff8177;
+    background: #141414 !important;
+    color: #fff !important;
+    font-family: 'Kumbh Sans', 'Microsoft JhengHei', system-ui, sans-serif !important;
+    font-size: 16px !important;
+}
+#wj-free-course .wjfc-shell { width: min(950px, 100%) !important; }
+#wj-free-course .wjfc-eyebrow {
+    font: 600 11px/1.8 var(--font-tech, 'Orbitron'), sans-serif !important;
+    color: #d0c1cb !important; letter-spacing: .2em !important;
+}
+#wj-free-course .wjfc-eyebrow-line { background: linear-gradient(90deg,#ff8177,#755afa) !important; }
+#wj-free-course .wjfc-intro { margin-bottom: 34px !important; }
+#wj-free-course .wjfc-title {
+    margin: 0 0 16px !important;
+    background: none !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    text-shadow: none !important;
+    letter-spacing: 0 !important;
+    font: 800 clamp(30px, 4.2vw, 56px)/1.35 'Kumbh Sans','Microsoft JhengHei',sans-serif !important;
+    text-transform: none !important;
+}
+#wj-free-course .wjfc-title-suffix { margin-left: 0 !important; }
+/* Traditional monochrome LED display, no individual decorative cards. */
+#wj-free-course .wjfc-clock {
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    width: 100% !important; gap: 0 !important; margin: 0 auto !important;
+    white-space: nowrap !important;
+}
+#wj-free-course .wjfc-clock-unit {
+    display: block !important; width: auto !important; min-width: 0 !important;
+    height: auto !important; min-height: 0 !important;
+    margin: 0 !important; padding: 0 !important;
+    border: 0 !important; border-radius: 0 !important;
+    background: none !important; box-shadow: none !important;
+}
+#wj-free-course .wjfc-clock-value,
+#wj-free-course .wjfc-colon {
+    font-family: 'Doto','Share Tech Mono',Consolas,monospace !important;
+    font-size: clamp(48px, 9.1vw, 91px) !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: 'tnum' 1 !important;
+    letter-spacing: -.035em !important; line-height: 1.12 !important;
+    color: #fff !important; -webkit-text-fill-color: #fff !important;
+    background: none !important; text-shadow: none !important;
+}
+#wj-free-course .wjfc-colon { padding: 0 !important; margin: 0 .015em !important; align-self: center !important; }
+#wj-free-course .wjfc-clock-unit small,
+#wj-free-course .wjfc-clock-caption,
+#wj-free-course .wjfc-index { display: none !important; }
+#wj-free-course .wjfc-form-frame {
+    max-width: 740px !important; margin: 0 auto !important;
+    padding: clamp(24px, 5vw, 50px) !important;
+    background: rgba(255,255,255,.02) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(247,112,98,.2) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,.5) !important;
+    transition: border-color .35s, box-shadow .35s !important;
+}
+#wj-free-course .wjfc-form-frame:focus-within {
+    border-color: #00f2fe !important;
+    box-shadow: 0 0 25px rgba(0,242,254,.2) !important;
+}
+#wj-free-course .wjfc-frame-top {
+    margin-bottom: 30px !important; padding-bottom: 12px !important;
+    border-color: rgba(255,255,255,.05) !important;
+}
+#wj-free-course .wjfc-frame-mark {
+    font: 600 13px/1.65 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+    letter-spacing: .08em !important; color: #dcdcdc !important;
+}
+#wj-free-course .wjfc-fields-grid {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 29px !important;
+}
+#wj-free-course .wjfc-span-all { grid-column: auto !important; }
+#wj-free-course .wjfc-field { gap: 0 !important; }
+#wj-free-course .wjfc-label {
+    margin: 0 0 12px !important;
+    color: #fff !important;
+    font: 600 16px/1.55 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+    letter-spacing: .035em !important;
+}
+#wj-free-course .wjfc-help { color: #bcbcbc !important; font-size: 14px !important; line-height: 1.7 !important; }
+#wj-free-course .wjfc-optional { font: 400 14px/1.5 'Microsoft JhengHei',sans-serif !important; color: #aaa !important; }
+#wj-free-course .wjfc-control,
+#wj-free-course .wjfc-dropdown-toggle,
+#wj-free-course .wjfc-smart-trigger {
+    width: 100% !important;
+    min-height: 54px !important;
+    padding: 14px 20px !important;
+    border: 1px solid rgba(255,255,255,.1) !important;
+    border-radius: 6px !important;
+    background: rgba(20,20,20,.8) !important;
+    color: #fff !important;
+    font: 400 16px/1.5 'Kumbh Sans','Microsoft JhengHei',sans-serif !important;
+    letter-spacing: 0 !important;
+    box-shadow: none !important;
+    text-align: left !important;
+    transition: background-color .22s, color .22s, border-color .22s, box-shadow .22s !important;
+}
+#wj-free-course .wjfc-control::placeholder { color: #999 !important; opacity: 1 !important; }
+#wj-free-course .wjfc-control:focus,
+#wj-free-course .wjfc-control:not(:placeholder-shown):not(select),
+#wj-free-course .wjfc-dropdown-toggle.wjfc-has-value,
+#wj-free-course .wjfc-smart-trigger.wjfc-has-value {
+    background: rgba(255,255,255,.96) !important;
+    color: #131313 !important; -webkit-text-fill-color: #131313 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 20px rgba(255,255,255,.25) !important;
+}
+#wj-free-course .wjfc-control:focus::placeholder { color: #666 !important; }
+#wj-free-course .wjfc-dropdown[ data-open='true'] .wjfc-dropdown-toggle,
+#wj-free-course .wjfc-dropdown-toggle[aria-expanded='true'],
+#wj-free-course .wjfc-smart-trigger[aria-expanded='true'] {
+    border-color: #00f2fe !important;
+    box-shadow: 0 0 15px rgba(0,242,254,.3) !important;
+}
+#wj-free-course .wjfc-dropdown,
+#wj-free-course .wjfc-smart-select { width: 100%; position: relative !important; }
+#wj-free-course .wjfc-dropdown-toggle,
+#wj-free-course .wjfc-smart-trigger { display: flex !important; align-items: center; justify-content: space-between !important; gap: 12px !important; }
+#wj-free-course .wjfc-dropdown-chevron,
+#wj-free-course .wjfc-smart-chevron {
+    width: 22px !important; height: 22px !important;
+    background: currentColor !important; opacity: .65 !important; border: none !important;
+    clip-path: polygon(24% 38%, 50% 65%, 76% 38%, 84% 45%, 50% 78%, 16% 45%) !important;
+    transform: none !important; flex-shrink: 0 !important;
+}
+#wj-free-course .wjfc-dropdown-toggle[aria-expanded='true'] .wjfc-dropdown-chevron,
+#wj-free-course .wjfc-smart-trigger[aria-expanded='true'] .wjfc-smart-chevron {
+    transform: rotate(180deg) !important;
+}
+#wj-free-course .wjfc-dropdown-options,
+#wj-free-course .wjfc-smart-list {
+    position: absolute !important; inset: auto 0 auto 0 !important;
+    top: calc(100% + 6px) !important;
+    z-index: 1000 !important; max-height: 290px !important; overflow-y: auto !important;
+    margin: 0 !important; padding: 6px 0 !important; list-style: none !important;
+    background: #141414 !important;
+    border: 1px solid rgba(0,242,254,.3) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 12px 35px rgba(0,0,0,.85), 0 0 20px rgba(0,242,254,.15) !important;
+}
+#wj-free-course .wjfc-smart-list[hidden], #wj-free-course .wjfc-dropdown-options[hidden] { display: none !important; }
+#wj-free-course .wjfc-choice,
+#wj-free-course .wjfc-smart-option {
+    display: flex !important; align-items: center !important; gap: 12px !important;
+    width: 100% !important; border: 0 !important; border-radius: 0 !important;
+    background: transparent !important; color: #fff !important;
+    padding: 14px 20px !important;
+    text-align: left !important;
+    font: 400 15px/1.5 'Kumbh Sans','Microsoft JhengHei',sans-serif !important;
+    text-shadow: none !important;
+}
+#wj-free-course .wjfc-choice:hover,
+#wj-free-course .wjfc-choice:focus-within,
+#wj-free-course .wjfc-smart-option:hover,
+#wj-free-course .wjfc-smart-option:focus-visible {
+    background: rgba(0,242,254,.15) !important;
+    color: #00f2fe !important;
+    text-shadow: 0 0 10px rgba(0,242,254,.5) !important;
+}
+#wj-free-course .wjfc-choice input { opacity: 0 !important; }
+#wj-free-course .wjfc-checkbox-mark { border-radius: 3px !important; background: #141414 !important; border-color: #777 !important; }
+#wj-free-course .wjfc-choice input:checked + .wjfc-checkbox-mark { background: rgba(0,242,254,.15) !important; border-color: #00f2fe !important; }
+#wj-free-course .wjfc-choice input:checked + .wjfc-checkbox-mark::after { color: #00f2fe !important; }
+#wj-free-course .wjfc-choice:has(input:checked) { background: rgba(0,242,254,.08) !important; }
+#wj-free-course .wjfc-dropdown-footer {
+    border-top: 1px solid rgba(255,255,255,.05) !important; color: #bcbcbc !important;
+    font-size: 13px !important;
+}
+#wj-free-course #wjfc-dropdown-done {
+    background: rgba(0,242,254,.12) !important;
+    border: 1px solid #00f2fe !important; border-radius: 5px !important;
+    color: #00f2fe !important; padding: 10px 17px !important;
+    font: 600 14px/1.4 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+}
+/* Exactly the old WJ STUDIO_ANALYZER.exe palette, with larger readable type. */
+#wj-free-course .wjfc-terminal {
+    width: 100% !important; margin: 18px 0 0 !important; padding: 15px !important;
+    border: 1px solid rgba(0,242,254,.3) !important;
+    border-radius: 6px !important; background: #09090b !important;
+    box-shadow: inset 0 0 15px rgba(0,242,254,.1) !important;
+    overflow: visible !important;
+    font-family: var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+}
+#wj-free-course .wjfc-terminal-head {
+    display: flex !important; align-items: center !important; gap: 12px !important;
+    padding: 0 0 8px !important; margin-bottom: 10px !important; min-height: 24px !important;
+    background: none !important; border: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,.05) !important;
+    color: rgba(255,255,255,.4) !important;
+    font: 400 13px/1.5 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+    letter-spacing: 1px !important;
+}
+#wj-free-course .wjfc-terminal-lights { gap: 6px !important; }
+#wj-free-course .wjfc-terminal-lights i { width: 10px !important; height: 10px !important; }
+#wj-free-course .wjfc-terminal-lights i:first-child { background: #ff5f56 !important; }
+#wj-free-course .wjfc-terminal-lights i:nth-child(2) { background: #ffbd2e !important; }
+#wj-free-course .wjfc-terminal-lights i:nth-child(3) { background: #27c93f !important; }
+#wj-free-course .wjfc-terminal-indicator { display: none !important; }
+#wj-free-course .wjfc-terminal-body {
+    padding: 0 !important; margin: 0 !important; min-height: 95px !important;
+    font: 400 16px/1.75 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+    letter-spacing: 0 !important; color: #00f2fe !important;
+    background: transparent !important; border: 0 !important;
+    white-space: pre-wrap !important; overflow-wrap: anywhere !important; text-align: left !important;
+}
+#wj-free-course .wjfc-submit {
+    min-height: 58px !important; margin-top: 22px !important;
+    border-radius: 6px !important;
+    background: linear-gradient(to right,#ff8177,#fe5196) !important;
+    font: 700 18px/1.4 var(--font-tech,'Orbitron'),'Microsoft JhengHei',sans-serif !important;
+    letter-spacing: .06em !important;
+}
+#wj-free-course .wjfc-submit-arrow, #wj-free-course .wjfc-submit-sep { display: none !important; }
+#wj-free-course .wjfc-status { font-size: 15px !important; }
+/* Interactive controls use the same white custom cursor as old Tutor dropdowns. */
+@media (hover: hover) and (pointer: fine) {
+    #wj-free-course button, #wj-free-course label,
+    #wj-free-course select, #wj-free-course input,
+    #wj-free-course textarea,
+    #wj-free-course .wjfc-choice,
+    #wj-free-course .wjfc-dropdown-options,
+    #wj-free-course .wjfc-smart-list { cursor: none !important; }
+}
+body.wjfc-cursor-white .cursor {
+    background: #fff !important; border-color: #fff !important;
+    opacity: 1 !important; visibility: visible !important;
+}
+body.wjfc-cursor-white .cursor-follower {
+    border: 2px solid #fff !important;
+    background: rgba(255,255,255,.4) !important;
+    opacity: 1 !important; visibility: visible !important;
+}
+#wj-free-course .wjfc-native-proxy {
+    position: absolute !important; width: 1px !important; height: 1px !important;
+    top: 0 !important; left: 0 !important; padding: 0 !important; margin: 0 !important;
+    opacity: 0 !important; border: 0 !important; pointer-events: none !important;
+}
+@media (max-width: 720px) {
+    #wj-free-course { padding-inline: 14px !important; }
+    #wj-free-course .wjfc-form-frame { padding: 25px 19px !important; }
+    #wj-free-course .wjfc-title { font-size: clamp(27px, 6.3vw, 38px) !important; }
+    #wj-free-course .wjfc-clock-value, #wj-free-course .wjfc-colon {
+        font-size: clamp(35px, 10.3vw, 61px) !important;
+    }
+    #wj-free-course .wjfc-label { font-size: 15px !important; }
+    #wj-free-course .wjfc-terminal-body { font-size: 14px !important; }
+    #wj-free-course .wjfc-smart-option, #wj-free-course .wjfc-choice { padding: 13px 15px !important; }
+}

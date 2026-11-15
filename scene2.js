@@ -2,17 +2,8 @@
 // WJ STUDIO - 場景 2：未知領域與邏輯閘 (scene2.js)
 // =========================================
 
-export function initScene2(playerState, switchScene) {
+export function initScene2(playerState, switchScene, resourceScope = null) {
     const scene2 = document.getElementById('scene-2');
-    
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
-    if (window._scene1KeyDown) {
-        window.removeEventListener('keydown', window._scene1KeyDown);
-        window.removeEventListener('keyup', window._scene1KeyUp);
-    }
     
     let ammoOnes = playerState.ammoOnes || 0;
     let ammoZeros = playerState.ammoZeros || 0;
@@ -895,6 +886,44 @@ export function initScene2(playerState, switchScene) {
     // ==============================================================
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let shoot3Buffer = null;
+    let destroyed = false;
+
+    const scheduleSceneFrame = (callback) => {
+        if (resourceScope) {
+            return resourceScope.requestAnimationFrame(callback);
+        }
+
+        return globalThis.requestAnimationFrame(callback);
+    };
+
+    const scheduleSceneInterval = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setInterval(callback, delay);
+        }
+
+        return globalThis.setInterval(callback, delay);
+    };
+
+    const scheduleSceneTimeout = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setTimeout(callback, delay);
+        }
+
+        return globalThis.setTimeout(callback, delay);
+    };
+
+    const clearSceneInterval = (intervalId) => {
+        if (intervalId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearInterval(intervalId);
+            return;
+        }
+
+        globalThis.clearInterval(intervalId);
+    };
 
     // 預先抓取音效檔案並解碼成 Buffer (純數據)
     fetch('game_audio/game_shoot_enemy3.mp3')
@@ -1143,7 +1172,7 @@ export function initScene2(playerState, switchScene) {
         marqueeActive = true;
         updateMarqueeHighlight();
         
-        marqueeInterval = setInterval(() => {
+        marqueeInterval = scheduleSceneInterval(() => {
             const hasOne = ammoOnes > 0;
             const hasZero = ammoZeros > 0;
             if (hasOne && hasZero) {
@@ -1155,8 +1184,9 @@ export function initScene2(playerState, switchScene) {
 
     function stopMarquee() {
         marqueeActive = false;
-        if (marqueeInterval) {
-            clearInterval(marqueeInterval);
+
+        if (marqueeInterval != null) {
+            clearSceneInterval(marqueeInterval);
             marqueeInterval = null;
         }
     }
@@ -1273,7 +1303,7 @@ export function initScene2(playerState, switchScene) {
         const ex = ((worldX - cameraX) * cw) / 100;
         const ey = (py * ch) / 100 - 15;
 
-        const lightningInterval = setInterval(() => {
+        const lightningInterval = scheduleSceneInterval(() => {
             let d = "";
             let startPoints = [];
 
@@ -1309,10 +1339,11 @@ export function initScene2(playerState, switchScene) {
         }, 50); 
 
         lightningPath.style.opacity = 1;
-        setTimeout(() => { 
-            clearInterval(lightningInterval); 
-            lightningPath.style.opacity = 0; 
-            lightningPath.setAttribute('d', ''); 
+
+        scheduleSceneTimeout(() => {
+            clearSceneInterval(lightningInterval);
+            lightningPath.style.opacity = 0;
+            lightningPath.setAttribute('d', '');
         }, 600);
     }
 
@@ -1365,9 +1396,12 @@ export function initScene2(playerState, switchScene) {
                         
                         bossWeaponAnd.style.filter = 'drop-shadow(0 0 30px #fff) brightness(1.5)';
                         
-                        let shake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`; }, 40);
-                        setTimeout(() => {
-                            clearInterval(shake);
+                        let shake = scheduleSceneInterval(() => {
+                            scene2.style.transform = `translate(${(Math.random()-0.5)*10}px, ${(Math.random()-0.5)*10}px)`;
+                        }, 40);
+
+                        scheduleSceneTimeout(() => {
+                            clearSceneInterval(shake);
                             scene2.style.transform = 'none';
                             bossWeaponAnd.style.filter = 'none';
                         }, 150);
@@ -1388,10 +1422,10 @@ export function initScene2(playerState, switchScene) {
                         bossAndBody.setAttribute('fill', '#fff'); 
                         bossWeaponAnd.style.filter = 'drop-shadow(0 0 150px #fff) drop-shadow(0 0 80px #fff) brightness(5)';
                         
-                        let bigShake = setInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`; }, 40);
-                        
-                        setTimeout(() => {
-                            clearInterval(bigShake);
+                        let bigShake = scheduleSceneInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`;}, 40);
+
+                        scheduleSceneTimeout(() => {
+                            clearSceneInterval(bigShake);
                             scene2.style.transform = 'none';
                             finalBossSVG.remove();
                             
@@ -1431,20 +1465,33 @@ export function initScene2(playerState, switchScene) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack1);
         fireBlueLaser();
-        setTimeout(() => { stickman.classList.add('player-dead'); setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500); }, 350); 
+
+        scheduleSceneTimeout(() => {
+            stickman.classList.add('player-dead');
+
+            scheduleSceneTimeout(() => {
+                switchScene(2, returnToScene1 ? 1 : 2);
+            }, 1500);
+        }, 350);
     }
 
     function triggerLightningDeath(returnToScene1 = false, sourceX = 280) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack2);
         fireLightningAttack(sourceX);
-        setTimeout(() => {
-            stickman.classList.add('electrocuted'); 
-            setTimeout(() => {
-                stickman.classList.remove('electrocuted'); stickman.classList.add('burnt-dead'); 
-                setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-            }, 600); 
-        }, 100); 
+
+        scheduleSceneTimeout(() => {
+            stickman.classList.add('electrocuted');
+
+            scheduleSceneTimeout(() => {
+                stickman.classList.remove('electrocuted');
+                stickman.classList.add('burnt-dead');
+
+                scheduleSceneTimeout(() => {
+                    switchScene(2, returnToScene1 ? 1 : 2);
+                }, 1500);
+            }, 600);
+        }, 100);
     }
 
     function fireMegaBlueLaser(sourceWorldX) {
@@ -1469,12 +1516,10 @@ export function initScene2(playerState, switchScene) {
             megaLaserCore.style.transition = 'none';
         }
 
-        let shake = setInterval(() => {
-            scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`;
-        }, 40);
+        let shake = scheduleSceneInterval(() => { scene2.style.transform = `translate(${(Math.random()-0.5)*25}px, ${(Math.random()-0.5)*25}px)`; }, 40);
 
-        setTimeout(() => { 
-            clearInterval(shake);
+        scheduleSceneTimeout(() => {
+            clearSceneInterval(shake);
             scene2.style.transform = 'none';
             megaLaser.style.transition = 'opacity 0.6s ease-out'; 
             megaLaser.style.opacity = 0; 
@@ -1489,17 +1534,23 @@ export function initScene2(playerState, switchScene) {
         isPlayerControllable = false; stickman.classList.add('stand-still');
         playActionSfx(sfxAttack3);
         fireMegaBlueLaser(430);
-        setTimeout(() => {
+
+        scheduleSceneTimeout(() => {
             document.getElementById('circuit-3').classList.add('circuit-broken');
-            for(let i=1; i<=5; i++){
+
+            for (let i = 1; i <= 5; i++) {
                 let disp = document.getElementById(`input-d${i}-display`);
-                if(disp && disp.innerText !== "") {
-                    disp.style.transition = 'none'; 
-                    disp.classList.add('text-broken'); 
+
+                if (disp && disp.innerText !== "") {
+                    disp.style.transition = 'none';
+                    disp.classList.add('text-broken');
                 }
             }
-            setTimeout(() => { switchScene(2, returnToScene1 ? 1 : 2); }, 1500);
-        }, 150); 
+
+            scheduleSceneTimeout(() => {
+                switchScene(2, returnToScene1 ? 1 : 2);
+            }, 1500);
+        }, 150);
     }
 
     function evaluatePuzzle1() {
@@ -1562,9 +1613,14 @@ export function initScene2(playerState, switchScene) {
         if (keys.hasOwnProperty(key)) keys[key] = true;
         
         if (key === 'p') {
-            playerState.ammoOnes = 5; playerState.ammoZeros = 1;
-            isPlayerControllable = false; stickman.classList.add('stand-still');
-            switchScene(1, 2); return;
+            playerState.ammoOnes = 5;
+            playerState.ammoZeros = 1;
+
+            isPlayerControllable = false;
+            stickman.classList.add('stand-still');
+
+            switchScene(2, 2);
+            return;
         }
 
         if (key === 'q' && marqueeActive) selectCurrentOption();
@@ -1722,28 +1778,28 @@ export function initScene2(playerState, switchScene) {
 
                 modal.classList.add('show-init');
                 
-                setTimeout(() => {
+                scheduleSceneTimeout(() => {
                     modal.classList.add('draw-borders');
                     modal.classList.add('show-bg');
                 }, 100);
 
                 // 動畫 1：顯示文字與名稱
-                setTimeout(() => { 
+                scheduleSceneTimeout(() => {
                     topText.style.opacity = '1'; topText.style.transform = 'translateY(0)'; 
                     titleEl.style.opacity = '1'; titleEl.style.transform = 'translateY(0)';
                 }, 800);
                 // 動畫 2：畫線
-                setTimeout(() => { separator.style.width = '100%'; }, 1100);
+                scheduleSceneTimeout(() => { separator.style.width = '100%'; }, 1100);
                 // 動畫 3：顯示說明
-                setTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
+                scheduleSceneTimeout(() => { descEl.style.opacity = '1'; descEl.style.transform = 'translateY(0)'; }, 1400);
                 // 動畫 4：最後顯示 ICON
-                setTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
+                scheduleSceneTimeout(() => { centerContent.classList.add('spectacular-entry'); }, 1700);
 
-                setTimeout(() => {
+                scheduleSceneTimeout(() => {
                     modal.style.opacity = '0';
-                    setTimeout(() => { modal.classList.remove('show-init', 'draw-borders', 'show-bg'); }, 400);
+                    scheduleSceneTimeout(() => { modal.classList.remove('show-init', 'draw-borders', 'show-bg'); }, 400);
                     
-                    setTimeout(() => {
+                    scheduleSceneTimeout(() => {
                         isPlayerControllable = true;
                         
                         const heldOne = document.getElementById('held-1-s2');
@@ -1780,13 +1836,20 @@ export function initScene2(playerState, switchScene) {
         if (keys.hasOwnProperty(key)) keys[key] = false;
     }
 
-    window._scene2KeyDown = handleKeyDown;
-    window._scene2KeyUp = handleKeyUp;
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    function handleInputReset() {
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+    }
 
     function gameLoopS2() {
-        if (!isPlayerControllable) { requestAnimationFrame(gameLoopS2); return; }
+
+        if (destroyed) {
+            return;
+        }
+
+        if (!isPlayerControllable) { scheduleSceneFrame(gameLoopS2); return; }
 
         let moved = false; let speedX = 0.4; let speedY = 0.3; 
         if (keys.w) { py -= speedY; moved = true; }
@@ -1920,8 +1983,32 @@ export function initScene2(playerState, switchScene) {
             }
         }
 
-        requestAnimationFrame(gameLoopS2);
+        scheduleSceneFrame(gameLoopS2);
     }
 
-    requestAnimationFrame(gameLoopS2);
+    scheduleSceneFrame(gameLoopS2);
+
+    function destroy() {
+        if (destroyed) {
+            return;
+        }
+
+        destroyed = true;
+        isPlayerControllable = false;
+
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+
+        stopMarquee();
+        resourceScope?.dispose();
+    }
+
+    return {
+        handleKeyDown,
+        handleKeyUp,
+        handleInputReset,
+        destroy
+    };
 }

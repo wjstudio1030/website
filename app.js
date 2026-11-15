@@ -244,17 +244,7 @@ if (introOverlay && smokeCanvas) {
 
 function checkIntroTrigger() {
     if (window.innerWidth > 960 && isIntroTimeReady && !hasIntroTriggered) {
-        // Keep the previously shifted trigger anchor after the HOME hero.
-        // Fire when the original TEDx hero reaches ~6% below the viewport top,
-        // matching the full-hero framing across desktop screen sizes.
-        // This follows future changes to the technology section and hero height.
-        const introAnchor = document.getElementById('wj-intro-trigger-anchor');
-        const homeHero = document.querySelector('body > .main');
-        const heroHeight = homeHero ? homeHero.getBoundingClientRect().height : window.innerHeight * 0.90;
-        const thresholdY = introAnchor
-            ? introAnchor.getBoundingClientRect().top + window.scrollY - heroHeight - window.innerHeight * 0.06
-            : 50;
-        if (window.scrollY > Math.max(50, thresholdY)) { 
+        if (window.scrollY > 50) { 
             hasIntroTriggered = true;
             introOverlay.classList.add('intro-active');
             console.log("🚀 [SYSTEM]: True Aerodynamic Stream -> Gentle Mist Engine Triggered!");

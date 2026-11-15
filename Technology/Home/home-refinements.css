@@ -1,0 +1,62 @@
+/* WJ HOME REFINEMENTS V1 */
+
+#wj-experience-kicker.wj-experience-kicker {
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 18px clamp(16px,3.3vw,60px) !important;
+    gap: 11px !important;
+    background: linear-gradient(122deg,#1b1a20,#151518 50%,#211c2b) !important;
+    border-top: 1px solid #ffffff12 !important;
+    border-bottom: 1px solid #ffffff12 !important;
+    font: 600 11px/1.8 var(--font-tech),Orbitron,sans-serif !important;
+    letter-spacing: .2em !important;
+    color: #d0c1cb !important;
+    writing-mode: horizontal-tb !important;
+}
+
+#wj-experience-kicker .wj-experience-line {
+    display: block !important;
+    flex: 0 0 26px !important;
+    width: 26px !important;
+    height: 3px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: linear-gradient(90deg,#ff8177,#755afa) !important;
+    box-shadow: none !important;
+}
+
+#wj-experience-kicker span:not(.wj-experience-line) {
+    color: #d0c1cb !important;
+    -webkit-text-fill-color: #d0c1cb !important;
+    font: inherit !important;
+    letter-spacing: inherit !important;
+    writing-mode: horizontal-tb !important;
+    word-break: keep-all !important;
+}
+
+#wj-tech-panel-xr .wj-xr-video-frame iframe {
+    cursor: auto !important;
+    pointer-events: auto !important;
+}
+
+body.wj-youtube-hover .cursor,
+body.wj-youtube-hover .cursor-follower,
+body:has(#wj-tech-panel-xr:not([hidden]) .wj-xr-video-frame iframe:hover) .cursor,
+body:has(#wj-tech-panel-xr:not([hidden]) .wj-xr-video-frame iframe:hover) .cursor-follower {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+@media(max-width:720px) {
+    #wj-experience-kicker.wj-experience-kicker {
+        font-size: 10px !important;
+        letter-spacing: .1em !important;
+    }
+}

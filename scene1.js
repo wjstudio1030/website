@@ -2,18 +2,8 @@
 // WJ STUDIO - 場景 1：開場劇情動畫 (scene1.js)
 // =========================================
 
-export function initScene1(playerState, switchScene) {
+export function initScene1(playerState, switchScene, resourceScope = null) {
     const scene1 = document.getElementById('scene-1');
-    
-    // 移除舊的鍵盤事件監聽器 (如果有的話)
-    if (window._scene1KeyDown) {
-        window.removeEventListener('keydown', window._scene1KeyDown);
-        window.removeEventListener('keyup', window._scene1KeyUp);
-    }
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
     
     // 重置 playerState 確保不會卡住
     playerState.ammoOnes = 0;
@@ -358,8 +348,7 @@ export function initScene1(playerState, switchScene) {
         stickman.classList.add('stand-still');
     });
 
-    let canPickUp = false; 
-    let eventListenerAdded = false;
+    let canPickUp = false;
     
     // 🌟 明確記錄彈藥數量
     let ammoOnes = 0;
@@ -374,6 +363,24 @@ export function initScene1(playerState, switchScene) {
     let cameraX = 0; 
     let facing = 1;  
     const keys = { w: false, a: false, s: false, d: false };
+
+    let destroyed = false;
+
+    const scheduleSceneFrame = (callback) => {
+        if (resourceScope) {
+            return resourceScope.requestAnimationFrame(callback);
+        }
+
+        return globalThis.requestAnimationFrame(callback);
+    };
+
+    const scheduleSceneTimeout = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setTimeout(callback, delay);
+        }
+
+        return globalThis.setTimeout(callback, delay);
+    };
     
     setTimeout(() => { stickman.style.left = '20%'; }, 100);
     setTimeout(() => { stickman.classList.add('stand-still'); }, 2600); 
@@ -400,21 +407,10 @@ export function initScene1(playerState, switchScene) {
         book.style.transform = 'rotate(85deg)'; 
     }, 3400); 
 
-    setTimeout(() => {
+    scheduleSceneTimeout(() => {
         ePrompt.style.opacity = '1';
         canPickUp = true;
-
-        // 儲存事件處理函數到 window 以便之後移除
-        window._scene1KeyDown = handleKeyDown;
-        window._scene1KeyUp = handleKeyUp;
-        
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-        eventListenerAdded = true;
-        
-        // 啟動遊戲迴圈，但不給予控制權 (isPlayerControllable 依然是 false)
-        // 這樣可以讓畫面保持更新，等待玩家按下 E
-        requestAnimationFrame(gameLoop);
+        scheduleSceneFrame(gameLoop);
     }, 4000);
 
     function showAmmoModal(type, title, subtitle, desc, color) {
@@ -564,6 +560,13 @@ export function initScene1(playerState, switchScene) {
         if (keys.hasOwnProperty(key)) keys[key] = false;
     }
 
+    function handleInputReset() {
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+    }
+
     closeManual.addEventListener('click', () => {
         manualModal.classList.remove('manual-active');
         
@@ -586,8 +589,12 @@ export function initScene1(playerState, switchScene) {
     // 4. 🚀 遊戲主迴圈 (包含過關無縫切換機制)
     // =========================================
     function gameLoop() {
+        if (destroyed) {
+            return;
+        }
+
         if (!isPlayerControllable) {
-            requestAnimationFrame(gameLoop);
+            scheduleSceneFrame(gameLoop);
             return; 
         }
 
@@ -686,6 +693,29 @@ export function initScene1(playerState, switchScene) {
             itemEPrompt.style.opacity = '0';
         }
 
-        requestAnimationFrame(gameLoop);
+        scheduleSceneFrame(gameLoop);
     }
+
+    function destroy() {
+        if (destroyed) {
+            return;
+        }
+
+        destroyed = true;
+        isPlayerControllable = false;
+
+        keys.w = false;
+        keys.a = false;
+        keys.s = false;
+        keys.d = false;
+
+        resourceScope?.dispose();
+    }
+    
+    return {
+        handleKeyDown,
+        handleKeyUp,
+        handleInputReset,
+        destroy
+    };
 }

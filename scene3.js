@@ -2,19 +2,76 @@
 // WJ STUDIO - 場景 3：全新領域 (scene3.js)
 // =========================================
 
-export function initScene3(playerState, switchScene) {
+export function initScene3(playerState, switchScene, resourceScope = null, devCheckpoint = null) {
     const scene3 = document.getElementById('scene-3');
     const scene3InstanceToken = Symbol('scene3-instance');
     window._scene3InstanceToken = scene3InstanceToken;
-    
-    if (window._scene2KeyDown) {
-        window.removeEventListener('keydown', window._scene2KeyDown);
-        window.removeEventListener('keyup', window._scene2KeyUp);
-    }
-    if (window._scene3KeyDown) {
-        window.removeEventListener('keydown', window._scene3KeyDown);
-        window.removeEventListener('keyup', window._scene3KeyUp);
-    }
+
+    let destroyed = false;
+    let bridgePhysicsActive = false;
+
+    const scheduleSceneFrame = (callback) => {
+        if (resourceScope) {
+            return resourceScope.requestAnimationFrame(callback);
+        }
+
+        return globalThis.requestAnimationFrame(callback);
+    };
+
+    const cancelSceneFrame = (frameId) => {
+        if (frameId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.cancelAnimationFrame(frameId);
+            return;
+        }
+
+        globalThis.cancelAnimationFrame(frameId);
+    };
+
+    const scheduleSceneInterval = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setInterval(callback, delay);
+        }
+
+        return globalThis.setInterval(callback, delay);
+    };
+
+    const clearSceneInterval = (intervalId) => {
+        if (intervalId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearInterval(intervalId);
+            return;
+        }
+
+        globalThis.clearInterval(intervalId);
+    };
+
+    const scheduleSceneTimeout = (callback, delay) => {
+        if (resourceScope) {
+            return resourceScope.setTimeout(callback, delay);
+        }
+
+        return globalThis.setTimeout(callback, delay);
+    };
+
+    const clearSceneTimeout = (timeoutId) => {
+        if (timeoutId == null) {
+            return;
+        }
+
+        if (resourceScope) {
+            resourceScope.clearTimeout(timeoutId);
+            return;
+        }
+
+        globalThis.clearTimeout(timeoutId);
+    };
 
     // =========================================================
     // 🌟 核心修復：重置全局 UI，清除上一局遺留的背包/營地 Icon
@@ -746,7 +803,6 @@ export function initScene3(playerState, switchScene) {
                 left: 115%; /* 放置於所有三角怪右側 */
                 transform: translate(0, -50%);
                 z-index: 3;
-                filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
                 overflow: visible;
             }
             .pla-text {
@@ -1637,10 +1693,10 @@ export function initScene3(playerState, switchScene) {
             }
 
             @keyframes bossWindScreenShake {
-                0%   { transform: translate3d(-3px, 2px, 0); }
+                0%   { transform: translate3d(0, 0, 0); }
                 33%  { transform: translate3d(4px, -2px, 0); }
                 66%  { transform: translate3d(-1px, -4px, 0); }
-                100% { transform: translate3d(3px, 3px, 0); }
+                100% { transform: translate3d(0, 0, 0); }
             }
 
             #stickman-s3.boss-wind-pushed #stickman-body-s3,
@@ -1775,7 +1831,7 @@ export function initScene3(playerState, switchScene) {
                 </svg>
 
                 <!-- 🌟 PLA 邏輯陣列電路圖 (完美還原等距、延伸網格與交點) -->
-                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 1650px; height: 2550px; z-index: 3; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="pla-circuit" style="position: absolute; bottom: -10%; left: 115%; top: auto; transform: none; width: 150%; height: auto; z-index: 3; overflow: visible;" viewBox="0 0 550 850" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     
                     <!-- ===== 1. 頂部標籤（整組向下 25，與上方電路同步） ===== -->
                     <g class="pla-text" stroke="none" fill="#fff" font-family="'Orbitron', sans-serif" font-size="18" font-weight="bold" letter-spacing="2px">
@@ -2312,6 +2368,7 @@ export function initScene3(playerState, switchScene) {
     window._isEasterEggActive = false;
     window._easterEggAnimationDone = false; // 紀錄出場動畫是否已播完
     window._easterEggQHeld = false;         // 紀錄 Q 鍵是否正被按住
+    let easterEggAutomaticSequenceInProgress = false;
 
     function savePreEasterEquipmentState() {
         preEasterEquipmentSnapshot = {
@@ -2569,6 +2626,8 @@ export function initScene3(playerState, switchScene) {
 
         window._easterEggUnsafeFalling = false;
 
+        easterEggAutomaticSequenceInProgress = false;
+
         window._easterEggAntennaExtension = 0;
 
 
@@ -2577,6 +2636,8 @@ export function initScene3(playerState, switchScene) {
         // =====================================================
 
         window._easterEggBridge = null;
+
+        easterEggFixedAntennaAnchor = null;
 
 
         // =====================================================
@@ -2978,14 +3039,14 @@ export function initScene3(playerState, switchScene) {
 
     function clearPage3AutoTurnTimer() {
         if (page3AutoTurnTimer !== null) {
-            clearTimeout(page3AutoTurnTimer);
+            clearSceneTimeout(page3AutoTurnTimer);
             page3AutoTurnTimer = null;
         }
     }
 
     function schedulePage4AutoTurn() {
         clearPage3AutoTurnTimer();
-        page3AutoTurnTimer = window.setTimeout(() => {
+        page3AutoTurnTimer = scheduleSceneTimeout(() => {
             page3AutoTurnTimer = null;
             if (
                 !isCurrentScene3Instance() ||
@@ -3014,8 +3075,18 @@ export function initScene3(playerState, switchScene) {
         updateManualPage(currentManualPage + 1);
     });
 
+    function restoreManualUiLayering() {
+        const gameScreen = document.getElementById('gameScreen');
+        const sceneManager = document.getElementById('scene-manager');
+        const gameControls = document.querySelector('.game-controls');
+
+        if (gameScreen) gameScreen.style.zIndex = '1';
+        if (sceneManager) sceneManager.style.zIndex = '2';
+        if (gameControls) gameControls.style.pointerEvents = 'auto';
+    }
+
     function openManual(targetPage = 1, autoTurnPage4 = false) {
-        if (bossTimelineRunning || isPlayerJumping || postBossBookSequenceRunning) return;
+        if (playerDead || destroyed || bossTimelineRunning || isPlayerJumping || postBossBookSequenceRunning) return;
         const requestedPage = Number.isInteger(targetPage) ? targetPage : 1;
         clearPage3AutoTurnTimer();
         playActionSfx(sfxOpenBook);
@@ -3044,12 +3115,7 @@ export function initScene3(playerState, switchScene) {
             isPlayerControllable = true;
         }
 
-        const gameScreen = document.getElementById('gameScreen');
-        const sceneManager = document.getElementById('scene-manager');
-        const gameControls = document.querySelector('.game-controls');
-        if (gameScreen) gameScreen.style.zIndex = '1';
-        if (sceneManager) sceneManager.style.zIndex = '2';
-        if (gameControls) gameControls.style.pointerEvents = 'auto';
+        restoreManualUiLayering();
         checkBossTimelineReady();
     });
 
@@ -3066,7 +3132,98 @@ export function initScene3(playerState, switchScene) {
     }
     manualBtn.style.display = 'flex'; manualBtn.addEventListener('click', openManual);
 
+    function ensureScene3BackpackButton({animateUnlock = false} = {}) {
+        let bpBtn =
+            document.getElementById('inventory-backpack-btn');
 
+        if (bpBtn) {
+            return bpBtn;
+        }
+
+        bpBtn = document.createElement('button');
+        bpBtn.id = 'inventory-backpack-btn';
+        bpBtn.className = 'control-btn';
+        bpBtn.title = 'Backpack';
+        bpBtn.innerHTML =
+            '<i class="fas fa-campground"></i>';
+
+        if (manualBtn?.parentNode) {
+            manualBtn.parentNode.insertBefore(
+                bpBtn,
+                manualBtn
+            );
+        }
+
+        // Scene3 建立的外部 UI，
+        // 由這個 Scene3 instance 的 lifecycle 負責回收。
+        const ownedBpBtn = bpBtn;
+
+        resourceScope?.addCleanup(() => {
+            ownedBpBtn.remove();
+        });
+
+        bpBtn.addEventListener('click', function () {
+            if (easterEggAutomaticSequenceInProgress) return;
+
+            if (
+                playerDead ||
+                bossTimelineRunning ||
+                isPlayerJumping
+            ) {
+                return;
+            }
+
+            this.blur();
+
+            if (
+                document.getElementById(
+                    'backpack-overlay'
+                )
+            ) {
+                return;
+            }
+
+            isPlayerControllable = false;
+            isGamePaused = true;
+            pauseStartTime = performance.now();
+
+            stickman.classList.add('freeze-anim');
+
+            enemies.forEach(enemy => {
+                if (enemy.alive && enemy.el) {
+                    enemy.el.classList.add(
+                        'freeze-anim'
+                    );
+                }
+            });
+
+            triggerBackpackAnimation(false);
+        });
+
+        if (animateUnlock) {
+            bpBtn.style.animation =
+                'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, ' +
+                'btnPulseShake 0.8s ease-in-out';
+
+            bpBtn.style.color =
+                'var(--brand-blue)';
+
+            bpBtn.style.textShadow =
+                '0 0 8px var(--brand-blue)';
+
+            scheduleSceneTimeout(() => {
+                if (!bpBtn.isConnected) {
+                    return;
+                }
+
+                bpBtn.style.animation = '';
+                bpBtn.style.color = '';
+                bpBtn.style.textShadow = '';
+            }, 1000);
+        }
+
+        return bpBtn;
+    }
     // =========================================
     // 🌟 AABB 碰撞偵測輔助函式
     // =========================================
@@ -3101,6 +3258,8 @@ export function initScene3(playerState, switchScene) {
     let playerJumpFrameId = null;
     let playerJumpHorizontalVelocity = 0;
     let playerJumpLandingWorldX = 20;
+    let playerJumpNextAllowedAt = 0;
+    let playerJumpLandingFramePending = false;
     let playerJumpProgress = 0;
     let playerJumpHeightPx = 120;
     let playerJumpVerticalVelocityPx = 0;
@@ -3113,6 +3272,10 @@ export function initScene3(playerState, switchScene) {
     let playerWorldElevationPx = 0;
     let verticalCameraOffsetPx = 0;
     let verticalCameraTargetPx = 0;
+    let easterEggLockedStageWidthPx = null;
+    let easterEggLockedStageHeightPx = null;
+    let easterEggLockedScreenElevationRatio = null;
+    let easterEggFixedAntennaAnchor = null;
     // 只計算 PLA 導通／平台離開後的拋體滯空時間；一般地面短跳完全不參與。
     // 下降越久，垂直鏡頭的向下追蹤速度才會逐步提高，短距離落下仍維持柔和。
     let plaBallisticAirTimeSeconds = 0;
@@ -3171,6 +3334,7 @@ export function initScene3(playerState, switchScene) {
     let isOnPlaTopPlatform = false;
     let plaTopPlatformElevationPx = 0;
     let plaTopPlatformPreviousFootWorldY = null;
+    let plaTopPlatformStaticGeometryCache = null;
 
     // 🌟 新增：小三角怪擊殺計數器 (總共9隻)
     let smallEnemyKills = 0; 
@@ -3205,6 +3369,7 @@ export function initScene3(playerState, switchScene) {
     ];
 
     let backpackIsOpen = false;
+    let backpackCloseGeneration = 0;
 
     // ==============================================================
     // 🌨️ 六枝邏輯 BOSS Timeline 控制器
@@ -3219,7 +3384,9 @@ export function initScene3(playerState, switchScene) {
     let bossTimelineCheckTimer = null;
 
     function isCurrentScene3Instance() {
-        return window._scene3InstanceToken === scene3InstanceToken && scene3.isConnected;
+        return !destroyed &&
+            window._scene3InstanceToken === scene3InstanceToken &&
+            scene3.isConnected;
     }
 
     function waitBossTimeline(ms) {
@@ -3237,7 +3404,7 @@ export function initScene3(playerState, switchScene) {
         if (!postBossLandingAnchor || !isCurrentScene3Instance()) return;
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -3256,6 +3423,7 @@ export function initScene3(playerState, switchScene) {
         playerJumpHorizontalVelocity = 0;
         playerJumpLandingWorldX = worldX;
         playerJumpProgress = 0;
+        playerJumpLandingFramePending = false;
         playerJumpVerticalVelocityPx = 0;
         playerWorldElevationPx = 0;
         verticalCameraOffsetPx = 0;
@@ -3284,6 +3452,473 @@ export function initScene3(playerState, switchScene) {
         environmentLayer.style.transform = `translate(${-cameraX}%, 0px)`;
         hidePlaHatTetherVisual();
     }
+    function applyScene3BookLandedCheckpoint() {
+        // 正常 cinematic 是玩家往右走到 trigger 後才開始。
+        worldX = POST_BOSS_BOOK_TRIGGER_WORLD_X;
+
+        // 使用正常地面 camera 邏輯建立同樣構圖。
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        cameraFocusTransitionUntil = 0;
+
+        updateScene3HorizontalCamera(0);
+        renderScene3PlayerAndCamera();
+
+        // Geometry 必須在角色與 camera 已到 trigger position 後計算。
+        const {
+            startLeft,
+            startTop,
+            landingLeft,
+            landingTop
+        } = getPostBossBookGeometry();
+
+        // 防止未來 re-apply 時留下 duplicate DOM。
+        postBossBookElement?.remove();
+        postBossBookPromptElement?.remove();
+
+        const {
+            book,
+            prompt
+        } = createPostBossBookElements({
+            startLeft,
+            startTop,
+            landingLeft,
+            landingTop
+        });
+
+        // 直接重建 cinematic 已完成的最終狀態。
+        book.style.transition = 'none';
+        book.style.left = `${landingLeft}px`;
+        book.style.top = `${landingTop}px`;
+        book.style.transform = 'rotate(85deg)';
+        book.style.opacity = '1';
+
+        prompt.style.opacity = '0';
+
+        startPostBossBookPromptAnimation(prompt);
+
+        postBossBookSequenceStarted = true;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = true;
+        postBossBookPickedUp = false;
+        isNearPostBossBook = false;
+
+        // 尚未撿書，所以 PAGE 3 / C Jump 仍然鎖住。
+        hasThirdManual = false;
+        jumpManualUnlocked = false;
+        playerState.hasThirdManual = false;
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        updatePostBossBookProximity();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 book-landed state'
+        );
+    }
+
+    function applyScene3PlaApproachCheckpoint() {
+        // 書本事件已經完整結束，而且書已經被撿取。
+        postBossBookSequenceStarted = true;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = false;
+        postBossBookPickedUp = true;
+        isNearPostBossBook = false;
+
+        postBossBookElement?.remove();
+        postBossBookPromptElement?.remove();
+
+        postBossBookElement = null;
+        postBossBookPromptElement = null;
+
+        // PAGE 3 已取得，C Jump 已正式解鎖。
+        hasThirdManual = true;
+        jumpManualUnlocked = true;
+        playerState.hasThirdManual = true;
+
+        // Checkpoint 代表玩家已經把自動開啟的 Manual 關掉。
+        manualModal.classList.remove('manual-active');
+
+        // 玩家直接站在 PLA 前方的安全地面位置。
+        worldX = 100;
+        facing = 1;
+
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        horizontalCameraInitialized = false;
+        cameraFocusTransitionUntil = 0;
+
+        // 尚未開始任何 PLA traversal。
+        isPlaHatTethered = false;
+        isPlaHatBallistic = false;
+        plaHatAnchor = null;
+        plaHatRopeLengthPx = 0;
+        plaHatAngularVelocity = 0;
+        plaHatVelocityXPx = 0;
+        plaHatVelocityUpPx = 0;
+        plaBallisticAirTimeSeconds = 0;
+
+        plaTopPlatformSolid = false;
+        isOnPlaTopPlatform = false;
+        plaTopPlatformJumpCameraLocked = false;
+
+        playerWorldElevationPx = 0;
+        playerJumpOffsetPx = 0;
+        playerJumpHorizontalVelocity = 0;
+        playerJumpVerticalVelocityPx = 0;
+        playerJumpLandingWorldX = worldX;
+        isPlayerJumping = false;
+
+        hidePlaHatTetherVisual();
+
+        // Easter egg 尚未開始。
+        window._isEasterEggActive = false;
+        window._easterEggTriggered = false;
+
+        isGamePaused = false;
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        stickman.classList.remove(
+            'anim-attack',
+            'player-jumping',
+            'player-tumble',
+            'boss-wind-pushed',
+            'boss-wind-landed'
+        );
+
+        stickman.classList.add('stand-still');
+
+        updateScene3HorizontalCamera(0);
+        renderScene3PlayerAndCamera();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 PLA approach state'
+        );
+    }
+
+    function applyScene3PreEasterEggCheckpoint() {
+        // 先取得「已撿書、C Jump 已解鎖」的 canonical 狀態。
+        applyScene3PlaApproachCheckpoint();
+
+        const triggerGeometry =
+            getEasterEggTriggerGeometry();
+
+        if (!triggerGeometry) {
+            console.warn(
+                '[DEV CHECKPOINT] Could not resolve Easter Egg trigger geometry'
+            );
+            return;
+        }
+
+        const {
+            metrics,
+            geometry
+        } = triggerGeometry;
+
+        const noJumpBoundaryWorldX =
+            getEasterEggNoJumpBoundaryWorldX(
+                triggerGeometry
+            );
+
+        if (!Number.isFinite(noJumpBoundaryWorldX)) {
+            console.warn(
+                '[DEV CHECKPOINT] Could not resolve Easter Egg no-jump boundary'
+            );
+            return;
+        }
+
+        const platformLeftWorldX =
+            geometry.leftX /
+            metrics.width *
+            100;
+
+        // 站在未來 S25-03 no-new-C-jump boundary 左側，
+        // 保留一小段正常 approach，方便直接測 boundary。
+        worldX =
+            Math.max(
+                platformLeftWorldX + 1,
+                noJumpBoundaryWorldX -
+                    EASTER_EGG_CHECKPOINT_APPROACH_PADDING_WORLD_X
+            );
+
+        facing = 1;
+
+        // 彩蛋必須完全尚未開始。
+        window._easterEggTriggered = false;
+        window._isEasterEggActive = false;
+        window._easterEggAnimationDone = false;
+        window._easterEggQHeld = false;
+        window._easterEggFrozen = false;
+        window._easterEggUnsafeFalling = false;
+
+        easterEggAutomaticSequenceInProgress = false;
+        window._easterEggAntennaExtension = 0;
+        window._easterEggBridge = null;
+        easterEggFixedAntennaAnchor = null;
+
+        preEasterEquipmentSnapshot = null;
+
+        document
+            .querySelectorAll(
+                '[id="ee-fixed-antenna-container"]'
+            )
+            .forEach(element => element.remove());
+
+        toggleEasterEggQPose(false);
+
+        // 不允許 checkpoint 帶入上一個 jump frame。
+        playerJumpNextAllowedAt = 0;
+        playerJumpLandingFramePending = false;
+
+        clearMovementKeys();
+
+        // 使用正式 PLA landing contract，
+        // 不自己手動偽造 platform elevation。
+        landPlayerOnPlaTopPlatform(
+            metrics,
+            geometry
+        );
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        // checkpoint 載入時直接建立穩定 camera 構圖，
+        // 不從 pla-approach 的 worldX=100 慢慢滑過來。
+        horizontalCameraWasBuffered = false;
+        horizontalCameraHandoffOffsetX = 0;
+        horizontalCameraInitialized = false;
+        cameraFocusTransitionUntil = 0;
+
+        updateScene3HorizontalCamera(0);
+
+        verticalCameraOffsetPx = 0;
+        verticalCameraTargetPx = 0;
+
+        // 讓 top-platform camera 一次收斂到正常 gameplay framing。
+        updateScene3VerticalCamera(1);
+
+        renderScene3PlayerAndCamera();
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 pre-Easter-Egg state',
+            {
+                worldX,
+                noJumpBoundaryWorldX,
+                triggerStartWorldX:
+                    triggerGeometry.startWorldX,
+                maxJumpTravelWorldX:
+                    getPlayerJumpMaxHorizontalTravelWorldX()
+            }
+        );
+    }
+
+    function applyScene3DevCheckpoint(checkpoint) {
+        const phase = checkpoint?.sceneState?.phase;
+
+        if (phase !== 'post-boss' && phase !== 'book-landed' && phase !== 'pla-approach' && phase !== 'pre-easter-egg') {
+            return;
+        }
+
+        // =========================================
+        // DEV-01A - Scene 3 canonical post-Boss state
+        // =========================================
+
+        // 正常 Boss timeline 已完整發生過。
+        bossTimelineStarted = true;
+        bossTimelineRunning = false;
+        bossTimelineCompleted = true;
+
+        if (bossTimelineCheckTimer !== null) {
+            clearSceneTimeout(bossTimelineCheckTimer);
+            bossTimelineCheckTimer = null;
+        }
+
+        // 9 隻敵人已全部擊殺，8 件正式掉落已全部取得。
+        smallEnemyKills = TOTAL_SMALL_ENEMIES;
+        collectedTriangleLoot = TOTAL_TRIANGLE_LOOT;
+
+        enemies.forEach(enemy => {
+            enemy.alive = false;
+
+            if (enemy.el?.isConnected) {
+                enemy.el.remove();
+            }
+        });
+
+        scene3
+            .querySelectorAll('.loot-drop-item')
+            .forEach(element => element.remove());
+
+        scene3
+            .querySelectorAll(
+                '.split-anim-container, .split-anim-container-sm'
+            )
+            .forEach(element => element.remove());
+
+        const firstKillContainer =
+            scene3.querySelector('#first-kill-container');
+
+        if (firstKillContainer) {
+            firstKillContainer.remove();
+        }
+
+        readyToPickUpTriangle = false;
+        nearbyDropItem = null;
+
+        // Canonical loot layout:
+        // 7 body = 副手 1 + backpack 6
+        // 1 hat  = 頭部
+        isHammerEquipped = true;
+
+        window._hammerSlot = {
+            type: 'handR',
+            x: 555,
+            y: 415
+        };
+
+        hand1Item = null;
+        hand2Item = 'body';
+        headItem = 'hat';
+
+        backpackGrid = new Array(17).fill(null);
+
+        const backpackBodySlot =
+            backpackGrid.findIndex((slot, index) =>
+                slot === null &&
+                (!window._hammerSlot ||
+                    window._hammerSlot.slotIndex !== index)
+            );
+
+        if (backpackBodySlot >= 0) {
+            backpackGrid[backpackBodySlot] = {
+                type: 'body',
+                count: 6
+            };
+        }
+
+        updateMainStickmanEquipment();
+
+        ensureScene3BackpackButton({
+            animateUnlock: false
+        });
+
+        // Boss 已完全離場。
+        const boss =
+            document.getElementById('scene3-boss');
+
+        const flightShell =
+            document.getElementById('boss-flight-shell');
+
+        const windLayer =
+            document.getElementById('boss-wind-layer');
+
+        const stage =
+            document.getElementById('scene3-stage');
+
+        if (boss) {
+            boss.classList.remove(
+                'visible',
+                'departing',
+                'hovering',
+                'inhaling',
+                'blowing'
+            );
+        }
+
+        if (flightShell) {
+            flightShell.style.transform = '';
+            flightShell.style.opacity = '';
+        }
+
+        if (windLayer) {
+            windLayer.classList.remove('active');
+        }
+
+        if (stage) {
+            stage.classList.remove('boss-wind-shake');
+        }
+
+        stopBossAmbientEmitter(0);
+
+        // Boss 開始時 PLA glass barrier 會被解除。
+        const barrier =
+            document.getElementById('pla-glass-barrier');
+
+        if (barrier) {
+            barrier.style.opacity = '0';
+        }
+
+        // Boss 後書本事件尚未發生。
+        postBossBookSequenceStarted = false;
+        postBossBookSequenceRunning = false;
+        postBossBookReadyToPick = false;
+        postBossBookPickedUp = false;
+        isNearPostBossBook = false;
+
+        postBossBookElement = null;
+        postBossBookPromptElement = null;
+
+        // PAGE 3 尚未取得，所以 C Jump 尚未解鎖。
+        hasThirdManual = false;
+        jumpManualUnlocked = false;
+        playerState.hasThirdManual = false;
+
+        // 使用正式 Boss Wind 的 landing contract，
+        // 不硬寫 worldX / py。
+        const landingWorldX =
+            getPlayerLeftXPercent();
+
+        const landingY =
+            getPlayerBottomYPercent();
+
+        postBossLandingAnchor = {
+            worldX: landingWorldX,
+            py: landingY,
+            cameraX: 0,
+            facing: 1
+        };
+
+        commitPostBossLandingAnchor();
+
+        isPlayerControllable = true;
+        canAttack = true;
+        isPlayerAttacking = false;
+
+        clearMovementKeys();
+        setBossUiLocked(false);
+
+        renderScene3PlayerAndCamera();
+
+        if (phase === 'book-landed') {
+            applyScene3BookLandedCheckpoint();
+            return;
+        }
+
+        if (phase === 'pla-approach') {
+            applyScene3PlaApproachCheckpoint();
+            return;
+        }
+
+        if (phase === 'pre-easter-egg') {
+            applyScene3PreEasterEggCheckpoint();
+            return;
+        }
+
+        console.info(
+            '[DEV CHECKPOINT] Applied Scene 3 post-boss state'
+        );
+    }
 
     // ==============================================================
     // 🌟 取得 PAGE 3 後解鎖的 C 鍵垂直跳躍：五個正式序列幀
@@ -3291,10 +3926,90 @@ export function initScene3(playerState, switchScene) {
     // ==============================================================
     const PLAYER_JUMP_DURATION_MS = 420;
     const PLAYER_JUMP_LANDING_BLEND_MS = 60;
-    // 以世界百分比／秒表示的空中水平物理；60 FPS 下接近原本 0.4%／幀的地面速度。
+    const PLAYER_JUMP_RETRIGGER_COOLDOWN_MS = 100;
+
+    const PLAYER_JUMP_AIR_INITIAL_SPEED = 10;
     const PLAYER_JUMP_AIR_MAX_SPEED = 24;
     const PLAYER_JUMP_AIR_ACCELERATION = 140;
     const PLAYER_JUMP_AIR_DRAG = 9;
+
+    const EASTER_EGG_JUMP_SAFETY_MARGIN_WORLD_X = 1;
+    const EASTER_EGG_CHECKPOINT_APPROACH_PADDING_WORLD_X = 2;
+
+    function getPlayerJumpMaxHorizontalTravelWorldX() {
+        const durationSeconds =
+            PLAYER_JUMP_DURATION_MS / 1000;
+
+        const initialSpeed =
+            Math.min(
+                PLAYER_JUMP_AIR_INITIAL_SPEED,
+                PLAYER_JUMP_AIR_MAX_SPEED
+            );
+
+        const accelerationTime =
+            Math.max(
+                0,
+                Math.min(
+                    durationSeconds,
+                    (
+                        PLAYER_JUMP_AIR_MAX_SPEED -
+                        initialSpeed
+                    ) /
+                    PLAYER_JUMP_AIR_ACCELERATION
+                )
+            );
+
+        const accelerationDistance =
+            initialSpeed *
+            accelerationTime +
+            0.5 *
+            PLAYER_JUMP_AIR_ACCELERATION *
+            accelerationTime *
+            accelerationTime;
+
+        const maxSpeedDistance =
+            PLAYER_JUMP_AIR_MAX_SPEED *
+            Math.max(
+                0,
+                durationSeconds -
+                accelerationTime
+            );
+
+        return (
+            accelerationDistance +
+            maxSpeedDistance
+        );
+    }
+
+    function getEasterEggNoJumpBoundaryWorldX(triggerGeometry) {
+        if (!triggerGeometry) return null;
+
+        return (
+            triggerGeometry.startWorldX -
+            getPlayerJumpMaxHorizontalTravelWorldX() -
+            EASTER_EGG_JUMP_SAFETY_MARGIN_WORLD_X
+        );
+    }
+
+    function shouldBlockNewPlayerJumpForEasterEgg() {
+        if (window._easterEggTriggered || !isOnPlaTopPlatform || !isHammerEquipped || hand2Item === null) {
+            return false;
+        }
+
+        const triggerGeometry =
+            getEasterEggTriggerGeometry();
+
+        const noJumpBoundaryWorldX =
+            getEasterEggNoJumpBoundaryWorldX(
+                triggerGeometry
+            );
+
+        if (!Number.isFinite(noJumpBoundaryWorldX)) {
+            return false;
+        }
+
+        return worldX >= noJumpBoundaryWorldX;
+    }
 
     // 每一點都精準對應 PLA 圖上可導通的 X 中心或頂部圓點中心（SVG viewBox 座標）。
     // 圓點與 X 共用完全相同的搜尋半徑、固定點、單擺、放線與防重抓邏輯。
@@ -3913,42 +4628,82 @@ export function initScene3(playerState, switchScene) {
     }
 
     function finishPlayerVerticalJump(lastPose) {
+        /*
+        物理落地必須立即完成。
+
+        landing pose 的 60ms 只是視覺動畫，
+        不能繼續把玩家視為 airborne，
+        否則主迴圈會暫停 A / D 移動。
+        */
+        playerJumpOffsetPx = 0;
+        playerJumpProgress = 0;
+        playerJumpVerticalVelocityPx = 0;
+
+        worldX =
+            Math.max(
+                5,
+                playerJumpLandingWorldX
+            );
+
+        playerJumpHorizontalVelocity = 0;
+
+        isPlayerJumping = false;
+
+        plaTopPlatformJumpCameraLocked = false;
+
         const blendStart = performance.now();
 
         const blendFrame = now => {
             if (!isCurrentScene3Instance()) return;
-            const progress = playerJumpClamp01((now - blendStart) / PLAYER_JUMP_LANDING_BLEND_MS);
-            applyPlayerJumpPose(interpolatePlayerJumpPose(lastPose, PLAYER_JUMP_NORMAL_POSE, progress));
+
+            const progress =
+                playerJumpClamp01(
+                    (now - blendStart) /
+                    PLAYER_JUMP_LANDING_BLEND_MS
+                );
+
+            applyPlayerJumpPose(
+                interpolatePlayerJumpPose(
+                    lastPose,
+                    PLAYER_JUMP_NORMAL_POSE,
+                    progress
+                )
+            );
 
             if (progress < 1) {
-                playerJumpFrameId = requestAnimationFrame(blendFrame);
+                playerJumpFrameId =
+                    scheduleSceneFrame(blendFrame);
                 return;
             }
 
-            playerJumpOffsetPx = 0;
-            playerJumpProgress = 0;
-            playerJumpVerticalVelocityPx = 0;
-            // 以逐幀積分出的世界座標作為真正落地點，避免左右移動後落地瞬移。
-            worldX = Math.max(5, playerJumpLandingWorldX);
-            playerJumpHorizontalVelocity = 0;
             resetPlayerJumpPose();
-            stickman.classList.remove('player-jumping');
-            stickman.classList.add('stand-still');
-            isPlayerJumping = false;
+
+            stickman.classList.remove(
+                'player-jumping'
+            );
+
             playerJumpFrameId = null;
-            plaTopPlatformJumpCameraLocked = false;
-            if (!playerDead && !bossTimelineRunning) canAttack = true;
+
+            if (
+                !playerDead &&
+                !bossTimelineRunning
+            ) {
+                canAttack = true;
+            }
         };
 
-        playerJumpFrameId = requestAnimationFrame(blendFrame);
+        playerJumpFrameId =
+            scheduleSceneFrame(blendFrame);
     }
 
     function startPlayerVerticalJump() {
         if (
             !bossTimelineCompleted ||
             !jumpManualUnlocked ||
+            shouldBlockNewPlayerJumpForEasterEgg() ||
             bossTimelineRunning ||
             isPlayerJumping ||
+            performance.now() < playerJumpNextAllowedAt ||
             isPlaHatTethered ||
             isPlaHatBallistic ||
             (playerWorldElevationPx > 0.5 && !isOnPlaTopPlatform) ||
@@ -3961,11 +4716,14 @@ export function initScene3(playerState, switchScene) {
             manualModal.classList.contains('manual-active')
         ) return;
 
-        // PLA 最上方橫線已經是實體路地；從這裡進行普通跳躍時，垂直鏡頭全程固定。
+        // PLA 最上方橫線已經是實體路地；
+        // 從這裡進行普通 C 跳躍時，垂直鏡頭全程固定。
         if (isOnPlaTopPlatform) {
             plaTopPlatformJumpCameraLocked = true;
-            plaTopPlatformJumpCameraOffsetPx = verticalCameraOffsetPx;
-            verticalCameraTargetPx = plaTopPlatformJumpCameraOffsetPx;
+            plaTopPlatformJumpCameraOffsetPx =
+                verticalCameraOffsetPx;
+            verticalCameraTargetPx =
+                plaTopPlatformJumpCameraOffsetPx;
         } else {
             plaTopPlatformJumpCameraLocked = false;
         }
@@ -3981,7 +4739,7 @@ export function initScene3(playerState, switchScene) {
         canAttack = false;
         playerJumpOffsetPx = 0;
         playerJumpLandingWorldX = worldX;
-        playerJumpHorizontalVelocity = initialDirection * 10;
+        playerJumpHorizontalVelocity = initialDirection * PLAYER_JUMP_AIR_INITIAL_SPEED;
         keys.w = false;
         keys.s = false;
         stickman.classList.remove('anim-attack', 'boss-wind-landed');
@@ -4030,20 +4788,45 @@ export function initScene3(playerState, switchScene) {
 
             playerJumpLandingWorldX = Math.max(
                 5,
-                playerJumpLandingWorldX + playerJumpHorizontalVelocity * deltaSeconds
+                playerJumpLandingWorldX +
+                    playerJumpHorizontalVelocity * deltaSeconds
             );
+
             worldX = playerJumpLandingWorldX;
 
+            /*
+            C Jump physics 與 Scene 3 主迴圈使用不同 RAF。
+            physics 更新後立即同步水平鏡頭與畫面，
+            避免起跳時因 render 落後一幀而產生短暫停頓。
+            */
+            updateScene3HorizontalCamera(deltaSeconds);
+            renderScene3PlayerAndCamera();
+
             if (progress < 1) {
-                playerJumpFrameId = requestAnimationFrame(jumpFrame);
+                playerJumpFrameId = scheduleSceneFrame(jumpFrame);
                 return;
             }
 
             playerJumpOffsetPx = 0;
-            finishPlayerVerticalJump(PLAYER_JUMP_SEQUENCE[PLAYER_JUMP_SEQUENCE.length - 1]);
+            playerJumpNextAllowedAt =
+                performance.now() +
+                PLAYER_JUMP_RETRIGGER_COOLDOWN_MS;
+
+            /*
+            最後一個 jumpFrame 已經積分過一次水平 worldX。
+            下一次 gameLoop 不可再立刻疊加地面 0.4，
+            否則 A+C / D+C 落地時會出現單幀雙重位移。
+            */
+            playerJumpLandingFramePending = true;
+
+            finishPlayerVerticalJump(
+                PLAYER_JUMP_SEQUENCE[
+                    PLAYER_JUMP_SEQUENCE.length - 1
+                ]
+            );
         };
 
-        playerJumpFrameId = requestAnimationFrame(jumpFrame);
+        playerJumpFrameId = scheduleSceneFrame(jumpFrame);
     }
 
 
@@ -4192,6 +4975,166 @@ export function initScene3(playerState, switchScene) {
         }
     }
 
+    function getCachedPlaTopPlatformStaticGeometry(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+
+        /*
+        PLA 世界幾何不會因 cameraX / verticalCameraOffsetPx 改變。
+        只有 stage 尺寸、位置或 DPR 改變時才需要重新量測。
+        */
+        const cacheKey = [
+            metrics.rect.left,
+            metrics.rect.top,
+            metrics.width,
+            metrics.height,
+            window.devicePixelRatio || 1
+        ]
+            .map(value => Number(value).toFixed(3))
+            .join('|');
+
+        if (
+            plaTopPlatformStaticGeometryCache?.cacheKey === cacheKey &&
+            plaTopPlatformStaticGeometryCache.line?.isConnected
+        ) {
+            return plaTopPlatformStaticGeometryCache;
+        }
+
+        const geometry =
+            getPlaTopPlatformWorldGeometry(metrics);
+
+        if (!geometry) return null;
+
+        const platformTopY =
+            getPlaTopSurfaceWorldY(geometry);
+
+        if (!Number.isFinite(platformTopY)) {
+            return null;
+        }
+
+        try {
+            const line = geometry.line;
+            const matrix = line.getScreenCTM();
+            const svg = line.ownerSVGElement;
+
+            if (
+                !matrix ||
+                !svg ||
+                typeof svg.createSVGPoint !== 'function'
+            ) {
+                return null;
+            }
+
+            const makeWorldX = svgX => {
+                const point = svg.createSVGPoint();
+
+                point.x = svgX;
+                point.y = 75;
+
+                const screenPoint =
+                    point.matrixTransform(matrix);
+
+                const worldPoint =
+                    screenPointToScene3World(
+                        screenPoint,
+                        metrics
+                    );
+
+                return worldPoint?.x;
+            };
+
+            const hole1L = makeWorldX(390);
+            const hole1R = makeWorldX(440);
+            const hole2L = makeWorldX(500);
+
+            if (
+                !Number.isFinite(hole1L) ||
+                !Number.isFinite(hole1R) ||
+                !Number.isFinite(hole2L)
+            ) {
+                return null;
+            }
+
+            plaTopPlatformStaticGeometryCache = {
+                cacheKey,
+                ...geometry,
+                platformTopY,
+                hole1L,
+                hole1R,
+                hole2L
+            };
+
+            return plaTopPlatformStaticGeometryCache;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    const EASTER_EGG_TRIGGER_OFFSET_SVG = 28 / 3;
+    const EASTER_EGG_TRIGGER_HALF_WIDTH_SVG = 15 / 3;
+
+    function getEasterEggTriggerGeometry(metrics = getScene3StageMetrics()) {
+        if (!metrics) return null;
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (!geometry || !Number.isFinite(geometry.hole1L) || !Number.isFinite(geometry.hole1R)) {
+            return null;
+        }
+
+        const plaSvgUnitWorldPx =
+            (geometry.hole1R - geometry.hole1L) /
+            (440 - 390);
+
+        if (
+            !Number.isFinite(plaSvgUnitWorldPx) ||
+            plaSvgUnitWorldPx <= 0
+        ) {
+            return null;
+        }
+
+        const centerPx =
+            geometry.hole1L -
+            EASTER_EGG_TRIGGER_OFFSET_SVG *
+            plaSvgUnitWorldPx;
+
+        const triggerHalfWidthPx =
+            EASTER_EGG_TRIGGER_HALF_WIDTH_SVG *
+            plaSvgUnitWorldPx;
+
+        const startPx =
+            centerPx -
+            triggerHalfWidthPx;
+
+        const endPx =
+            centerPx +
+            triggerHalfWidthPx;
+
+        return {
+            metrics,
+            geometry,
+
+            centerPx,
+            startPx,
+            endPx,
+
+            centerWorldX:
+                centerPx /
+                metrics.width *
+                100,
+
+            startWorldX:
+                startPx /
+                metrics.width *
+                100,
+
+            endWorldX:
+                endPx /
+                metrics.width *
+                100
+        };
+    }
+
     function getPlayerFootOffsetPx() {
 
         const playerHeight = Math.max(
@@ -4335,14 +5278,12 @@ export function initScene3(playerState, switchScene) {
         return metrics.groundY - getTotalPlayerElevationPx() + getPlayerFootOffsetPx();
     }
 
-    function getPlaTopPlatformSupportElevation(metrics, geometry) {
+    function getPlaTopPlatformSupportElevation(metrics, geometry, resolvedPlatformTopY = null) {
 
         if (!metrics || !geometry) return 0;
 
         // 🌟 PLA 肉眼真正看到的最上表面
-        const platformTopY =
-            getPlaTopSurfaceWorldY(geometry);
-
+        const platformTopY = Number.isFinite(resolvedPlatformTopY) ? resolvedPlatformTopY : getPlaTopSurfaceWorldY(geometry);
         if (!Number.isFinite(platformTopY)) return 0;
 
         // 🌟 讓火柴人「可視腳底」
@@ -4391,7 +5332,7 @@ export function initScene3(playerState, switchScene) {
         }
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -4415,7 +5356,7 @@ export function initScene3(playerState, switchScene) {
         if (!metrics || !geometry) return false;
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -4455,40 +5396,33 @@ export function initScene3(playerState, switchScene) {
         if (window._easterEggUnsafeFalling) {
             return;
         }
-        const metrics = getScene3StageMetrics();
-        const geometry = getPlaTopPlatformWorldGeometry(metrics);
+        const metrics =
+            getScene3StageMetrics();
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
         if (!metrics || !geometry) return;
 
-         // 🌟 新增
         const platformTopY =
-            getPlaTopSurfaceWorldY(geometry);
-
-        if (!Number.isFinite(platformTopY)) return;
+            geometry.platformTopY;
 
         const playerCenterX = worldX * metrics.width / 100;
         const horizontalMargin = Math.max(10, (stickman.getBoundingClientRect().width || 80) * 0.28);
         
         // 🌟 計算 SVG 缺口的世界坐標 (嚴格判定，無任何容錯，確保斷崖無法輕易跨越)
         let inHole = false;
-        try {
-            const line = geometry.line;
-            const matrix = line.getScreenCTM();
-            const svg = line.ownerSVGElement;
-            const makeWorldX = (svgX) => {
-                const pt = svg.createSVGPoint();
-                pt.x = svgX; pt.y = 75;
-                const screenPt = pt.matrixTransform(matrix);
-                return screenPointToScene3World(screenPt, metrics).x;
-            };
 
-            const hole1L = makeWorldX(390);
-            const hole1R = makeWorldX(440);
-            const hole2L = makeWorldX(500);
+        if (
+            playerCenterX > geometry.hole1L &&
+            playerCenterX < geometry.hole1R
+        ) {
+            inHole = true;
+        }
 
-            // 嚴格掉落：只要角色中心點一越過 390 或 500，立刻判定在洞口中
-            if (playerCenterX > hole1L && playerCenterX < hole1R) inHole = true;
-            if (playerCenterX > hole2L) inHole = true;
-        } catch (e) { }
+        if (playerCenterX > geometry.hole2L) {
+            inHole = true;
+        }
 
         // 如果處於缺口中，則判定為不在平台上，立刻觸發重力下墜
         const withinPlatform =
@@ -4515,7 +5449,7 @@ export function initScene3(playerState, switchScene) {
                 leavePlaTopPlatformAsBallistic(metrics);
                 currentFootY = getPlayerFootWorldY(metrics);
             } else {
-                plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry);
+                plaTopPlatformElevationPx = getPlaTopPlatformSupportElevation(metrics, geometry, platformTopY);
                 playerWorldElevationPx = plaTopPlatformElevationPx;
                 // 普通 C 跳躍期間只疊加 playerJumpOffsetPx；非跳躍時腳底精準貼住線面。
                 if (!isPlayerJumping && !isPlaHatBallistic && !isPlaHatTethered) {
@@ -4687,7 +5621,7 @@ export function initScene3(playerState, switchScene) {
         const totalElevation = getTotalPlayerElevationPx();
 
         if (playerJumpFrameId !== null) {
-            cancelAnimationFrame(playerJumpFrameId);
+            cancelSceneFrame(playerJumpFrameId);
             playerJumpFrameId = null;
         }
 
@@ -5060,8 +5994,7 @@ export function initScene3(playerState, switchScene) {
 
         if (
             plaTopPlatformJumpCameraLocked &&
-            (!isOnPlaTopPlatform || !isPlayerJumping || isPlaHatTethered || isPlaHatBallistic)
-        ) {
+            (!isOnPlaTopPlatform || !isPlayerJumping || isPlaHatTethered || isPlaHatBallistic)) {
             plaTopPlatformJumpCameraLocked = false;
         }
 
@@ -5254,6 +6187,199 @@ export function initScene3(playerState, switchScene) {
         if (Math.abs(cameraX - horizontalCameraTargetX) < 0.002) {
             cameraX = horizontalCameraTargetX;
         }
+    }
+
+    function reprojectFixedEasterEggAntenna(metrics) {
+        if (!metrics || !easterEggFixedAntennaAnchor) return;
+
+        const fixedContainer =
+            document.getElementById('ee-fixed-antenna-container');
+        const clonedGroup =
+            document.getElementById('ee-fixed-falling-group');
+        const ownerSvg = clonedGroup?.ownerSVGElement;
+
+        if (
+            !fixedContainer ||
+            !clonedGroup ||
+            !ownerSvg ||
+            typeof clonedGroup.getScreenCTM !== 'function'
+        ) return;
+
+        const {
+            worldXRatio,
+            plaYOffsetSvg,
+            containerWidthRatio,
+            containerHeightRatio,
+            svgX: anchorSvgX,
+            svgY: anchorSvgY
+        } = easterEggFixedAntennaAnchor;
+
+        if (
+            !Number.isFinite(worldXRatio) ||
+            !Number.isFinite(plaYOffsetSvg) ||
+            !Number.isFinite(containerWidthRatio) ||
+            containerWidthRatio <= 0 ||
+            !Number.isFinite(containerHeightRatio) ||
+            containerHeightRatio <= 0 ||
+            !Number.isFinite(anchorSvgX) ||
+            !Number.isFinite(anchorSvgY) ||
+            !Number.isFinite(metrics.width) ||
+            metrics.width <= 0
+        ) return;
+
+        const desiredContainerWidth =
+            containerWidthRatio *
+            metrics.width;
+
+        const desiredContainerHeight =
+            containerHeightRatio *
+            metrics.width;
+
+        fixedContainer.style.width =
+            `${desiredContainerWidth}px`;
+
+        fixedContainer.style.height =
+            `${desiredContainerHeight}px`;
+
+        void fixedContainer.getBoundingClientRect();
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (
+            !geometry ||
+            !Number.isFinite(geometry.platformTopY) ||
+            !Number.isFinite(geometry.hole1L) ||
+            !Number.isFinite(geometry.hole1R)
+        ) return;
+
+        const plaSvgUnitWorldPx =
+            (geometry.hole1R - geometry.hole1L) /
+            (440 - 390);
+
+        if (
+            !Number.isFinite(plaSvgUnitWorldPx) ||
+            plaSvgUnitWorldPx <= 0
+        ) return;
+
+        try {
+            const matrix = clonedGroup.getScreenCTM();
+            if (!matrix) return;
+
+            const point = ownerSvg.createSVGPoint();
+            point.x = anchorSvgX;
+            point.y = anchorSvgY;
+
+            const currentAnchorScreen =
+                point.matrixTransform(matrix);
+
+            const desiredWorldX =
+                worldXRatio *
+                metrics.width;
+
+            const desiredWorldY =
+                geometry.platformTopY +
+                plaYOffsetSvg *
+                plaSvgUnitWorldPx;
+
+            const desiredScreenX =
+                desiredWorldX +
+                metrics.rect.left -
+                cameraX * metrics.width / 100;
+
+            const desiredScreenY =
+                desiredWorldY +
+                metrics.rect.top +
+                verticalCameraOffsetPx;
+
+            const currentLeft =
+                Number.parseFloat(fixedContainer.style.left);
+            const currentTop =
+                Number.parseFloat(fixedContainer.style.top);
+
+            if (
+                !Number.isFinite(currentAnchorScreen.x) ||
+                !Number.isFinite(currentAnchorScreen.y) ||
+                !Number.isFinite(desiredScreenX) ||
+                !Number.isFinite(desiredScreenY) ||
+                !Number.isFinite(currentLeft) ||
+                !Number.isFinite(currentTop)
+            ) return;
+
+            const deltaX =
+                desiredScreenX -
+                currentAnchorScreen.x;
+
+            const deltaY =
+                desiredScreenY -
+                currentAnchorScreen.y;
+
+            fixedContainer.style.left =
+                `${currentLeft + deltaX}px`;
+
+            fixedContainer.style.top =
+                `${currentTop + deltaY}px`;
+        } catch (error) {
+            return;
+        }
+    }
+
+    function reanchorLockedEasterEggForStageResize() {
+        if (
+            !window._isEasterEggActive ||
+            isPlayerControllable ||
+            !isOnPlaTopPlatform
+        ) return;
+
+        const metrics = getScene3StageMetrics();
+        if (!metrics) return;
+
+        const stageResized =
+            Math.abs(metrics.width - easterEggLockedStageWidthPx) > 0.5 ||
+            Math.abs(metrics.height - easterEggLockedStageHeightPx) > 0.5;
+
+        if (!stageResized) return;
+
+        const geometry =
+            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+        if (!geometry || !Number.isFinite(geometry.platformTopY)) return;
+
+        plaTopPlatformElevationPx =
+            getPlaTopPlatformSupportElevation(
+                metrics,
+                geometry,
+                geometry.platformTopY
+            );
+
+        playerWorldElevationPx = plaTopPlatformElevationPx;
+
+        const currentFootY = getPlayerFootWorldY(metrics);
+        if (Number.isFinite(currentFootY)) {
+            plaTopPlatformPreviousFootWorldY = currentFootY;
+        }
+
+        if (Number.isFinite(easterEggLockedScreenElevationRatio)) {
+            const totalElevation =
+                getTotalPlayerElevationPx();
+
+            const desiredScreenElevationPx =
+                easterEggLockedScreenElevationRatio *
+                metrics.height;
+
+            verticalCameraOffsetPx =
+                totalElevation -
+                desiredScreenElevationPx;
+
+            verticalCameraTargetPx =
+                verticalCameraOffsetPx;
+        }
+
+        easterEggLockedStageWidthPx = metrics.width;
+        easterEggLockedStageHeightPx = metrics.height;
+
+        renderScene3PlayerAndCamera();
+        reprojectFixedEasterEggAntenna(metrics);
     }
 
     function renderScene3PlayerAndCamera() {
@@ -5530,74 +6656,336 @@ export function initScene3(playerState, switchScene) {
             startLeft,
             startTop,
             impactLeft,
-            impactTop,
-            stageWidth,
-            stageHeight
+            impactTop
         } = geometry;
 
-        // 以實際時間積分的重力拋物線取代過慢的 1.12 秒漂浮；整段約 0.82 秒自然落到頭上。
-        const duration = 820;
-        const durationSeconds = duration / 1000;
-        const deltaX = impactLeft - startLeft;
-        const deltaY = impactTop - startTop;
-        const initialDownVelocity = Math.max(38, Math.min(92, stageHeight * 0.11));
-        const gravity = Math.max(
-            520,
-            (2 * (deltaY - initialDownVelocity * durationSeconds)) /
-                (durationSeconds * durationSeconds)
+        const deltaX =
+            impactLeft - startLeft;
+
+        const deltaY =
+            impactTop - startTop;
+
+        const travelDistance = Math.max(
+            1,
+            Math.hypot(deltaX, deltaY)
         );
-        const startedAt = performance.now();
+
+        /*
+        先前較近的起點使用 650ms 時速度剛好；
+        現在起點移到畫面右上方之外，因此依實際距離決定時間，
+        保持接近相同的移動速度。
+        */
+        const windSpeedPxPerSecond = 1550;
+
+        const duration = Math.max(
+            650,
+            Math.min(
+                1000,
+                travelDistance /
+                    windSpeedPxPerSecond *
+                    1000
+            )
+        );
+
+        // 整條路徑只有同一個方向，不使用重力或拋物線。
+        const tangentRotation =
+            Math.atan2(deltaY, deltaX) *
+            180 /
+            Math.PI -
+            90;
+
+        const startedAt =
+            performance.now();
 
         await new Promise(resolve => {
             const frame = now => {
-                if (!isCurrentScene3Instance() || !book.isConnected) {
+                if (
+                    !isCurrentScene3Instance() ||
+                    !book.isConnected
+                ) {
                     resolve();
                     return;
                 }
 
-                const progress = Math.max(0, Math.min(1, (now - startedAt) / duration));
-                const elapsedSeconds = progress * durationSeconds;
-                // 水平風力前段較強、接近角色時自然收束；Y 軸完全依重力加速。
-                const horizontalEase = 1 - Math.pow(1 - progress, 2.08);
-                const x = startLeft + deltaX * horizontalEase;
-                const y = startTop +
-                    initialDownVelocity * elapsedSeconds +
-                    0.5 * gravity * elapsedSeconds * elapsedSeconds;
+                const progress = Math.max(
+                    0,
+                    Math.min(
+                        1,
+                        (now - startedAt) / duration
+                    )
+                );
 
-                // 只保留非常小的風壓漂移，避免原本像逐格停頓的左右晃動。
-                const microSway = Math.sin(Math.PI * progress) * Math.sin(progress * Math.PI * 2.2) * 2.2;
-                const drawX = x + microSway;
-                const drawY = y - Math.abs(microSway) * 0.2;
+                // 固定直線插值：
+                // 右上起點 → 玩家頭部撞擊點。
+                const drawX =
+                    startLeft +
+                    deltaX * progress;
 
-                const velocityX =
-                    deltaX * 2.08 * Math.pow(Math.max(0, 1 - progress), 1.08) /
-                    durationSeconds;
-                const velocityY = initialDownVelocity + gravity * elapsedSeconds;
-                const tangentRotation = Math.atan2(velocityY, velocityX) * 180 / Math.PI - 90;
-                const flutter = Math.sin(progress * Math.PI * 3.2) * (1 - progress) * 3.2;
-                const settle = postBossBookSmoothstep(0.82, 1, progress);
-                const rotation = (tangentRotation + flutter) * (1 - settle) + 10 * settle;
-                const scale = 0.91 + postBossBookSmoothstep(0, 0.52, progress) * 0.09;
-                const opacity = postBossBookSmoothstep(0, 0.075, progress);
+                const drawY =
+                    startTop +
+                    deltaY * progress;
 
-                book.style.left = `${drawX}px`;
-                book.style.top = `${drawY}px`;
-                book.style.opacity = String(opacity);
-                book.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                /*
+                保留原本書本本身的輕微翻動效果，
+                但只影響旋轉，不再改變飛行路徑。
+                */
+                const flutter =
+                    Math.sin(
+                        progress *
+                        Math.PI *
+                        3.2
+                    ) *
+                    (1 - progress) *
+                    3.2;
+
+                const rotation =
+                    tangentRotation +
+                    flutter;
+
+                const scale =
+                    0.91 +
+                    postBossBookSmoothstep(
+                        0,
+                        0.52,
+                        progress
+                    ) *
+                    0.09;
+
+                const opacity =
+                    postBossBookSmoothstep(
+                        0,
+                        0.075,
+                        progress
+                    );
+
+                book.style.left =
+                    `${drawX}px`;
+
+                book.style.top =
+                    `${drawY}px`;
+
+                book.style.opacity =
+                    String(opacity);
+
+                book.style.transform =
+                    `rotate(${rotation}deg) scale(${scale})`;
 
                 if (progress < 1) {
                     requestAnimationFrame(frame);
                     return;
                 }
 
-                book.style.left = `${impactLeft}px`;
-                book.style.top = `${impactTop}px`;
+                // 最後一幀精確固定在玩家頭部撞擊點。
+                book.style.left =
+                    `${impactLeft}px`;
+
+                book.style.top =
+                    `${impactTop}px`;
+
                 book.style.opacity = '1';
-                book.style.transform = 'rotate(10deg) scale(1)';
+
+                book.style.transform =
+                    `rotate(${tangentRotation}deg) scale(1)`;
+
                 resolve();
             };
 
             requestAnimationFrame(frame);
+        });
+    }
+    function getPostBossBookGeometry() {
+        const stage = document.getElementById('scene3-stage');
+        const head = document.getElementById('stickman-head-s3');
+
+        if (!stage || !head || !environmentLayer) {
+            throw new Error('Post-BOSS book sequence DOM is incomplete.');
+        }
+
+        const stageRect = stage.getBoundingClientRect();
+        const environmentRect = environmentLayer.getBoundingClientRect();
+        const headRect = head.getBoundingClientRect();
+
+        const stageWidth = Math.max(
+            1,
+            stageRect.width || stage.clientWidth || 1000
+        );
+
+        const stageHeight = Math.max(
+            1,
+            stageRect.height || stage.clientHeight || 600
+        );
+
+        // 書本第一段最後撞到角色頭部的位置。
+        // 第一段固定沿約 33° 的方向飛行。
+        const windEntryAngleRad =
+            33 * Math.PI / 180;
+
+        // 原本撞擊角色頭部的基準點。
+        const impactBaseLeft =
+            headRect.left +
+            headRect.width / 2 -
+            environmentRect.left + 5;
+
+        const impactBaseTop =
+            Math.max(
+                -20,
+                headRect.top -
+                environmentRect.top -
+                51
+            );
+
+        // 撞擊點沿飛行方向稍微往回收，
+        // 避免書本視覺上穿進角色頭部。
+        const impactBackoffPx = 2;
+
+        const impactLeft =
+            impactBaseLeft +
+            Math.cos(windEntryAngleRad) *
+            impactBackoffPx;
+
+        const impactTop =
+            impactBaseTop -
+            Math.sin(windEntryAngleRad) *
+            impactBackoffPx;
+
+        const stageRightInEnvironment =
+            stageRect.right - environmentRect.left;
+
+        const stageTopInEnvironment =
+            stageRect.top - environmentRect.top;
+
+        // 書本生成點必須完全超出目前可見畫面。
+        const offscreenRightMargin = 120;
+        const offscreenTopMargin = 90;
+
+        // 要超出右邊界至少 120px，需要多少水平距離。
+        const minimumHorizontalTravel =
+            stageRightInEnvironment +
+            offscreenRightMargin -
+            impactLeft;
+
+        // 要超出上邊界至少 90px，在 33° 直線下需要多少水平距離。
+        const minimumVerticalTravel =
+            impactTop -
+            (stageTopInEnvironment - offscreenTopMargin);
+
+        const horizontalTravel = Math.max(
+            minimumHorizontalTravel,
+            minimumVerticalTravel /
+                Math.tan(windEntryAngleRad)
+        );
+
+        // 從撞擊點沿 33° 方向反推到右上方。
+        // start → impact 會形成固定直線：右上 → 左下。
+        const startLeft =
+            impactLeft + horizontalTravel;
+
+        const startTop =
+            impactTop -
+            horizontalTravel *
+                Math.tan(windEntryAngleRad);
+
+        // Scene 1 撞頭後向角色右側偏移 67px；
+        // 此處只調整 Y 以精準貼住畫面地面。
+        const landingLeft = impactLeft + 67;
+
+        const landingTop = Math.max(
+            impactTop + 82,
+            stageRect.bottom -
+                environmentRect.top -
+                58
+        );
+            return {
+            stageWidth,
+            stageHeight,
+            startLeft,
+            startTop,
+            impactLeft,
+            impactTop,
+            landingLeft,
+            landingTop
+        };
+    }
+
+    function createPostBossBookElements({startLeft, startTop, landingLeft, landingTop}) {
+        const book = document.createElement('div');
+        book.id = 'post-boss-falling-book-s3';
+        book.style.cssText = [
+            'position:absolute',
+            `top:${startTop}px`,
+            `left:${startLeft}px`,
+            'width:45px',
+            'height:60px',
+            'background-color:#094b8e',
+            'border:2px solid #fff',
+            'border-left:8px solid #042a53',
+            'border-radius:2px 6px 6px 2px',
+            'box-shadow:inset -4px 0 0 #ddd, 0 0 15px rgba(0,242,254,0.5)',
+            'display:flex',
+            'justify-content:center',
+            'align-items:center',
+            'opacity:0',
+            'z-index:9',
+            'pointer-events:auto',
+            'transform:rotate(84deg) scale(0.88)',
+            'transform-origin:center center',
+            'will-change:left,top,transform,opacity'
+        ].join(';');
+        book.innerHTML = `<span style="color:#fff; font-family:'Orbitron', sans-serif; font-size:14px; font-weight:900; transform:rotate(-90deg); letter-spacing:2px;">C++</span>`;
+
+        const prompt = document.createElement('div');
+        prompt.id = 'post-boss-book-e-prompt-s3';
+        prompt.textContent = 'E';
+        prompt.style.cssText = [
+            'position:absolute',
+            `left:${landingLeft - 10}px`,
+            `top:${landingTop - 45}px`,
+            'width:30px',
+            'height:30px',
+            'background:rgba(0,242,254,0.15)',
+            'border:2px solid var(--brand-blue)',
+            'border-radius:6px',
+            'color:#fff',
+            "font-family:'Orbitron', sans-serif",
+            'font-weight:bold',
+            'font-size:14px',
+            'display:flex',
+            'justify-content:center',
+            'align-items:center',
+            'opacity:0',
+            'transition:opacity 0.3s',
+            'z-index:20',
+            'box-shadow:0 0 10px var(--brand-blue)',
+            'pointer-events:none',
+            'will-change:transform,opacity'
+        ].join(';');
+
+        environmentLayer.appendChild(book);
+        environmentLayer.appendChild(prompt);
+        postBossBookElement = book;
+        postBossBookPromptElement = prompt;
+        return {
+            book,
+            prompt
+        };
+    }
+
+    function startPostBossBookPromptAnimation(prompt) {
+        if (
+            !prompt ||
+            typeof prompt.animate !== 'function'
+        ) {
+            return;
+        }
+
+        prompt.animate([
+            { transform: 'translateY(0)' },
+            { transform: 'translateY(-5px)' },
+            { transform: 'translateY(0)' }
+        ], {
+            duration: 1500,
+            iterations: Infinity,
+            easing: 'ease-in-out'
         });
     }
 
@@ -5628,88 +7016,29 @@ export function initScene3(playerState, switchScene) {
         setBossUiLocked(true);
 
         try {
-            const stage = document.getElementById('scene3-stage');
-            const head = document.getElementById('stickman-head-s3');
-            if (!stage || !head || !environmentLayer) {
-                throw new Error('Post-BOSS book sequence DOM is incomplete.');
-            }
+            const {
+                stageWidth,
+                stageHeight,
+                startLeft,
+                startTop,
+                impactLeft,
+                impactTop,
+                landingLeft,
+                landingTop
+            } = getPostBossBookGeometry();
 
-            const stageRect = stage.getBoundingClientRect();
-            const environmentRect = environmentLayer.getBoundingClientRect();
-            const headRect = head.getBoundingClientRect();
-            const stageWidth = Math.max(1, stageRect.width || stage.clientWidth || 1000);
-            const stageHeight = Math.max(1, stageRect.height || stage.clientHeight || 600);
-
-            // Scene 1 的撞頭幾何：書本左緣在頭部中心左 22px；書底壓入頭頂約 9px。
-            const impactLeft = headRect.left + headRect.width / 2 - environmentRect.left - 22;
-            const impactTop = Math.max(-20, headRect.top - environmentRect.top - 51);
-            const startLeft = impactLeft + Math.max(150, Math.min(270, stageWidth * 0.27));
-            const startTop = Math.min(-72, impactTop - Math.max(250, Math.min(390, stageHeight * 0.62)));
-
-            // Scene 1 撞頭後向角色右側偏移 67px；此處只調整 Y 以精準貼住畫面地面。
-            const landingLeft = impactLeft + 67;
-            const landingTop = Math.max(impactTop + 82, stageRect.bottom - environmentRect.top - 58);
-
-            const book = document.createElement('div');
-            book.id = 'post-boss-falling-book-s3';
-            book.style.cssText = [
-                'position:absolute',
-                `top:${startTop}px`,
-                `left:${startLeft}px`,
-                'width:45px',
-                'height:60px',
-                'background-color:#094b8e',
-                'border:2px solid #fff',
-                'border-left:8px solid #042a53',
-                'border-radius:2px 6px 6px 2px',
-                'box-shadow:inset -4px 0 0 #ddd, 0 0 15px rgba(0,242,254,0.5)',
-                'display:flex',
-                'justify-content:center',
-                'align-items:center',
-                'opacity:0',
-                'z-index:9',
-                'pointer-events:auto',
-                'transform:rotate(84deg) scale(0.88)',
-                'transform-origin:center center',
-                'will-change:left,top,transform,opacity'
-            ].join(';');
-            book.innerHTML = `<span style="color:#fff; font-family:'Orbitron', sans-serif; font-size:14px; font-weight:900; transform:rotate(-90deg); letter-spacing:2px;">C++</span>`;
-
-            const prompt = document.createElement('div');
-            prompt.id = 'post-boss-book-e-prompt-s3';
-            prompt.textContent = 'E';
-            prompt.style.cssText = [
-                'position:absolute',
-                `left:${landingLeft - 10}px`,
-                `top:${landingTop - 45}px`,
-                'width:30px',
-                'height:30px',
-                'background:rgba(0,242,254,0.15)',
-                'border:2px solid var(--brand-blue)',
-                'border-radius:6px',
-                'color:#fff',
-                "font-family:'Orbitron', sans-serif",
-                'font-weight:bold',
-                'font-size:14px',
-                'display:flex',
-                'justify-content:center',
-                'align-items:center',
-                'opacity:0',
-                'transition:opacity 0.3s',
-                'z-index:20',
-                'box-shadow:0 0 10px var(--brand-blue)',
-                'pointer-events:none',
-                'will-change:transform,opacity'
-            ].join(';');
-
-            environmentLayer.appendChild(book);
-            environmentLayer.appendChild(prompt);
-            postBossBookElement = book;
-            postBossBookPromptElement = prompt;
-
+            const {
+                book,
+                prompt
+            } = createPostBossBookElements({
+                startLeft,
+                startTop,
+                landingLeft,
+                landingTop
+            });
             createPostBossBookWindLayer();
 
-            // 先讓霧狀陣風進入畫面，再讓書本沿受風拋物線飛向角色頭部。
+            // 先讓霧狀陣風進入畫面，再讓書本沿固定直線從右上飛向角色頭部。
             await waitBossTimeline(60);
             if (!isCurrentScene3Instance()) return;
 
@@ -5748,17 +7077,7 @@ export function initScene3(playerState, switchScene) {
             if (!isCurrentScene3Instance()) return;
 
             prompt.style.opacity = '0';
-            if (typeof prompt.animate === 'function') {
-                prompt.animate([
-                    { transform: 'translateY(0)' },
-                    { transform: 'translateY(-5px)' },
-                    { transform: 'translateY(0)' }
-                ], {
-                    duration: 1500,
-                    iterations: Infinity,
-                    easing: 'ease-in-out'
-                });
-            }
+            startPostBossBookPromptAnimation(prompt);
 
             postBossBookReadyToPick = true;
             updatePostBossBookProximity();
@@ -5880,7 +7199,7 @@ export function initScene3(playerState, switchScene) {
         const playerWidth = Math.max(1, stickman.getBoundingClientRect().width || 80);
         const leftPadding = 5;
         const centerX = leftPadding + playerWidth / 2;
-        return Math.max(4.5, Math.min(10, (centerX / sceneWidth) * 100));
+        return Math.max(5, Math.min(10, (centerX / sceneWidth) * 100));
     }
 
     function setBossExpression(expressionName) {
@@ -6090,10 +7409,10 @@ export function initScene3(playerState, switchScene) {
             setTimeout(() => spawnBossAmbientFrost(mode), i * 22);
         }
 
-        bossAmbientEmitterTimer = window.setInterval(() => {
+        bossAmbientEmitterTimer = scheduleSceneInterval(() => {
             if (!isCurrentScene3Instance() || !bossAmbientEmitterActive) {
                 if (bossAmbientEmitterTimer !== null) {
-                    clearInterval(bossAmbientEmitterTimer);
+                    clearSceneInterval(bossAmbientEmitterTimer);
                     bossAmbientEmitterTimer = null;
                 }
                 return;
@@ -6111,7 +7430,7 @@ export function initScene3(playerState, switchScene) {
     function stopBossAmbientEmitter(clearAfterMs = 4200) {
         bossAmbientEmitterActive = false;
         if (bossAmbientEmitterTimer !== null) {
-            clearInterval(bossAmbientEmitterTimer);
+            clearSceneInterval(bossAmbientEmitterTimer);
             bossAmbientEmitterTimer = null;
         }
         const layer = document.getElementById('boss-ambient-particle-layer');
@@ -6674,19 +7993,11 @@ export function initScene3(playerState, switchScene) {
 
         if (!isCurrentScene3Instance()) return;
 
-        // 在取消 fill: forwards 動畫之前，直接讀取畫面上的最後一幀中心點。
-        // 後續世界座標與控制起點完全採用同一個實際像素位置，不再重新估算。
+        // Boss Wind 的動畫終點就是正式 landing anchor。
+        // 直接提交 finalX / finalY，避免從動畫中的 rendered rect
+        // 反算 logical position 而受到 viewport / frame interruption 影響。
         let committedFinalX = finalX;
         let committedFinalY = finalY;
-        if (playerAnimation) {
-            const renderedFinalRect = stickman.getBoundingClientRect();
-            committedFinalX = bossClamp01(
-                (renderedFinalRect.left - sceneRect.left + renderedFinalRect.width / 2) / sceneWidth
-            ) * 100;
-            committedFinalY = bossClamp01(
-                (renderedFinalRect.top - sceneRect.top + renderedFinalRect.height / 2) / sceneHeight
-            ) * 100;
-        }
 
         if (playerAnimation) playerAnimation.cancel();
         if (environmentAnimation) environmentAnimation.cancel();
@@ -6737,10 +8048,19 @@ export function initScene3(playerState, switchScene) {
     }
 
     function checkBossTimelineReady() {
-        if (bossTimelineStarted || bossTimelineRunning || bossTimelineCompleted || !isCurrentScene3Instance()) return;
-        if (bossTimelineCheckTimer) clearTimeout(bossTimelineCheckTimer);
+            if (
+                bossTimelineStarted ||
+                bossTimelineRunning ||
+                bossTimelineCompleted ||
+                !isCurrentScene3Instance()
+            ) return;
 
-        bossTimelineCheckTimer = setTimeout(() => {
+            if (bossTimelineCheckTimer !== null) {
+                clearSceneTimeout(bossTimelineCheckTimer);
+                bossTimelineCheckTimer = null;
+            }
+
+            bossTimelineCheckTimer = scheduleSceneTimeout(() => {
             bossTimelineCheckTimer = null;
             if (!isCurrentScene3Instance() || bossTimelineStarted) return;
 
@@ -6898,6 +8218,43 @@ export function initScene3(playerState, switchScene) {
     // ==============================================================
     // 🌟 新增：Q 鍵按住時的「手腳骨架變形」(注入可控天線版)
     // ==============================================================
+    function detachEasterEggAntennaFromEquipment() {
+        const fallingGroup = document.getElementById('ee-falling-group');
+        const hand1Visual = document.getElementById('held-item-hand1');
+        const body = document.getElementById('stickman-body-s3');
+
+        if (
+            !fallingGroup ||
+            !hand1Visual ||
+            !hand1Visual.contains(fallingGroup) ||
+            !body
+        ) {
+            return fallingGroup ? fallingGroup.parentNode : null;
+        }
+
+        const wrapper =
+            document.createElementNS(
+                'http://www.w3.org/2000/svg',
+                'g'
+            );
+
+        const antennaGroundCompensationSvg =
+            scenePxToStickmanSvgY(
+                getPlaAntennaGroundCompensationPx()
+            );
+
+        wrapper.setAttribute(
+            'transform',
+            `translate(62, ${21 + antennaGroundCompensationSvg}) scale(0.35)`
+        );
+
+        hand1Visual.removeChild(fallingGroup);
+        wrapper.appendChild(fallingGroup);
+        body.appendChild(wrapper);
+
+        return wrapper;
+    }
+
     function toggleEasterEggQPose(isHeld) {
         window._easterEggQHeld = isHeld;
         const stickman = document.getElementById('stickman-s3');
@@ -7006,7 +8363,7 @@ export function initScene3(playerState, switchScene) {
                 hand1Visual.style.removeProperty('transition');
             }
 
-            // 🌟 鬆開 Q 時，updateMainStickmanEquipment 會自動把三角形恢復原狀，完全不需要額外寫重置邏輯
+            // 🌟 依目前裝備資料刷新雙手；已消耗的三角形不會被視覺重置帶回
             updateMainStickmanEquipment();
         }
     }
@@ -7055,27 +8412,7 @@ export function initScene3(playerState, switchScene) {
                 // (注意：這裡的數值必須與你 gameLoopS3 裡設定的 bottomMaxY 一致，預設是 228)
                 let currentBottomY = 228; 
                 
-                const body = document.getElementById('stickman-body-s3');
-                if (body) {
-                    const wrapper =
-                        document.createElementNS(
-                            'http://www.w3.org/2000/svg',
-                            'g'
-                        );
-
-                    const antennaGroundCompensationSvg =
-                        scenePxToStickmanSvgY(
-                            getPlaAntennaGroundCompensationPx()
-                        );
-
-                    wrapper.setAttribute(
-                        'transform',
-                        `translate(62, ${21 + antennaGroundCompensationSvg}) scale(0.35)`
-                    );
-                    fallingGroup.parentNode.removeChild(fallingGroup);
-                    wrapper.appendChild(fallingGroup);
-                    body.appendChild(wrapper);
-                }
+                detachEasterEggAntennaFromEquipment();
 
                 // 🌟 設定固定旋轉圓心 (永遠固定在地板)
                 fallingGroup.style.transformOrigin = `65px ${currentBottomY}px`;
@@ -7116,7 +8453,7 @@ export function initScene3(playerState, switchScene) {
         // =========================================================
         // 🌟 新增：動作四：史詩級過場衝刺引擎 (天線克隆固定、動態煞車與物理橋樑)
         // =========================================================
-        setTimeout(() => {
+        scheduleSceneTimeout(() => {
             worldX += 1.5; 
             
             // 強制解除 CSS 旋轉干擾並切換為 Path 顯示
@@ -7251,8 +8588,15 @@ export function initScene3(playerState, switchScene) {
                     if (isSafeAntennaLength) {
 
                         window._easterEggBridge = {
-                            startX: playerCenterX_Px,
-                            endX: antennaTipPx
+                            startWorldX:
+                                playerCenterX_Px /
+                                metrics.width *
+                                100,
+
+                            endWorldX:
+                                antennaTipPx /
+                                metrics.width *
+                                100
                         };
 
                     } else {
@@ -7262,15 +8606,30 @@ export function initScene3(playerState, switchScene) {
                         window._easterEggBridge = null;
                     }
 
-                    if (!window._bridgePhysicsActive) {
-                        window._bridgePhysicsActive = true;
+                    if (!bridgePhysicsActive) {
+                        bridgePhysicsActive = true;
                         function bridgePhysicsLoop() {
+                            if (!isCurrentScene3Instance()) {
+                                return;
+                            }
+
                             if (window._easterEggBridge && !window._isEasterEggActive && !window._easterEggUnsafeFalling) {
                                 const m = getScene3StageMetrics();
                                 if (m) {
-                                    const px = worldX * m.width / 100;
                                     const b = window._easterEggBridge;
-                                    if (px >= b.startX - 15 && px <= b.endX + 15) {
+                                    const bridgeToleranceWorldX =
+                                        15 *
+                                        100 /
+                                        m.width;
+
+                                    if (
+                                        worldX >=
+                                            b.startWorldX -
+                                            bridgeToleranceWorldX &&
+                                        worldX <=
+                                            b.endWorldX +
+                                            bridgeToleranceWorldX
+                                    ) {
                                         if (isPlaHatBallistic && playerJumpVerticalVelocityPx <= 0) {
                                             isPlaHatBallistic = false;
                                             isPlayerJumping = false;
@@ -7285,7 +8644,7 @@ export function initScene3(playerState, switchScene) {
                                     }
                                 }
                             }
-                            requestAnimationFrame(bridgePhysicsLoop);
+                            scheduleSceneFrame(bridgePhysicsLoop);
                         }
                         bridgePhysicsLoop();
                     }
@@ -7316,6 +8675,57 @@ export function initScene3(playerState, switchScene) {
                             }
                         } catch (e) {
                             console.warn('讀取原天線支點失敗:', e);
+                        }
+
+                        easterEggFixedAntennaAnchor = null;
+
+                        const originalAnchorWorld =
+                            screenPointToScene3World(
+                                originalAnchorScreen,
+                                metrics
+                            );
+
+                        const geometry =
+                            getCachedPlaTopPlatformStaticGeometry(metrics);
+
+                        const plaSvgUnitWorldPx =
+                            geometry &&
+                            Number.isFinite(geometry.hole1L) &&
+                            Number.isFinite(geometry.hole1R)
+                                ? (geometry.hole1R - geometry.hole1L) /
+                                    (440 - 390)
+                                : null;
+
+                        if (
+                            Number.isFinite(originalAnchorWorld?.x) &&
+                            Number.isFinite(originalAnchorWorld?.y) &&
+                            Number.isFinite(geometry?.platformTopY) &&
+                            Number.isFinite(geometry?.hole1L) &&
+                            Number.isFinite(geometry?.hole1R) &&
+                            Number.isFinite(plaSvgUnitWorldPx) &&
+                            plaSvgUnitWorldPx > 0 &&
+                            Number.isFinite(metrics.width) &&
+                            metrics.width > 0
+                        ) {
+                            easterEggFixedAntennaAnchor = {
+                                worldXRatio:
+                                    originalAnchorWorld.x /
+                                    metrics.width,
+                                plaYOffsetSvg:
+                                    (
+                                        originalAnchorWorld.y -
+                                        geometry.platformTopY
+                                    ) /
+                                    plaSvgUnitWorldPx,
+                                containerWidthRatio:
+                                    80 /
+                                    metrics.width,
+                                containerHeightRatio:
+                                    120 /
+                                    metrics.width,
+                                svgX: ANCHOR_X,
+                                svgY: ANCHOR_Y
+                            };
                         }
 
 
@@ -7718,7 +9128,7 @@ export function initScene3(playerState, switchScene) {
             }
 
             function epicCutsceneLoop(now) {
-                if (!window._isEasterEggActive || !document.getElementById('stickman-s3')) return;
+                if (!isCurrentScene3Instance() || !window._isEasterEggActive || !document.getElementById('stickman-s3')) return;
 
                 let deltaTime = (now - lastFrameTime) / 1000;
                 if (deltaTime > 0.1) deltaTime = 0.016; 
@@ -7813,6 +9223,31 @@ export function initScene3(playerState, switchScene) {
 
                     stickman.classList.add('stand-still');
 
+                    // 安全抵達並重新站定後，才從背包補一個新的 Triangle 到原本的手。
+                    if (isSafeAntennaLength && hand1Item === null) {
+                        const bodySlotIndex =
+                            backpackGrid.findIndex(
+                                slot => slot?.type === 'body'
+                            );
+
+                        if (bodySlotIndex >= 0) {
+                            const bodySlot = backpackGrid[bodySlotIndex];
+
+                            if (bodySlot.count > 1) {
+                                bodySlot.count -= 1;
+                            } else {
+                                backpackGrid[bodySlotIndex] = null;
+                            }
+
+                            hand1Item = 'body';
+                            updateMainStickmanEquipment();
+                        }
+                    }
+
+                    if (isSafeAntennaLength) {
+                        easterEggAutomaticSequenceInProgress = false;
+                    }
+
 
                     // 🌟 不要在這裡設定 _isEasterEggActive = false
                     // 🌟 不要在這裡 isPlayerControllable = true
@@ -7845,7 +9280,7 @@ export function initScene3(playerState, switchScene) {
                 stickman.style.left = `${worldX - cameraX}%`; 
                 environmentLayer.style.transform = `translate(${-cameraX}%, ${verticalCameraOffsetPx || 0}px)`;
 
-                requestAnimationFrame(epicCutsceneLoop);
+                scheduleSceneFrame(epicCutsceneLoop);
             }
 
             // 🎬 初始化：載入第一幀
@@ -7857,7 +9292,7 @@ export function initScene3(playerState, switchScene) {
             if (legRPath) { legRPath.setAttribute('d', startF.legR); legRPath.setAttribute('fill', 'none'); }
             currentSeqIdx = 1; 
             
-            requestAnimationFrame(epicCutsceneLoop);
+            scheduleSceneFrame(epicCutsceneLoop);
             
         }, 800);
     }
@@ -7935,6 +9370,7 @@ export function initScene3(playerState, switchScene) {
         // 🌟 1. 關閉背包並恢復遊戲時間 (按 X 關閉)
         if (key === 'x' && backpackIsOpen) {
             backpackIsOpen = false;
+            backpackCloseGeneration += 1;
             const overlay = document.getElementById('backpack-overlay');
             if(overlay) {
                 overlay.style.opacity = '0';
@@ -7954,48 +9390,9 @@ export function initScene3(playerState, switchScene) {
                     isGamePaused = false;
                     totalPausedTime += (performance.now() - pauseStartTime);
                     checkBossTimelineReady();
-
-                    let bpBtn = document.getElementById('inventory-backpack-btn');
-                    if (!bpBtn) {
-                        bpBtn = document.createElement('button');
-                        bpBtn.id = 'inventory-backpack-btn';
-                        bpBtn.className = 'control-btn'; 
-                        bpBtn.title = "Backpack"; 
-                        bpBtn.innerHTML = '<i class="fas fa-campground"></i>'; 
-                        
-                        const manualBtn = document.getElementById('inventory-manual-btn');
-                        if (manualBtn && manualBtn.parentNode) {
-                            manualBtn.parentNode.insertBefore(bpBtn, manualBtn); 
-                        }
-                        
-                        bpBtn.addEventListener('click', function(event) {
-                            if (bossTimelineRunning || isPlayerJumping) return;
-                            // 🌟 核心防呆：強制移除按鈕焦點，防止鍵盤與滑鼠事件衝突卡死！
-                            this.blur(); 
-                            if (document.getElementById('backpack-overlay')) return;
-
-                            isPlayerControllable = false; 
-                            isGamePaused = true;
-                            pauseStartTime = performance.now();
-                            
-                            stickman.classList.add('freeze-anim');
-                            enemies.forEach(e => {
-                                if (e.alive && e.el) e.el.classList.add('freeze-anim');
-                            });
-                            
-                            triggerBackpackAnimation(false); 
-                        });
-
-                        bpBtn.style.animation = 'iconPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, btnPulseShake 0.8s ease-in-out';
-                        bpBtn.style.color = 'var(--brand-blue)';
-                        bpBtn.style.textShadow = '0 0 8px var(--brand-blue)';
-                        
-                        setTimeout(() => {
-                            bpBtn.style.animation = ''; 
-                            bpBtn.style.color = '';
-                            bpBtn.style.textShadow = '';
-                        }, 1000);
-                    }
+                    ensureScene3BackpackButton({
+                        animateUnlock: true
+                    });
                 }, 300);
             }
             return;
@@ -8070,7 +9467,21 @@ export function initScene3(playerState, switchScene) {
             if (window._easterEggQHeld) {
                 window._easterEggQHeld = false; // 停止天線繼續生長
                 window._easterEggFrozen = true; // 標記為永久凍結 (不再恢復操作)
+                easterEggAutomaticSequenceInProgress = true;
                 
+                // 已接受的 Q 放開即消耗目前裝備中的 Triangle；背包備品留到成功抵達。
+                if (hand1Item === 'body') {
+                    hand1Item = null;
+
+                    if (preEasterEquipmentSnapshot?.hand2Item === 'body') {
+                        preEasterEquipmentSnapshot.hand2Item = null;
+                    }
+
+                    // 裝備刷新前先讓已提交的天線動畫脫離裝備 DOM。
+                    detachEasterEggAntennaFromEquipment();
+                    updateMainStickmanEquipment();
+                }
+
                 // 🌟 新增：不安全天線失敗後的墜落狀態
                 window._easterEggUnsafeFalling = false;
                 
@@ -8089,10 +9500,9 @@ export function initScene3(playerState, switchScene) {
         }
     }
 
-    window._scene3KeyDown = handleKeyDown;
-    window._scene3KeyUp = handleKeyUp;
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    function handleInputReset() {
+        clearMovementKeys();
+    }
 
     let isFirstFrame = true;
     let previousScene3FrameTime = null;
@@ -8109,7 +9519,7 @@ export function initScene3(playerState, switchScene) {
         // 🌟 1. 時間暫停攔截器
         if (isGamePaused) {
             stickman.classList.add('stand-still');
-            requestAnimationFrame(gameLoopS3);
+            scheduleSceneFrame(gameLoopS3);
             return; 
         }
 
@@ -8165,7 +9575,8 @@ export function initScene3(playerState, switchScene) {
                 !isGamePaused;
 
             if (!unsafeFallMayContinue) {
-                requestAnimationFrame(gameLoopS3);
+                reanchorLockedEasterEggForStageResize();
+                scheduleSceneFrame(gameLoopS3);
                 return;
             }
         }
@@ -8184,12 +9595,51 @@ export function initScene3(playerState, switchScene) {
         // 單擺與放線後的拋體都由主迴圈積分；原本短跳仍保留原有 420ms 動畫。
         updatePlaHatTraversalPhysics(frameDeltaSeconds);
         
+        const skipGroundMovementForJumpLanding =
+        playerJumpLandingFramePending;
+
+        playerJumpLandingFramePending = false;
+
         if (!isPlayerAttacking && !isPlayerJumping) {
-            // BOSS 過場完成前維持原本四方向移動；完成後上下方向永久交由 C 跳躍控制。
-            if (keys.w && !bossTimelineCompleted) { py -= speedY; moved = true; }
-            if (keys.s && !bossTimelineCompleted) { py += speedY; moved = true; }
-            if (keys.a) { worldX -= speedX; moved = true; facing = -1; }
-            if (keys.d) { worldX += speedX; moved = true; facing = 1; }
+            if (
+                skipGroundMovementForJumpLanding
+            ) {
+                /*
+                jumpFrame 已經負責這個畫面週期的水平位移。
+                仍然保留 moved / facing，避免落地時插入一幀 stand-still。
+                */
+                if (keys.a) {
+                    moved = true;
+                    facing = -1;
+                }
+
+                if (keys.d) {
+                    moved = true;
+                    facing = 1;
+                }
+            } else {
+                if (keys.w && !bossTimelineCompleted) {
+                    py -= speedY;
+                    moved = true;
+                }
+
+                if (keys.s && !bossTimelineCompleted) {
+                    py += speedY;
+                    moved = true;
+                }
+
+                if (keys.a) {
+                    worldX -= speedX;
+                    moved = true;
+                    facing = -1;
+                }
+
+                if (keys.d) {
+                    worldX += speedX;
+                    moved = true;
+                    facing = 1;
+                }
+            }
         }
 
         // BOSS 過場前維持 Scene 1、2 的 10~90 邊界；吹氣過場結束後才保留精準底線。
@@ -8217,28 +9667,18 @@ export function initScene3(playerState, switchScene) {
         // 🌟 新增：PLA 斷崖邊緣彩蛋觸發判定 (附帶觸發位置微調教學)
         // ==============================================================
         if (!window._easterEggTriggered && isOnPlaTopPlatform && isHammerEquipped && hand2Item !== null) {
-            const metrics = getScene3StageMetrics();
-            const geometry = getPlaTopPlatformWorldGeometry(metrics);
-            if (metrics && geometry) {
-                try {
-                    const line = geometry.line;
-                    const matrix = line.getScreenCTM();
-                    const svg = line.ownerSVGElement;
-                    const pt = svg.createSVGPoint();
-                    pt.x = 390; pt.y = 75; // 斷崖邊緣
-                    const screenPt = pt.matrixTransform(matrix);
-                    const hole1L = screenPointToScene3World(screenPt, metrics).x;
-                    const playerCenterX = worldX * metrics.width / 100;
+            const triggerGeometry =
+                getEasterEggTriggerGeometry();
 
-                    // 💡 【觸發位置微調】
-                    // hole1L 是斷崖真正的邊緣。如果想要角色在「更左邊一點」就觸發，
-                    // 只要調整這裡的「- 5」。例如改成「- 15」就會提早觸發！
-                    const triggerZoneX = hole1L - 28; 
+            if (triggerGeometry) {
+                const playerCenterX =
+                    worldX *
+                    triggerGeometry.metrics.width /
+                    100;
 
-                    if (Math.abs(playerCenterX - triggerZoneX) < 15) {
-                        triggerEasterEggSequence();
-                    }
-                } catch(e) {}
+                if (playerCenterX > triggerGeometry.startPx && playerCenterX < triggerGeometry.endPx) {
+                    triggerEasterEggSequence();
+                }
             }
         }
 
@@ -8286,6 +9726,29 @@ export function initScene3(playerState, switchScene) {
             savePreEasterEquipmentState();
             window._easterEggTriggered = true;
             window._isEasterEggActive = true;
+
+            const easterEggLockMetrics = getScene3StageMetrics();
+
+            easterEggLockedStageWidthPx =
+                easterEggLockMetrics?.width ?? null;
+
+            easterEggLockedStageHeightPx =
+                easterEggLockMetrics?.height ?? null;
+
+            if (
+                Number.isFinite(easterEggLockMetrics?.height) &&
+                easterEggLockMetrics.height > 0
+            ) {
+                const lockedScreenElevationPx =
+                    getTotalPlayerElevationPx() -
+                    verticalCameraOffsetPx;
+
+                easterEggLockedScreenElevationRatio =
+                    lockedScreenElevationPx /
+                    easterEggLockMetrics.height;
+            } else {
+                easterEggLockedScreenElevationRatio = null;
+            }
 
             // 1. 永久鎖定操作，不會有 setTimeout 把他改回 true！
             isPlayerControllable = false;
@@ -8689,7 +10152,7 @@ export function initScene3(playerState, switchScene) {
                         stickman.classList.add('stand-still');    
                         stickman.classList.add('player-dead');
                         
-                        setTimeout(() => { switchScene(3, 3); }, 1500);
+                        scheduleSceneTimeout(() => { switchScene(3, 3); }, 1500);
                         return;
                     }
                 }
@@ -8775,7 +10238,7 @@ export function initScene3(playerState, switchScene) {
             }
         });
         nearbyDropItem = closestDrop;
-        requestAnimationFrame(gameLoopS3);
+        scheduleSceneFrame(gameLoopS3);
     }
 
     // ==============================================================
@@ -9005,13 +10468,16 @@ export function initScene3(playerState, switchScene) {
                     // 因為上方已精準配發了 x 與 y，這裡再也不會發生瞬移或消失了！
                     hammerElem.setAttribute('transform', `translate(${closestSlot.x}, ${closestSlot.y}) scale(0.48) rotate(0)`);
                 }
-                
+
+                const dropCloseGeneration = backpackCloseGeneration;
                 setTimeout(() => {
                     const oldOverlay = document.getElementById('backpack-overlay');
                     if (oldOverlay) oldOverlay.remove();
                     updateMainStickmanEquipment();
-                    triggerBackpackAnimation(false, true);
-                }, 300); 
+                    if (dropCloseGeneration === backpackCloseGeneration) {
+                        triggerBackpackAnimation(false, true);
+                    }
+                }, 300);
             });
 
             overlay.addEventListener('mouseleave', () => {
@@ -9105,7 +10571,7 @@ export function initScene3(playerState, switchScene) {
 
             // 🌟 3. 最嚴格的型別過濾：拒絕跨界裝備！
             if (bestTarget.type === 'head' && itemRealType !== 'hat') bestTarget = { type: oType, index: oIndex };
-            if (bestTarget.type === 'hand2' && itemRealType !== 'body') bestTarget = { type: oType, index: oIndex };
+            if (bestTarget.type === 'hand2' && (itemRealType !== 'body' || hand1Item === 'body')) bestTarget = { type: oType, index: oIndex };
 
             // 🌟 彩蛋防呆：彩蛋期間，主手上的三角怪絕對不可以被卸下
             if (window._isEasterEggActive && oType === 'hand') {
@@ -9175,6 +10641,7 @@ export function initScene3(playerState, switchScene) {
             activeItem.setAttribute('transform', `translate(${tx}, ${ty}) scale(${scale})`);
 
             // 6. 無縫更新資料
+            const dropCloseGeneration = backpackCloseGeneration;
             setTimeout(() => {
                 if (action === 'equip_hand2') {
                     let orig = backpackGrid[oIndex];
@@ -9204,9 +10671,11 @@ export function initScene3(playerState, switchScene) {
                 
                 const oldOverlay = document.getElementById('backpack-overlay');
                 if (oldOverlay) oldOverlay.remove();
-                updateMainStickmanEquipment(); 
-                triggerBackpackAnimation(false, true); 
-            }, 300); 
+                updateMainStickmanEquipment();
+                if (dropCloseGeneration === backpackCloseGeneration) {
+                    triggerBackpackAnimation(false, true);
+                }
+            }, 300);
         };
         
         overlay.addEventListener('mouseup', handleItemMouseUpLeave);
@@ -9220,7 +10689,7 @@ export function initScene3(playerState, switchScene) {
         } else if (isFirstTime) {
             let step = 1; 
             setTimeout(() => {
-                const interval = setInterval(() => {
+                const interval = scheduleSceneInterval(() => {
                     if(step < animPaths.length) {
                         outline.setAttribute('d', animPaths[step]);
                         
@@ -9231,7 +10700,7 @@ export function initScene3(playerState, switchScene) {
                         }
                         step++;
                     } else {
-                        clearInterval(interval);
+                        clearSceneInterval(interval);
                         
                         setTimeout(() => {
                             stickmanSvg.style.opacity = '1';
@@ -9288,5 +10757,30 @@ export function initScene3(playerState, switchScene) {
             }, 100); 
         }
     }
-    requestAnimationFrame(gameLoopS3);
+    applyScene3DevCheckpoint(devCheckpoint);
+    scheduleSceneFrame(gameLoopS3);
+
+    function destroy() {
+        if (destroyed) {
+            return;
+        }
+
+        destroyed = true;
+        easterEggAutomaticSequenceInProgress = false;
+        isPlayerControllable = false;
+        canAttack = false;
+
+        clearMovementKeys();
+
+        restoreManualUiLayering();
+
+        resourceScope?.dispose();
+    }
+
+    return {
+        handleKeyDown,
+        handleKeyUp,
+        handleInputReset,
+        destroy
+    };
 }

@@ -6,13 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="images/WJ_ICON.png" />
     <title>Memories | WJ STUDIO</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.public.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&family=Orbitron:wght@400..900&display=swap"
         rel="stylesheet">
+<style id="wj-local-memories-title">
+  #memories-page #story-chapters > h1 {
+    color: #ffffff !important;
+    background: none !important;
+    -webkit-background-clip: border-box !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: none !important;
+  }
+  #memories-page #story-chapters > h1::after {
+    display: none !important;
+  }
+</style>
+    <link rel="stylesheet" href="wj-local-tech-updates.css" />
 </head>
 
 <body id="memories-page">
@@ -31,15 +44,15 @@
                 <span class="bar"></span>
             </div>
             <ul class="navbar__menu">
-                <li class="navbar__item"><a href="index.html" class="navbar__links">Home</a></li>
-                <li class="navbar__item"><a href="Memories.html" class="navbar__links active-link">Memories</a></li>
-                <li class="navbar__btn"><a href="Tutor.html" class="button">Tutor</a></li>
+                <li class="navbar__item"><a href="index.html" class="navbar__links">首頁</a></li>
+                <li class="navbar__item"><a href="Memories.html" class="navbar__links active-link">高中備審</a></li>
+                <li class="navbar__btn"><a href="Tutor.html" class="button">免費課程報名</a></li>
             </ul>
         </div>
     </nav>
 
     <div class="services" id="story-chapters">
-        <h1 class="reveal">The CHPTS <br class="mobile-break"> of My Life</h1>
+        <h1 class="reveal">我 的 高 中 學 習 歷 程 X 互 動 式 線 上 電 子 書</h1>
         <div class="services__container">
             <div class="services__card reveal" onclick="openBook('topics', 14)">
                 <img src="images/My_Topics.png" alt="Green Droid" class="card__cover-img">
@@ -121,7 +134,26 @@
         <p class="website__rights">© WJ STUDIO 2026. All rights reserved。</p>
     </div>
 
-    <script src="app.js"></script>
+        <!-- LOCAL PREVIEW ONLY: GAME menu, never shown on public website domains. -->
+    <script>
+    (function () {
+        var host = (location.hostname || '').toLowerCase();
+        var localHost = /^(localhost|127\.0\.0\.1|::1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/i.test(host);
+        if (location.protocol !== 'file:' && !localHost) return;
+        var menu = document.querySelector('.navbar__menu');
+        if (!menu || menu.querySelector('.wj-local-game')) return;
+        var item = document.createElement('li');
+        item.className = 'navbar__item wj-local-game';
+        var link = document.createElement('a');
+        link.className = 'navbar__links';
+        link.href = (location.protocol === 'file:') ? 'Game.html' : 'Game.vite.html';
+        link.textContent = 'Game';
+        item.appendChild(link);
+        var tutor = menu.querySelector('.navbar__btn');
+        if (tutor) menu.insertBefore(item, tutor); else menu.appendChild(item);
+    })();
+    </script>
+    <script src="app.public.js"></script>
 </body>
 
 </html>
