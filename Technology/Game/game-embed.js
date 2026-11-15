@@ -173,16 +173,6 @@
                 </div>
             </div>
 
-            <footer class="wjgame-foot">
-                <span>WJ / ORIGINAL GAME EXPERIENCE</span>
-                <a class="wjgame-open"
-                   href="${gameEntry}"
-                   target="_blank"
-                   rel="noopener">
-                   在獨立頁面開啟原版遊戲 ↗
-                </a>
-            </footer>
-
         </div>
     `;
 
@@ -258,7 +248,7 @@
 
             if (!doc) {
                 status.textContent =
-                    "無法讀取遊戲畫面，請改用獨立頁面開啟。";
+                    "遊戲畫面初始化失敗，請重新整理頁面。";
                 return;
             }
 
@@ -268,7 +258,7 @@
                 "html,body{margin:0!important;padding:0!important;width:1100px!important;height:619px!important;overflow:hidden!important;}" +
                 ".navbar,.game-title,.footer__container{display:none!important;}" +
                 ".game-section{display:block!important;margin:0!important;padding:0!important;width:1100px!important;height:619px!important;min-height:0!important;}" +
-                ".game-wrapper{margin:0!important;width:1100px!important;max-width:1100px!important;aspect-ratio:16/9!important;}" +
+                ".game-wrapper{margin:0!important;width:1100px!important;max-width:1100px!important;aspect-ratio:16/9!important;opacity:1!important;transform:none!important;visibility:visible!important;}" +
                 ".game-wrapper:fullscreen{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;}";
             doc.head.appendChild(stageCSS);
 
@@ -284,10 +274,14 @@
 
             if (!gameWrapper) {
                 status.textContent =
-                    "找不到原始遊戲容器 #gameWrapper，" +
-                    "請使用下方連結開啟原版遊戲。";
+                    "無法初始化遊戲畫面，請重新整理後再試。";
                 return;
             }
+
+            // The original page uses .reveal (opacity: 0 until animated).
+            // The embedded viewport is cropped to the game, so reveal it
+            // directly rather than waiting for the standalone scroll trigger.
+            gameWrapper.classList.add("active");
 
             // The game source and native layout stay intact.
             // React only to the wrapper's measured position.
@@ -321,7 +315,7 @@
 
         iframe.addEventListener("error", () => {
             status.textContent =
-                "遊戲載入失敗，請確認本地開發伺服器已啟動。";
+                "遊戲載入失敗，請重新整理頁面後再試。";
         });
 
         windowBox.appendChild(iframe);
