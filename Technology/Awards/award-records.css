@@ -1,0 +1,298 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap");
+
+/* WJ STUDIO | AWARD RECORDS
+   Editorial portfolio layout: charcoal, warm paper, subtle brass accents.
+   All rules scoped to #wj-award-records to protect HOME / TEDx.
+*/
+#wj-award-records {
+  --wjaw-ink: #f6f2eb;
+  --wjaw-muted: #aaa6a3;
+  --wjaw-border: rgba(255,255,255,.12);
+  --wjaw-accent: #d5b18b;
+  box-sizing: border-box;
+  width: 100%;
+  padding: clamp(30px,3.5vw,54px) 20px clamp(35px,4.1vw,62px);
+  background: linear-gradient(130deg, #151518 0%, #1b1a1e 56%, #18171a 100%);
+  color: var(--wjaw-ink);
+  font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  isolation: isolate;
+  position: relative;
+}
+#wj-award-records *, #wj-award-records *::before, #wj-award-records *::after {
+  box-sizing: border-box;
+}
+#wj-award-records .wjaw-container { max-width: 1370px; margin: 0 auto; }
+#wj-award-records .wjaw-heading {
+  display: flex; justify-content: space-between; align-items: end; gap: 30px;
+  padding: 0 0 clamp(31px,4vw,52px);
+  border-bottom: 1px solid var(--wjaw-border);
+}
+#wj-award-records .wjaw-overline {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--wjaw-accent);
+  font: 650 12px/1.6 "Kumbh Sans", Arial, sans-serif;
+  letter-spacing: .23em;
+  margin: 0 0 20px;
+}
+#wj-award-records .wjaw-overline__rule {
+  display: inline-block; width: 32px; height: 1px; background: var(--wjaw-accent);
+}
+#wj-award-records #wjaw-title {
+  color: #fff;
+  margin: 0;
+  font-size: clamp(37px,4.7vw,67px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.26;
+  background: none;
+  -webkit-text-fill-color: initial;
+  text-shadow: none;
+}
+#wj-award-records #wjaw-title span {
+  display: inline-block;
+  margin-left: 16px;
+  vertical-align: baseline;
+  color: #827d7e;
+  font: 550 clamp(13px,1.23vw,17px)/1.5 "Kumbh Sans",Arial,sans-serif;
+  letter-spacing: .1em;
+  -webkit-text-fill-color: #827d7e;
+}
+#wj-award-records .wjaw-layout {
+  display: grid;
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  gap: clamp(30px,4vw,62px);
+  align-items: end;
+  padding-top: clamp(25px,3vw,44px);
+}
+#wj-award-records .wjaw-list {
+  min-width: 0;
+  align-self: end;
+}
+#wj-award-records .wjaw-list__header, #wj-award-records .wjaw-display__top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; color: #9c9797;
+  font: 600 12px/1.6 "Kumbh Sans", "Noto Sans TC", sans-serif;
+  letter-spacing: .11em;
+  padding: 0 3px 15px;
+}
+#wj-award-records .wjaw-item {
+  appearance: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 21px;
+  column-gap: 12px;
+  align-items: center;
+  width: 100%; text-align: left;
+  padding: clamp(12px,1.13vw,17px) 12px clamp(12px,1.13vw,17px) 17px;
+  border: 0; border-top: 1px solid var(--wjaw-border);
+  background: transparent; color: var(--wjaw-ink);
+  cursor: pointer;
+  transition: background .23s ease;
+}
+#wj-award-records .wjaw-item:last-of-type { border-bottom: 1px solid var(--wjaw-border); }
+#wj-award-records .wjaw-item::before {
+  content: "";
+  position: absolute; left: 0; top: 16px; bottom: 16px; width: 2px;
+  background: var(--wjaw-accent);
+  opacity: 0; transform: scaleY(.35);
+  transition: transform .22s, opacity .22s;
+}
+#wj-award-records .wjaw-item:hover { background: rgba(255,255,255,.035); }
+#wj-award-records .wjaw-item.is-active {
+  background: rgba(213,177,139,.075);
+}
+#wj-award-records .wjaw-item.is-active::before { opacity: 1; transform: scaleY(1); }
+#wj-award-records .wjaw-item:focus-visible {
+  outline: 2px solid #d5b18b;
+  outline-offset: -2px;
+}
+#wj-award-records .wjaw-item__number {
+  align-self: start;
+  padding-top: 2px;
+  color: #847f7d;
+  font: 600 18px/1.3 "Kumbh Sans", Arial,sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+#wj-award-records .wjaw-item.is-active .wjaw-item__number { color: #e3c39c; }
+#wj-award-records .wjaw-item__content { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+#wj-award-records .wjaw-item__year {
+  color: #aaa6a4;
+  font: 550 13px/1.5 "Noto Sans TC",sans-serif;
+  letter-spacing: .05em;
+}
+#wj-award-records .wjaw-item__name {
+  color: #f8f6f2;
+  font: 700 clamp(16px,1.32vw,20px)/1.52 "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  letter-spacing: .006em;
+  overflow-wrap: break-word;
+}
+#wj-award-records .wjaw-item__honor {
+  color: #b7b2b0;
+  font: 550 clamp(14px,1.12vw,16px)/1.6 "Noto Sans TC",sans-serif;
+}
+#wj-award-records .wjaw-item.is-active .wjaw-item__honor { color: #e0c7a6; }
+#wj-award-records .wjaw-item__arrow {
+  align-self: center;
+  color: #908984; font: 400 20px/1 sans-serif;
+  opacity: 0; transform: translate(-4px,4px);
+  transition: opacity .22s, transform .22s;
+}
+#wj-award-records .wjaw-item:hover .wjaw-item__arrow,
+#wj-award-records .wjaw-item.is-active .wjaw-item__arrow {
+  opacity: 1; transform: translate(0,0);
+}
+#wj-award-records .wjaw-display {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #202023;
+}
+#wj-award-records .wjaw-display__top {
+  padding: 17px 22px;
+  margin: 0;
+  background: #242428;
+  border-bottom: 1px solid #ffffff16;
+  font-size: 11px;
+  font-family: "Kumbh Sans",Arial,sans-serif;
+}
+#wj-award-records .wjaw-stage {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 0;
+  padding: clamp(17px,2.1vw,28px) clamp(14px,2.2vw,30px);
+  background:
+    radial-gradient(ellipse at 50% 25%,rgba(255,255,255,.045),transparent 75%),
+    #1e1e21;
+}
+#wj-award-records .wjaw-paper {
+  position: relative;
+  width: min(100%,425px);
+  aspect-ratio: 210 / 297;
+  flex: 0 1 auto;
+  background: #f5f2ed;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 40px rgba(0,0,0,.48), 0 2px 8px rgba(0,0,0,.22);
+  overflow: hidden;
+}
+#wj-award-records .wjaw-image {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: contain; background:#fff;
+  animation: wjaw-appear .28s ease-out both;
+}
+#wj-award-records .wjaw-image[hidden], #wj-award-records .wjaw-empty[hidden] {display:none !important;}
+@keyframes wjaw-appear {
+  from {opacity:.35; transform:scale(.992)}
+  to {opacity:1; transform:scale(1)}
+}
+#wj-award-records .wjaw-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: clamp(18px,2.25vw,30px);
+  color: #62605e;
+}
+#wj-award-records .wjaw-empty__top {
+  display: flex; justify-content: space-between;
+  gap: 8px; font: 650 10px/1.5 "Kumbh Sans",Arial,sans-serif;
+  letter-spacing: .09em;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #d3cfc9;
+}
+#wj-award-records .wjaw-empty__center {
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: center; text-align: center; gap: 13px;
+}
+#wj-award-records .wjaw-empty__center svg {
+  color: #b2a18d;
+  width: clamp(36px,4vw,50px);
+}
+#wj-award-records .wjaw-empty__center strong {
+  color: #484644;
+  font-size: clamp(16px,1.6vw,21px);
+  font-weight: 700;
+}
+#wj-award-records .wjaw-empty__center span {
+  max-width: 205px;
+  font-size: clamp(10px,1vw,13px);
+  color: #85807b;
+}
+#wj-award-records .wjaw-empty code {
+  padding-top: 12px; border-top: 1px solid #d3cfc9;
+  font: 500 clamp(9px,.85vw,11px)/1.6 Consolas,monospace;
+  color: #9c9388;
+  white-space: normal; overflow-wrap: anywhere;
+}
+#wj-award-records .wjaw-display__bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px;
+  padding: 22px clamp(16px,2.3vw,30px) 25px;
+  border-top: 1px solid var(--wjaw-border);
+}
+#wj-award-records .wjaw-caption {
+  min-width: 0; display: flex; flex-direction: column; gap: 5px;
+}
+#wj-award-records .wjaw-caption__year {
+  color: #ceaf87; font: 600 13px/1.5 "Noto Sans TC",sans-serif;
+}
+#wj-award-records .wjaw-caption strong {
+  color: #fff; font: 700 clamp(17px,1.45vw,22px)/1.5 "Noto Sans TC", sans-serif;
+}
+#wj-award-records .wjaw-caption > span:last-child {
+  color: #aaa6a2;
+  font: 500 14px/1.5 "Noto Sans TC",sans-serif;
+}
+@media(max-width:1050px) {
+  #wj-award-records .wjaw-layout { grid-template-columns: minmax(0,.88fr) minmax(0,1.12fr); gap: 24px; }
+  #wj-award-records .wjaw-item { grid-template-columns: 35px minmax(0,1fr) 15px; gap:8px; padding-inline:12px 7px; }
+  #wj-award-records .wjaw-item__name { font-size:16px; }
+  #wj-award-records .wjaw-stage { padding:22px 18px; }
+}
+@media(max-width:760px) {
+  #wj-award-records { padding: 34px 15px 48px; }
+  #wj-award-records .wjaw-heading { align-items:start; flex-direction:column; gap:18px; padding-bottom:27px; }
+  #wj-award-records #wjaw-title { font-size: clamp(36px,8vw,46px); }
+  #wj-award-records #wjaw-title span { display:block; margin:7px 0 0; font-size:13px; }
+  #wj-award-records .wjaw-layout { display:flex; flex-direction:column; gap:31px; align-items:stretch; }
+  #wj-award-records .wjaw-list, #wj-award-records .wjaw-display { width:100%; align-self:stretch; }
+  #wj-award-records .wjaw-item { grid-template-columns: 40px minmax(0,1fr) 20px; gap:10px; padding:17px 13px; }
+  #wj-award-records .wjaw-item__name { font-size:17px; }
+  #wj-award-records .wjaw-display__top { padding:14px 18px; }
+  #wj-award-records .wjaw-stage { padding: 25px; }
+  #wj-award-records .wjaw-paper { width:min(100%,425px); }
+}
+@media(max-width:390px) {
+  #wj-award-records .wjaw-item { grid-template-columns:31px minmax(0,1fr) 14px; padding-inline:10px; }
+  #wj-award-records .wjaw-item__name { font-size:16px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  #wj-award-records *, #wj-award-records *::before, #wj-award-records *::after {
+    animation:none !important; transition:none !important;
+  }
+}
+
+/* WJ AWARD DESKTOP ALIGNMENT START */
+/* Desktop only: modestly narrow the certificate viewer and align the
+   six-award list with the viewer's TOP edge. No mobile changes. */
+@media (min-width: 961px) {
+  #wj-award-records .wjaw-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    align-items: start;
+  }
+
+  #wj-award-records .wjaw-list {
+    align-self: start;
+  }
+
+  #wj-award-records .wjaw-display {
+    align-self: start;
+  }
+
+  #wj-award-records .wjaw-paper {
+    width: min(100%, 390px);
+  }
+
+  #wj-award-records .wjaw-stage {
+    padding: clamp(24px, 2.5vw, 36px) clamp(32px, 3.5vw, 50px);
+  }
+}
+/* WJ AWARD DESKTOP ALIGNMENT END */
