@@ -7,7 +7,7 @@
     if (document.getElementById(STYLE_ID)) return;
     const tag = document.createElement("style");
     tag.id = STYLE_ID;
-    tag.textContent = CSS;
+    tag.textContent = CSS + "\n/* Follow-up mobile dropdown alignment and Toy Doctor position. */\n@media screen and (max-width:960px) {\n  html body .navbar .navbar__menu,\n  html body .navbar .navbar__menu.active {\n    height:auto!important;\n    min-height:0!important;\n    padding:0 0 13px!important;\n    margin:0!important;\n    gap:0!important;\n    align-items:center!important;\n    justify-content:flex-start!important;\n  }\n  html body .navbar .navbar__menu > .navbar__item {\n    display:flex!important;\n    flex:0 0 46px!important;\n    width:min(300px,calc(100% - 40px))!important;\n    height:46px!important;\n    min-height:46px!important;\n    padding:0!important;\n    margin:0!important;\n    align-items:center!important;\n    justify-content:flex-start!important;\n  }\n  html body .navbar .navbar__menu > .navbar__item > .navbar__links {\n    width:100%!important;\n    height:100%!important;\n    margin:0!important;\n    padding:0!important;\n    text-align:left!important;\n    justify-content:flex-start!important;\n  }\n  html body .navbar .navbar__menu > .navbar__btn {\n    flex:0 0 54px!important;\n    height:54px!important;\n    min-height:54px!important;\n    width:100%!important;\n    padding:5px 20px 0!important;\n    margin:0!important;\n  }\n  html body .navbar .navbar__menu > .navbar__btn > .button {\n    width:min(300px,100%)!important;\n    margin:0 auto!important;\n  }\n}\n@media screen and (max-width:760px) {\n  html body #wj-hero-repeat-2.wj-hero-photo .wj-highlight-card {\n    top:59%!important;\n    transform:translateY(-50%)!important;\n  }\n}\n";
     document.head.appendChild(tag);
   }
 
@@ -54,9 +54,19 @@
     document.addEventListener("pointercancel", hide, {passive:true});
   }
 
+  function setDoctorMobileOffset() {
+    if (!window.matchMedia("(max-width:760px)").matches) return;
+    const card = document.querySelector("#wj-hero-repeat-2 .wj-highlight-card");
+    if (!card) return;
+    card.style.setProperty("top", "59%", "important");
+    card.style.setProperty("transform", "translateY(-50%)", "important");
+  }
+
   function init() {
     addStyle();
     installTouchCursor();
+    setDoctorMobileOffset();
+    window.addEventListener("resize", setDoctorMobileOffset, { passive: true });
   }
   // Register after the existing mobile layout's load handler, so this
   // mobile-only patch wins without editing any desktop styles.
