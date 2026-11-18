@@ -319,9 +319,10 @@
 
     // 第三版位置使用 inline important，防止舊版 CSS 覆蓋。
     if (config.kind === "doctor") {
-      card.style.setProperty("left", "23%", "important");
-      card.style.setProperty("top", "5.4%", "important");
-      card.style.setProperty("width", "37%", "important");
+      const mobile = window.matchMedia("(max-width: 760px)").matches;
+      card.style.setProperty("left", mobile ? "6%" : "23%", "important");
+      card.style.setProperty("top", mobile ? "9%" : "5.4%", "important");
+      card.style.setProperty("width", mobile ? "92%" : "37%", "important");
     }
 
     return card;
@@ -441,6 +442,16 @@
       ensurePanel(config);
     }
 
+    // Keep the mobile inline-important card coordinates in sync on rotation.
+    const syncDoctorPosition = () => {
+      const card = document.querySelector('#wj-hero-repeat-2 .wj-highlight-card[data-wj-clean="true"]');
+      if (!card) return;
+      const mobile = window.matchMedia("(max-width: 760px)").matches;
+      card.style.setProperty("left", mobile ? "6%" : "23%", "important");
+      card.style.setProperty("top", mobile ? "9%" : "5.4%", "important");
+      card.style.setProperty("width", mobile ? "92%" : "37%", "important");
+    };
+    window.addEventListener("resize", syncDoctorPosition, { passive: true });
     installCursorBehavior();
 
     // 只有舊程式真的再次新增重複元素時才修復。

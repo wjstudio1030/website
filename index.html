@@ -604,6 +604,166 @@ body {
 </style>
     <link rel="stylesheet" href="Technology/Home/highlights-awards-v2.css" />
     <link rel="stylesheet" href="Technology/Home/highlight-exact-sync.css">
+
+<style id="wj-mobile-rwd-fix-20261118">
+/* Certificate filenames are internal metadata, not visitor-facing copy. */
+#wj-award-records #wjaw-empty-path{display:none!important;}
+@media screen and (max-width:760px){
+  /* 05: compact icon on the left; title and chevron on one line. */
+  #wj-technology .wj-tech__tab:last-child{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:flex-start!important;gap:6px!important;
+    padding:12px 8px!important;min-width:0!important;
+  }
+  #wj-technology .wj-tech__tab:last-child .wj-tech__tab-top{
+    display:flex!important;flex:0 0 48px!important;width:48px!important;
+    align-items:center!important;justify-content:flex-start!important;gap:3px!important;
+  }
+  #wj-technology .wj-tech__tab:last-child .wj-tech__tab-index{
+    flex:0 0 auto!important;font-size:9px!important;
+  }
+  #wj-technology .wj-tech__tab:last-child .wj-tech__tab-icon{
+    width:28px!important;height:28px!important;flex:0 0 28px!important;font-size:14px!important;
+  }
+  #wj-technology .wj-tech__tab:last-child .wj-tech__tab-label{
+    display:inline-flex!important;align-items:center!important;
+    justify-content:space-between!important;flex:1 1 auto!important;
+    min-width:0!important;margin:0!important;white-space:nowrap!important;
+    font-size:clamp(9px,2.5vw,12px)!important;letter-spacing:-.045em!important;
+  }
+  #wj-technology .wj-tech__tab:last-child .wj-tech__tab-arrow{
+    display:inline-block!important;flex-shrink:0!important;
+    margin-left:3px!important;font-size:10px!important;
+  }
+  /* IoT navigation: the 01-04 titles all have the same, nonwrapping size. */
+  #wj-technology #wj-tech-panel-iot .iotx-nav{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;padding-inline:10px!important;
+  }
+  #wj-technology #wj-tech-panel-iot .iotx-option{
+    min-width:0!important;gap:3px!important;padding:10px 7px!important;
+  }
+  #wj-technology #wj-tech-panel-iot .iotx-option-num{
+    flex:0 0 auto!important;font-size:10px!important;
+  }
+  #wj-technology #wj-tech-panel-iot .iotx-option-name{
+    flex:1 1 auto!important;min-width:0!important;
+    font-size:clamp(9px,2.5vw,11px)!important;line-height:1.3!important;
+    letter-spacing:-.055em!important;white-space:nowrap!important;word-break:keep-all!important;
+  }
+  /* Match desktop image proportions instead of a fixed, tall mobile box. */
+  #wj-technology #wj-tech-panel-iot .iotx-workspace[data-scene] .iotx-screen{
+    min-height:0!important;height:auto!important;flex:0 0 auto!important;aspect-ratio:1/1!important;
+  }
+  #wj-technology #wj-tech-panel-iot .iotx-workspace[data-scene="voice"] .iotx-screen,
+  #wj-technology #wj-tech-panel-iot .iotx-workspace[data-scene="vision"] .iotx-screen,
+  #wj-technology #wj-tech-panel-iot .iotx-workspace[data-scene="game"] .iotx-screen{
+    aspect-ratio:1950/1057!important;
+  }
+  #wj-technology #wj-tech-panel-iot .iot3-artboard{max-width:calc(100% - 20px)!important;}
+  #wj-technology #wj-tech-panel-iot .iotx-photo{
+    object-fit:contain!important;object-position:center!important;
+  }
+  #wj-free-course #wjcourse-submit.wjcourse__submit{
+    white-space:pre-line!important;line-height:1.55!important;
+    min-height:85px!important;padding:13px 16px!important;text-align:center!important;
+  }
+  #wj-award-records .wjaw-item__arrow{display:none!important;}
+  #wj-award-records .wjaw-item{grid-template-columns:36px minmax(0,1fr)!important;}
+  /* TEDx watch button label: exactly one line. */
+  body .main .main__container .main__content.hero-text-animate a.main__btn{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    width:calc(100% - 20px)!important;max-width:350px!important;min-width:0!important;
+    padding:14px 8px!important;margin:24px auto 0!important;white-space:nowrap!important;
+  }
+  body .main .main__container .main__content.hero-text-animate a.main__btn>span{
+    display:block!important;white-space:nowrap!important;
+    font-size:clamp(11px,3.3vw,16px)!important;letter-spacing:0!important;
+  }
+  /* Highlights 02/03: mobile image with visible overlay, no desktop changes. */
+  html body #wj-hero-repeat-1.wj-hero-photo,
+  html body #wj-hero-repeat-2.wj-hero-photo{
+    height:clamp(350px,96vw,490px)!important;min-height:350px!important;
+    aspect-ratio:auto!important;position:relative!important;overflow:hidden!important;
+  }
+  html body #wj-hero-repeat-1.wj-hero-photo::before{
+    width:100%!important;height:100%!important;
+    background-size:100% 100%,cover!important;
+    background-position:center,55% center!important;
+  }
+  html body #wj-hero-repeat-1.wj-hero-photo::after{display:none!important;}
+  /* Third photo selects the left side of the composition. */
+  html body #wj-hero-repeat-2.wj-hero-photo{
+    background-image:url("images/WJ_HIGHLIGHT_03_LEFT.png")!important;
+    background-size:cover!important;background-position:22% center!important;
+  }
+  html body #wj-hero-repeat-2.wj-hero-photo::before{
+    width:100%!important;height:100%!important;
+    background-image:linear-gradient(to right,rgba(20,20,20,.12),rgba(20,20,20,.18)),
+      url("images/WJ_HIGHLIGHT_03_LEFT.png")!important;
+    background-size:100% 100%,cover!important;
+    background-position:center,22% center!important;background-repeat:no-repeat!important;
+  }
+  html body #wj-hero-repeat-2.wj-hero-photo::after{display:none!important;}
+  html body #wj-hero-repeat-1.wj-hero-photo .wj-highlight-card,
+  html body #wj-hero-repeat-2.wj-hero-photo .wj-highlight-card{
+    position:absolute!important;top:7%!important;left:6%!important;width:89%!important;
+    height:auto!important;max-width:none!important;padding:0!important;margin:0!important;
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+    gap:0!important;z-index:9!important;background:transparent!important;pointer-events:none!important;
+  }
+  html body #wj-hero-repeat-2.wj-hero-photo .wj-highlight-card{
+    top:9%!important;left:6%!important;width:92%!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__title,
+  html body #wj-hero-repeat-2 .wj-highlight-card__title{
+    display:block!important;width:100%!important;margin:0!important;padding:0!important;
+    font-family:var(--wj-highlight-title-font,"Noto Serif TC",serif)!important;
+    font-weight:800!important;line-height:1.15!important;letter-spacing:0!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__title{
+    font-size:clamp(25px,6.2vw,32px)!important;
+  }
+  html body #wj-hero-repeat-2 .wj-highlight-card__title{
+    font-size:clamp(18px,4.8vw,24px)!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__line,
+  html body #wj-hero-repeat-2 .wj-highlight-card__line{
+    display:block!important;white-space:nowrap!important;max-width:none!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__line--red{
+    color:#c40a2e!important;-webkit-text-fill-color:#c40a2e!important;
+  }
+  html body #wj-hero-repeat-2 .wj-highlight-card__line--yellow{
+    color:#ffd83d!important;-webkit-text-fill-color:#ffd83d!important;
+    margin-top:.16em!important;-webkit-text-stroke:.6px rgba(255,255,255,.95)!important;
+    text-shadow:-1px -1px 0 rgba(255,255,255,.9),1px -1px 0 rgba(255,255,255,.9),
+      -1px 1px 0 rgba(255,255,255,.9),1px 1px 0 rgba(255,255,255,.9),
+      0 2px 8px rgba(0,0,0,.6)!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__button.main__btn,
+  html body #wj-hero-repeat-2 .wj-highlight-card__button.main__btn{
+    position:relative!important;display:inline-flex!important;align-items:center!important;
+    justify-content:center!important;width:min(95%,310px)!important;max-width:100%!important;
+    min-height:48px!important;height:auto!important;padding:11px 10px!important;
+    margin:18px 0 0!important;opacity:1!important;animation:none!important;
+    align-self:flex-start!important;border-radius:4px!important;pointer-events:auto!important;
+    cursor:none!important;background-image:linear-gradient(to top,#f77062,#fe5196)!important;
+  }
+  html body #wj-hero-repeat-1 .wj-highlight-card__button.main__btn>span,
+  html body #wj-hero-repeat-2 .wj-highlight-card__button.main__btn>span{
+    position:relative!important;z-index:2!important;color:#fff!important;
+    -webkit-text-fill-color:#fff!important;white-space:nowrap!important;
+    font-size:clamp(12px,3.3vw,15px)!important;
+    font-weight:700!important;letter-spacing:0!important;
+  }
+  @media(hover:none){
+    html body #wj-hero-repeat-1 .wj-highlight-card__button.main__btn::after,
+    html body #wj-hero-repeat-2 .wj-highlight-card__button.main__btn::after{width:0!important;}
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -648,7 +808,7 @@ body {
             <div class="wj-tech__selector" role="tablist" aria-label="選擇技術領域">
                 <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-iot" data-field="iot" data-theme="peach" aria-controls="wj-tech-panel-iot" aria-selected="true" tabindex="0">
                     <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">01 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-microchip"></i></span></span>
-                    <span class="wj-tech__tab-label">物聯網與智慧互動應用<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
+                    <span class="wj-tech__tab-label">物聯網智慧互動應用<i class="fas fa-chevron-right wj-tech__tab-arrow" aria-hidden="true"></i></span>
                 </button>
                 <button class="wj-tech__tab" type="button" role="tab" id="wj-tech-tab-game" data-field="game" data-theme="pink" aria-controls="wj-tech-panel-game" aria-selected="false" tabindex="-1">
                     <span class="wj-tech__tab-top"><span class="wj-tech__tab-index">02 / 05</span><span class="wj-tech__tab-icon" aria-hidden="true"><i class="fas fa-gamepad"></i></span></span>
@@ -672,7 +832,7 @@ body {
          data-field-panel="iot" data-theme="peach"
          role="tabpanel" aria-labelledby="wj-tech-tab-iot">
     <div id="iotv2-root">
-        <h3>物聯網與智慧互動應用</h3>
+        <h3>物聯網智慧互動應用</h3>
     </div>
 </section>
                 <section class="wj-tech__panel" id="wj-tech-panel-game" data-field-panel="game" data-theme="pink" role="tabpanel" aria-labelledby="wj-tech-tab-game" hidden>
@@ -824,7 +984,7 @@ body {
               </button>
               <div class="wjcourse__interest-options" id="wjcourse-interest-options" hidden>
                 <div class="wjcourse__interest-list">
-                  <label><input type="checkbox" value="物聯網與智慧互動應用"><span>物聯網與智慧互動應用</span></label>
+                  <label><input type="checkbox" value="物聯網智慧互動應用"><span>物聯網智慧互動應用</span></label>
                   <label><input type="checkbox" value="遊戲開發"><span>遊戲開發</span></label>
                   <label><input type="checkbox" value="程式設計與應用"><span>程式設計與應用</span></label>
                   <label><input type="checkbox" value="互動式網站設計"><span>互動式網站設計</span></label>
@@ -891,7 +1051,8 @@ body {
             <textarea id="wjcourse-notes" name="additional_info" rows="4" placeholder="例如：孩子曾做過的小作品、感興趣的主題、想參加的競賽……" maxlength="3000"></textarea>
           </div>
         </div>
-        <button type="submit" id="wjcourse-submit" class="wjcourse__submit">SUBMIT REGISTRATION / 送出報名</button>
+        <button type="submit" id="wjcourse-submit" class="wjcourse__submit">SUBMIT REGISTRATION
+/ 送出報名</button>
         <p class="wjcourse__status" id="wjcourse-status" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -981,8 +1142,8 @@ body {
                 <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
                   <path d="M12 5h17l8 8v30H12z"></path><path d="M29 5v9h8M17 23h16M17 30h16M17 37h10"></path>
                 </svg>
-                <strong>獎狀檔案尚未放入</strong>
-                <span>將 SVG 放入指定資料夾即可在此顯示</span>
+                <strong>照片正在準備中</strong>
+                <span>精彩紀錄將陸續更新</span>
               </div>
               <code id="wjaw-empty-path">images/award-records/award-01.svg</code>
             </div>

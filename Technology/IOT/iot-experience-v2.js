@@ -655,7 +655,7 @@
       </div>
 
       <header class="iotx-intro">
-        <h3>物聯網與智慧互動應用</h3>
+        <h3>物聯網智慧互動應用</h3>
         <p>INTERNET OF THINGS / SYSTEM INTEGRATION</p>
       </header>
 
