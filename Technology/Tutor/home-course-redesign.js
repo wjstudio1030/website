@@ -14,6 +14,13 @@
   const status = $('#wjcourse-status');
   const submit = $('#wjcourse-submit');
   const defaultSubmitText = submit.textContent;
+  const privacyConsent = $('#wjcourse-privacy-consent');
+  const privacyConsentedAt = $('#wjcourse-privacy-consented-at');
+  if (!privacyConsent || !privacyConsentedAt) {
+    console.error('WJ Course: privacy consent fields are missing; submission is disabled.');
+    submit.disabled = true;
+    return;
+  }
   const pad = n => String(n).padStart(2, '0');
 
   // Taiwan-time countdown, independent of the visitor's computer time zone.
@@ -307,6 +314,11 @@
       firstInvalid.reportValidity();
       return false;
     }
+    if (!privacyConsent.checked) {
+      privacyConsent.focus();
+      showStatus('請先閱讀並勾選個資蒐集告知同意。');
+      return false;
+    }
     return true;
   }
 
@@ -339,6 +351,8 @@
     submit.textContent = '資料傳送中…';
     clearStatus();
     try {
+      // Store consent evidence with the same request; no extra network call.
+      privacyConsentedAt.value = new Date().toISOString();
       const values = new FormData(form);
       values.set('name', $('#wjcourse-parent').value.trim());
       if (contactSelector.input.value === '電子郵件') {

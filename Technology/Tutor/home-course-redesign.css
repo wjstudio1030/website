@@ -360,3 +360,82 @@
     }
 }
 /* WJ COURSE SMALL FIX END */
+
+/* WJ COURSE PRIVACY NOTICE — compact on desktop and mobile. */
+#wj-free-course .wjcourse__privacy {
+  width:100%;
+  margin:24px 0 -23px;
+  padding:14px 16px;
+  border:1px solid #414247;
+  border-radius:7px;
+  background:#191a1d;
+  color:#dadbdd;
+  font-family:'Inter','Noto Sans TC',sans-serif;
+}
+#wj-free-course .wjcourse__privacy-check {
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  width:100%;
+  margin:0;
+  color:#e8e8e9;
+  font:500 14px/1.65 'Inter','Noto Sans TC',sans-serif;
+  cursor:pointer;
+}
+#wj-free-course #wjcourse-privacy-consent {
+  display:block;
+  appearance:auto;
+  width:17px;
+  height:17px;
+  min-width:17px;
+  flex:0 0 17px;
+  margin:3px 0 0;
+  padding:0;
+  border:0;
+  accent-color:#ff8177;
+  cursor:pointer;
+}
+#wj-free-course #wjcourse-privacy-consent:focus-visible {
+  outline:2px solid #ffb7b0;
+  outline-offset:3px;
+}
+#wj-free-course .wjcourse__privacy-details {
+  margin:5px 0 0 26px;
+  font:400 13px/1.65 'Inter','Noto Sans TC',sans-serif;
+}
+#wj-free-course .wjcourse__privacy-details > summary {
+  display:list-item;
+  width:max-content;
+  max-width:100%;
+  color:#f6b3ac;
+  font-weight:600;
+  cursor:pointer;
+  text-underline-offset:3px;
+}
+#wj-free-course .wjcourse__privacy-details > summary:focus-visible,
+#wj-free-course .wjcourse__privacy-content a:focus-visible {
+  outline:2px solid #ffb7b0;
+  outline-offset:3px;
+}
+#wj-free-course .wjcourse__privacy-content {
+  margin-top:11px;
+  color:#cacacd;
+  overflow-wrap:anywhere;
+}
+#wj-free-course .wjcourse__privacy-content p {
+  margin:0 0 7px;
+}
+#wj-free-course .wjcourse__privacy-content p:last-child { margin-bottom:0; }
+#wj-free-course .wjcourse__privacy-content strong { color:#f4f4f5; }
+#wj-free-course .wjcourse__privacy-content a {
+  color:#f6b3ac;
+  text-decoration:underline;
+}
+@media (max-width:780px) {
+  #wj-free-course .wjcourse__privacy {
+    padding:13px 12px;
+    margin:22px 0 -23px;
+  }
+  #wj-free-course .wjcourse__privacy-check { font-size:13px; }
+  #wj-free-course .wjcourse__privacy-details {font-size:12px;}
+}

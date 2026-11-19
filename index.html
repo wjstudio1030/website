@@ -1051,6 +1051,24 @@ body {
             <textarea id="wjcourse-notes" name="additional_info" rows="4" placeholder="例如：孩子曾做過的小作品、感興趣的主題、想參加的競賽……" maxlength="3000"></textarea>
           </div>
         </div>
+        <div class="wjcourse__privacy" id="wjcourse-privacy">
+          <label class="wjcourse__privacy-check" for="wjcourse-privacy-consent">
+            <input type="checkbox" id="wjcourse-privacy-consent" name="privacy_consent" value="已同意個資蒐集告知" required aria-describedby="wjcourse-privacy-summary">
+            <span id="wjcourse-privacy-summary">我已閱讀並同意下方個資蒐集告知 <span class="wjcourse__required" aria-hidden="true">*</span></span>
+          </label>
+          <details class="wjcourse__privacy-details" id="wjcourse-privacy-details">
+            <summary>查看個資蒐集告知事項</summary>
+            <div class="wjcourse__privacy-content">
+              <p><strong>蒐集者及目的：</strong>WJ STUDIO（WJ 資電工坊團隊），僅用於課程諮詢、報名聯繫與課程安排。</p>
+              <p><strong>資料類別：</strong>家長稱呼、孩子年級與興趣、課程需求、聯絡方式與資訊、選填內容。</p>
+              <p><strong>期間、地區、對象與方式：</strong>於諮詢期間及諮詢結束後一年內（依法須留存者依規定期間），由 WJ STUDIO 負責人員及表單代收服務 Formspree，於臺灣及服務商可能涉及的境外地區，以接收、儲存資料及聯繫方式使用。</p>
+              <p><strong>您的權利：</strong>可請求查詢、閱覽、複製、補充、更正、停止蒐集／處理／利用或刪除，請透過 <a href="https://www.facebook.com/jarvis.hung.164307?locale=zh_TW" target="_blank" rel="noopener noreferrer">本站 Facebook 私訊</a> 聯絡。</p>
+              <p><strong>不提供的影響：</strong>您可自行決定是否提供；未提供必填資料或不同意告知，則無法以此表單完成報名及取得聯繫回覆。</p>
+            </div>
+          </details>
+          <input type="hidden" name="privacy_notice_version" value="WJ-2026-11-20-v1">
+          <input type="hidden" name="privacy_consented_at" id="wjcourse-privacy-consented-at" value="">
+        </div>
         <button type="submit" id="wjcourse-submit" class="wjcourse__submit">SUBMIT REGISTRATION
 / 送出報名</button>
         <p class="wjcourse__status" id="wjcourse-status" role="status" aria-live="polite"></p>
