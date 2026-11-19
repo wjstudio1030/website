@@ -379,16 +379,16 @@
   width:100%;
   margin:0;
   color:#e8e8e9;
-  font:500 14px/1.65 'Inter','Noto Sans TC',sans-serif;
+  font:500 15px/1.65 'Inter','Noto Sans TC',sans-serif;
   cursor:pointer;
 }
 #wj-free-course #wjcourse-privacy-consent {
   display:block;
   appearance:auto;
-  width:17px;
-  height:17px;
-  min-width:17px;
-  flex:0 0 17px;
+  width:19px;
+  height:19px;
+  min-width:19px;
+  flex:0 0 19px;
   margin:3px 0 0;
   padding:0;
   border:0;
@@ -400,8 +400,8 @@
   outline-offset:3px;
 }
 #wj-free-course .wjcourse__privacy-details {
-  margin:5px 0 0 26px;
-  font:400 13px/1.65 'Inter','Noto Sans TC',sans-serif;
+  margin:5px 0 0 28px;
+  font:400 14px/1.65 'Inter','Noto Sans TC',sans-serif;
 }
 #wj-free-course .wjcourse__privacy-details > summary {
   display:list-item;
@@ -436,6 +436,6 @@
     padding:13px 12px;
     margin:22px 0 -23px;
   }
-  #wj-free-course .wjcourse__privacy-check { font-size:13px; }
-  #wj-free-course .wjcourse__privacy-details {font-size:12px;}
+  #wj-free-course .wjcourse__privacy-check { font-size:14px; }
+  #wj-free-course .wjcourse__privacy-details {font-size:13px;}
 }
