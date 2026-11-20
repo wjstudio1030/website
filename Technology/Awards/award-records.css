@@ -296,3 +296,28 @@
   }
 }
 /* WJ AWARD DESKTOP ALIGNMENT END */
+
+
+/* WJ AWARD CERTIFICATE CENTER FIX
+   On desktop, the document path is hidden. The original space-between
+   layout then places the empty-state message near the paper's bottom.
+   Position that message relative to the paper, independent of the header.
+   Phones retain their existing mobile-center rules. */
+@media screen and (min-width:761px) {
+  #wj-award-records .wjaw-paper .wjaw-empty__center {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:calc(100% - 48px);
+    max-width:300px;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:13px;
+  }
+}
+/* WJ AWARD CERTIFICATE CENTER FIX END */
